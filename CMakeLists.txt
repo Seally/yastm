@@ -2,7 +2,8 @@ cmake_minimum_required(VERSION 3.20)
 
 # ---- Options ----
 
-option(COPY_BUILD "Copy the build output to the Skyrim directory." OFF)
+option(COPY_BUILD "Copy the build output to target directory." OFF)
+set(SKYRIM64_DATA_PATH "" CACHE PATH "Path to the Skyrim SE Data folder. Hint: You can set this to the mod folder when using MO2.")
 
 # ---- Cache build vars ----
 
@@ -16,7 +17,7 @@ set_from_environment(Skyrim64Path)
 set_from_environment(VCPKG_ROOT)
 
 if (DEFINED VCPKG_ROOT)
-	set(CMAKE_TOOLCHAIN_FILE "${VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake" CACHE STRING "")
+	set(CMAKE_TOOLCHAIN_FILE "${VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake" CACHE FILEPATH "")
 	set(VCPKG_TARGET_TRIPLET "x64-windows-static" CACHE STRING "")
 else ()
 	message(
@@ -31,7 +32,7 @@ set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>" CACHE STR
 # ---- Project ----
 
 project(
-	ExampleProject
+	YASTM
 	VERSION 1.0.0
 	LANGUAGES CXX
 )
@@ -86,6 +87,7 @@ find_package(spdlog REQUIRED CONFIG)
 # ---- Add source files ----
 
 set(SOURCES
+	src/versiondb.h
 	src/main.cpp
 	src/PCH.h
 )
@@ -197,17 +199,18 @@ target_precompile_headers(
 # ---- Post build ----
 
 if (COPY_BUILD)
-	if (DEFINED Skyrim64Path)
+	if (SKYRIM64_DATA_PATH)
 		add_custom_command(
 			TARGET ${PROJECT_NAME}
 			POST_BUILD
-			COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${PROJECT_NAME}> ${Skyrim64Path}/Data/SKSE/Plugins/
-			COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_PDB_FILE:${PROJECT_NAME}> ${Skyrim64Path}/Data/SKSE/Plugins/
+			COMMAND ${CMAKE_COMMAND} -E make_directory ${SKYRIM64_DATA_PATH}/SKSE/Plugins
+			COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${PROJECT_NAME}> ${SKYRIM64_DATA_PATH}/SKSE/Plugins
+			COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_PDB_FILE:${PROJECT_NAME}> ${SKYRIM64_DATA_PATH}/SKSE/Plugins
 		)
 	else ()
 		message(
 			WARNING
-			"Variable Skyrim64Path is not defined. Skipping post-build copy command."
+			"Variable SKYRIM64_DATA_PATH is empty. Skipping post-build copy command."
 		)
 	endif ()
 endif ()

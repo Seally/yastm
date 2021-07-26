@@ -1,5 +1,30 @@
+#include <memory>
+
+#include "versiondb.h"
+
+
+bool DumpOffsets() {
+	namespace logger = SKSE::log;
+
+	VersionDb db;
+
+	if (!db.Load()) {
+		logger::critical("Failed to load offset database."sv);
+		return false;
+	}
+
+	const std::string& version{db.GetLoadedVersionString()};
+
+	db.Dump("offsets-" + version + ".txt");
+	logger::info("Dumped offsets for " + version);
+
+	return true;
+}
+
 extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Query(const SKSE::QueryInterface* a_skse, SKSE::PluginInfo* a_info)
 {
+	namespace logger = SKSE::log;
+
 #ifndef NDEBUG
 	auto sink = std::make_shared<spdlog::sinks::msvc_sink_mt>();
 #else
@@ -47,9 +72,10 @@ extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Query(const SKSE::QueryInterface* a
 
 extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Load(const SKSE::LoadInterface* a_skse)
 {
+	namespace logger = SKSE::log;
 	logger::info("loaded");
 
 	SKSE::Init(a_skse);
-
-	return true;
+	
+	return DumpOffsets();
 }
