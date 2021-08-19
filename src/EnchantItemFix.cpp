@@ -1,6 +1,5 @@
 #include <xbyak/xbyak.h>
 #include "EnchantItemFix.h"
-#include "offsets.h"
 
 namespace YASTM {
 	/**
@@ -56,12 +55,10 @@ namespace YASTM {
 			/**
 			 * @param[in] player_id                                             The REL::ID of the player.
 			 * @param[in] craftingSubMenus_enchantConstructMenu_enchantItem_id  The REL::ID of the function to patch.
-			 * @param[in] originalBranchOffset                                  The REL::ID of the function offset for the patch's jmp call.
 			 */
 			explicit Patch(
 				const REL::ID& player_id, 
-				const REL::ID& craftingSubMenus_enchantConstructMenu_enchantItem_id, 
-				const std::uintptr_t originalBranchOffset
+				const REL::ID& craftingSubMenus_enchantConstructMenu_enchantItem_id
 			) {
 				namespace logger = SKSE::log;
 				constexpr std::uintptr_t stackSize = 0xb8;
@@ -184,7 +181,7 @@ namespace YASTM {
 			}
 		};
 
-		Patch patch{player_id, craftingSubMenus_enchantConstructMenu_enchantItem_id, patchOffset};
+		Patch patch{player_id, craftingSubMenus_enchantConstructMenu_enchantItem_id};
 		patch.ready();
 
 		logger::info("[ENCHANT] Patch size: {}", patch.getSize());

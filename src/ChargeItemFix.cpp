@@ -1,6 +1,5 @@
 #include <xbyak/xbyak.h>
 #include "ChargeItemFix.h"
-#include "offsets.h"
 
 namespace YASTM {
 	/**
@@ -25,8 +24,8 @@ namespace YASTM {
 			// loc_14088EB42:
 			0x33, 0xd2,                   // xor     edx, edx            ; equivalent to mov edx, 0
 			
-			// Commenting this test out because E8 is a near, relative call, which can change when the new codebase
-			// is changed.
+			// Commenting this test out because E8 is an x86 near, relative call, which can change when the game is
+			// recompiled.
 			//0xe8, 0x17, 0xfe, 0x87, 0xff, // call    sub_14010E960       ; BSExtraDataList::SetSoul(rcx, edx)
 		};
 
@@ -56,16 +55,15 @@ namespace YASTM {
 			/**
 			 * @param[in] player_id             The REL::ID of the player.
 			 * @param[in] chargeItem_id         The REL::ID of the function to patch.
-			 * @param[in] originalBranchOffset  The REL::ID of the function offset for the patch's jmp call.
 			 */
 			explicit Patch(
 				const REL::ID& player_id, 
-				const REL::ID& chargeItem_id, 
-				const std::uintptr_t originalBranchOffset
+				const REL::ID& chargeItem_id
 			) {
 				namespace logger = SKSE::log;
 				constexpr std::uintptr_t stackSize = 0xc8;
 				constexpr std::uintptr_t returnOffset = 0x2b9;
+				constexpr std::uintptr_t branchReturnOffset = 0x2b2;
 
 				// Pseudocode:
 				// if (soulGem->NAM0 == null) {
@@ -181,13 +179,13 @@ namespace YASTM {
 				jmp(ptr[rip + setSoulLabel]);
 
 				L(setSoulLabel);
-				dq(chargeItem_id.address() + 0x2b2);
+				dq(chargeItem_id.address() + branchReturnOffset);
 
 				jmp(ptr[rip + returnContinueLabel]);
 			}
 		};
 
-		Patch patch{player_id, chargeItem_id, patchOffset};
+		Patch patch{player_id, chargeItem_id};
 		patch.ready();
 
 		logger::info("[CHARGE] Patch size: {}", patch.getSize());
