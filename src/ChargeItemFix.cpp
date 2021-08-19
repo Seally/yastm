@@ -108,7 +108,12 @@ namespace YASTM {
 				mov(r10, player_id.address());
 				mov(r10, ptr[r10]);
 
-				//
+				// For details on how arguments are passed, see the x64 calling convention documentation
+				// from Microsoft (specifically __fastcall).
+				// 
+				// - https://docs.microsoft.com/en-us/cpp/cpp/fastcall?view=msvc-160
+				// - https://docs.microsoft.com/en-us/cpp/build/x64-software-conventions?view=msvc-160#register-usage
+
 				// Case: TESSoulGem has NAM0 defined.
 				//
 				// PlayerCharacter::AddObjectToContainer(
@@ -168,7 +173,7 @@ namespace YASTM {
 				dq(chargeItem_id.address() + returnOffset);
 
 				L(ifNAM0IsNullLabel);
-				// Original branch code
+				// Original branch code since we've overwritten some of it when performing the jump.
 				test(rax, rax);
 				jz(ifExtraDataListIsNullLabel2);
 				mov(rcx, ptr[rax]);

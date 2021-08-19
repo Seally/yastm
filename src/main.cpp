@@ -95,7 +95,7 @@ extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Load(const SKSE::LoadInterface* a_s
 	SKSE::Init(a_skse);
 
 	bool result = installPatch("ChargeItemFix", YASTM::InstallChargeItemFix);
-	//// Use bitwise to avoid short-circuiting.
+	// Use bitwise to avoid short-circuiting.
 	result &= installPatch("EnchantItemFix", YASTM::InstallEnchantItemFix);
 		
 	return result;
