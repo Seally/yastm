@@ -94,25 +94,6 @@ extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Load(const SKSE::LoadInterface* a_s
 
 	SKSE::Init(a_skse);
 
-	//bool result = true;
-
-	//try {
-	//	logger::info(FMT_STRING("Installing patch \"{}\"..."), "ChargeItemFix");
-	//	result &= YASTM::InstallChargeItemFix();
-	//}
-	//catch (std::exception& e) {
-	//	logger::error(FMT_STRING("Error while installing patch \"{}\": {}"), "ChargeItemFix", e.what());
-	//}
-
-
-	//try {
-	//	logger::info(FMT_STRING("Installing patch \"{}\"..."), "EnchantItemFix");
-	//	result &= YASTM::InstallEnchantItemFix();
-	//}
-	//catch (std::exception& e) {
-	//	logger::error(FMT_STRING("Error while installing patch \"{}\": {}"), "EnchantItemFix", e.what());
-	//}
-
 	bool result = installPatch("ChargeItemFix", YASTM::InstallChargeItemFix);
 	//// Use bitwise to avoid short-circuiting.
 	result &= installPatch("EnchantItemFix", YASTM::InstallEnchantItemFix);

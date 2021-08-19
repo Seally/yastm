@@ -6,16 +6,15 @@ namespace YASTM {
 	/**
 	 * Check if memory has the expected bytes for patching.
 	 */
-	bool isChargeItemPatchable(std::uintptr_t baseAddress) {
+	bool isChargeItemPatchable(std::uintptr_t baseAddress, std::uintptr_t offset) {
 		namespace logger = SKSE::log;
 		
 		// Reuseable soul gem handling branch code.
-		constexpr std::uintptr_t offset = 0x2a5;
-
 		const std::uint8_t expected[] = {
 			// .text:000000014088EB35
 			// loc_14088EB35:
-			0x48, 0x85, 0xc0,             // test    rax, rax            ; TEST performs an implied AND operation that does not modify the destination but sets CPU flags as if it did.
+			0x48, 0x85, 0xc0,             // rax is probably ExtraDataList
+			                              // test    rax, rax            ; TEST performs an implied AND operation that does not modify the destination but sets CPU flags as if it did.
 										  //                             ; ANDing anything against itself produces itself, so this followed by JZ (Jump If Zero) is equivalent to the code:
 										  //                             ; if (rax) { ...<jump destination>... }
 			0x74, 0x05,                   // jz      short loc_14055EB3F
@@ -47,16 +46,48 @@ namespace YASTM {
 		const REL::ID chargeItem_id{50980}; // SkyrimSE.exe + 0x88e890 (v1.5.97)
 		const REL::ID player_id{517014};    // SkyrimSE.exe + 0x2f26ef8 (v1.5.97)
 
-		if (!isChargeItemPatchable(chargeItem_id.address())) {
+		constexpr std::uintptr_t patchOffset = 0x2a5;
+
+		if (!isChargeItemPatchable(chargeItem_id.address(), patchOffset)) {
 			return false;
 		}
 
 		struct Patch : Xbyak::CodeGenerator {
-			Patch(const REL::ID& player_id, const REL::ID& chargeItem_id) {
+			/**
+			 * @param[in] player_id             The REL::ID of the player.
+			 * @param[in] chargeItem_id         The REL::ID of the function to patch.
+			 * @param[in] originalBranchOffset  The REL::ID of the function offset for the patch's jmp call.
+			 */
+			explicit Patch(
+				const REL::ID& player_id, 
+				const REL::ID& chargeItem_id, 
+				const std::uintptr_t originalBranchOffset
+			) {
 				namespace logger = SKSE::log;
 				constexpr std::uintptr_t stackSize = 0xc8;
-				constexpr std::uintptr_t originalBranchOffset = 0x2a5;
 				constexpr std::uintptr_t returnOffset = 0x2b9;
+
+				// Pseudocode:
+				// if (soulGem->NAM0 == null) {
+				//     <go to original code>
+				// } else {
+				//     player->AddObjectToContainer(
+				//         item      = soulGem->NAM0, 
+				//         extraList = null, 
+				//         count     = 1, 
+				//         fromRefr  = null
+				//     );
+				//     player->RemoveItem(
+				//         ???, 
+				//         item      = soulGem, 
+				//         count     = 1, 
+				//         reason    = 0, 
+				//         extraList = soulGemExtraDataList, 
+				//         moveToRef = null,
+				//         dropLoc   = null,
+				//         rotate    = null
+				//     );
+				// }
 
 				// rax = ExtraDataList* (probably)
 				// rbx = TESSoulGem*
@@ -117,7 +148,7 @@ namespace YASTM {
 				//     TESBoundObject * a_item,        <= soulGem
 				//     std::int32_t a_count,           <= 1
 				//     ITEM_REMOVE_REASON a_reason,    <= 0
-				//     ExtraDataList * a_extraList,    <= 0
+				//     ExtraDataList * a_extraList,    <= soulGem's extraDataList (if it exists)
 				//     TESObjectREFR * a_moveToRef,    <= 0
 				//     const NiPoint3 * a_dropLoc = 0, <= 0
 				//     const NiPoint3 * a_rotate = 0   <= 0
@@ -126,13 +157,13 @@ namespace YASTM {
 				mov(ptr[rsp + stackSize - 0x88], r12);    // a_rotate = 0
 				mov(ptr[rsp + stackSize - 0x90], r12);    // a_dropLoc = 0
 				mov(ptr[rsp + stackSize - 0x98], r12);    // a_moveToRef = 0
-				mov(ptr[rsp + stackSize - 0xa0], rcx);    // a_extraList = 0
+				mov(ptr[rsp + stackSize - 0xa0], rcx);    // a_extraList = soulGem's extraDataList (if it exists)
 				mov(dword[rsp + stackSize - 0xa8], r12d); // a_reason = 0
 				mov(r9d, 1);                              // a_count = 1
 				mov(r8, rbx);                             // a_item = soulGem
 				lea(rdx, ptr[rsp + stackSize + 0x8]);     // ???
 				mov(rcx, r10);                            // this = player
-				call(qword[rax + 0x2b0]); // PlayerCharacter::RemoveItem
+				call(qword[rax + 0x2b0]);                 // PlayerCharacter::RemoveItem
 				jmp(ptr[rip + returnContinueLabel]);
 
 				L(returnContinueLabel);
@@ -156,16 +187,16 @@ namespace YASTM {
 			}
 		};
 
-		Patch patch{player_id, chargeItem_id};
+		Patch patch{player_id, chargeItem_id, patchOffset};
 		patch.ready();
 
-		logger::info("Patch size: {}", patch.getSize());
+		logger::info("[CHARGE] Patch size: {}", patch.getSize());
 
 		auto& trampoline = SKSE::GetTrampoline();
-		// Code is significantly larger than the default trampoline size, so we need to allocate more.
+		// Patch code is significantly larger than the default trampoline size, so we need to allocate more.
 		SKSE::AllocTrampoline(1 << 8);
 		trampoline.write_branch<6>(
-			chargeItem_id.address() + 0x2a5,
+			chargeItem_id.address() + patchOffset,
 			trampoline.allocate(patch)
 		);
 

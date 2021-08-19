@@ -90,7 +90,6 @@ set(SOURCES
 	src/versiondb.h
 	src/main.cpp
 	src/PCH.h
-    src/offsets.h
 	src/ChargeItemFix.h
 	src/ChargeItemFix.cpp
 	src/EnchantItemFix.h

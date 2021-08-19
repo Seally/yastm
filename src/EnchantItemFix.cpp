@@ -6,16 +6,15 @@ namespace YASTM {
 	/**
 	 * Check if memory has the expected bytes for patching.
 	 */
-	bool isEnchantItemPatchable(std::uintptr_t baseAddress) {
+	bool isEnchantItemPatchable(std::uintptr_t baseAddress, std::uintptr_t offset) {
 		namespace logger = SKSE::log;
-
-		constexpr std::uintptr_t offset = 0x222;
 
 		// Reuseable soul gem handling branch code.
 		const std::uint8_t expected[] = {
 			// .text:000000014086C862
 			// loc_14086C862:
-			0x48, 0x85, 0xc9,             // test    rcx, rcx            ; TEST performs an implied AND operation that does not modify the destination but sets CPU flags as if it did.
+			0x48, 0x85, 0xc9,             // rcx is probably ExtraDataList
+			                              // test    rcx, rcx            ; TEST performs an implied AND operation that does not modify the destination but sets CPU flags as if it did.
 										  //                             ; ANDing anything against itself produces itself, so this followed by JZ (Jump If Zero) is equivalent to the code:
 										  //                             ; if (rcx) { ...<jump destination>... }
 			0x74, 0x05,                   // jz      short loc_14086C86C
@@ -26,8 +25,8 @@ namespace YASTM {
 			// loc_14086C86F:
 			0x33, 0xd2,                   // xor     edx, edx            ; equivalent to mov edx, 0
 
-			// Commenting this test out because E8 is a near, relative call, which can change when the new codebase
-			// is changed.
+			// Commenting this test out because E8 is an x86 near, relative call, which can change when the game is
+			// recompiled.
 			//0xe8, 0xea, 0x20, 0x8a, 0xff, // call    sub_14010E960       ; BSExtraDataList::SetSoul(rcx, edx)
 		};
 
@@ -47,19 +46,48 @@ namespace YASTM {
 		const REL::ID craftingSubMenus_enchantConstructMenu_enchantItem_id{50450}; // SkyrimSE.exe + 0x86c640 (v1.5.97)
 		const REL::ID player_id{517014};                                           // SkyrimSE.exe + 0x2f26ef8 (v1.5.97)
 
-		if (!isEnchantItemPatchable(craftingSubMenus_enchantConstructMenu_enchantItem_id.address())) {
+		constexpr std::uintptr_t patchOffset = 0x222;
+
+		if (!isEnchantItemPatchable(craftingSubMenus_enchantConstructMenu_enchantItem_id.address(), patchOffset)) {
 			return false;
 		}
 
 		struct Patch : Xbyak::CodeGenerator {
 			/**
-			 * @param[in] baseAddress          The starting address of the procedure to patch.
+			 * @param[in] player_id                                             The REL::ID of the player.
+			 * @param[in] craftingSubMenus_enchantConstructMenu_enchantItem_id  The REL::ID of the function to patch.
+			 * @param[in] originalBranchOffset                                  The REL::ID of the function offset for the patch's jmp call.
 			 */
-			Patch(const REL::ID& player_id, const REL::ID& craftingSubMenus_enchantConstructMenu_enchantItem_id) {
+			explicit Patch(
+				const REL::ID& player_id, 
+				const REL::ID& craftingSubMenus_enchantConstructMenu_enchantItem_id, 
+				const std::uintptr_t originalBranchOffset
+			) {
 				namespace logger = SKSE::log;
 				constexpr std::uintptr_t stackSize = 0xb8;
-				constexpr std::uintptr_t originalBranchOffset = 0x222;
 				constexpr std::uintptr_t returnOffset = 0x236;
+
+				// Pseudocode:
+				// if (soulGem->NAM0 == null) {
+				//     <go to original code>
+				// } else {
+				//     player->AddObjectToContainer(
+				//         item      = soulGem->NAM0, 
+				//         extraList = null, 
+				//         count     = 1, 
+				//         fromRefr  = null
+				//     );
+				//     player->RemoveItem(
+				//         ???, 
+				//         item      = soulGem, 
+				//         count     = 1, 
+				//         reason    = 0, 
+				//         extraList = soulGemExtraDataList, 
+				//         moveToRef = null,
+				//         dropLoc   = null,
+				//         rotate    = null
+				//     );
+				// }
 
 				// rcx = ExtraDataList* (probably)
 				// rdi = TESSoulGem*
@@ -119,7 +147,7 @@ namespace YASTM {
 				//     TESBoundObject * a_item,        <= soulGem
 				//     std::int32_t a_count,           <= 1
 				//     ITEM_REMOVE_REASON a_reason,    <= 0
-				//     ExtraDataList * a_extraList,    <= 0
+				//     ExtraDataList * a_extraList,    <= soulGem's extraDataList (if it exists)
 				//     TESObjectREFR * a_moveToRef,    <= 0
 				//     const NiPoint3 * a_dropLoc = 0, <= 0
 				//     const NiPoint3 * a_rotate = 0   <= 0
@@ -128,7 +156,7 @@ namespace YASTM {
 				mov(ptr[rsp + stackSize - 0x78], r13);    // a_rotate = 0
 				mov(ptr[rsp + stackSize - 0x80], r13);    // a_dropLoc = 0
 				mov(ptr[rsp + stackSize - 0x88], r13);    // a_moveToRef = 0
-				mov(ptr[rsp + stackSize - 0x90], rdx);    // a_extraList = 0
+				mov(ptr[rsp + stackSize - 0x90], rdx);    // a_extraList = soulGem's extraDataList (if it exists)
 				mov(dword[rsp + stackSize - 0x98], r13d); // a_reason = 0
 				mov(r9d, 1);                              // a_count = 1
 				mov(r8, rdi);                             // a_item = soulGem
@@ -156,46 +184,19 @@ namespace YASTM {
 			}
 		};
 
-		Patch patch{player_id, craftingSubMenus_enchantConstructMenu_enchantItem_id};
+		Patch patch{player_id, craftingSubMenus_enchantConstructMenu_enchantItem_id, patchOffset};
 		patch.ready();
 
-		logger::info("Patch size: {}", patch.getSize());
+		logger::info("[ENCHANT] Patch size: {}", patch.getSize());
 
 		auto& trampoline = SKSE::GetTrampoline();
 		// Code is significantly larger than the default trampoline size, so we need to allocate more.
 		SKSE::AllocTrampoline(1 << 8);
 		trampoline.write_branch<6>(
-			craftingSubMenus_enchantConstructMenu_enchantItem_id.address() + 0x222,
+			craftingSubMenus_enchantConstructMenu_enchantItem_id.address() + patchOffset,
 			trampoline.allocate(patch)
 		);
 
 		return true;
 	}
-
-	//bool InstallChargeFix() {
-	//	const auto address = Offsets::CraftingSubMenus::EnchantConstructMenu::EnchantItem.address();
-	//	const std::uintptr_t CODE_OFFSET = 0x2a5;
-	//	const std::uint8_t expected[] = {
-	//		// loc_14088EB35:
-	//		0x48, 0x85, 0xc9,             // test    rax, rax
-	//		0x74, 0x05,                   // jz      short loc_14088EB3F
-	//		0x48, 0x8b, 0x08,             // mov     rcx, [rax]
-	//		0xeb, 0x03,                   // jmp     short loc_14088EB42
-	//		// loc_14088EB3F:
-	//		0x49, 0x8b, 0xcc,             // mov     rcx, r12
-	//		// loc_14088EB42:
-	//		0x33, 0xd2,                   // xor     edx, edx      ; equivalent to mov edx, 0
-	//		0xe8, 0x17, 0xfe, 0x87, 0xff, // call    sub_14010E960 ; BSExtraDataList::SetSoul(rcx, edx)
-	//	};
-
-	//	if (std::memcmp(reinterpret_cast<std::uint8_t*>(static_cast<std::uintptr_t>(address + CODE_OFFSET)), expected, sizeof expected) != 0) {
-	//		// Expected bytes not found.
-
-	//		return false;
-	//	}
-
-	//	auto& trampoline = SKSE::GetTrampoline();
-
-	//	return true;
-	//}
 } // namespace YASTM
