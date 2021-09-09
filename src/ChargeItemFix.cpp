@@ -44,6 +44,9 @@ namespace YASTM {
 		// CraftingSubMenus::EnchantMenu::EnchantItem
 		const REL::ID chargeItem_id{50980}; // SkyrimSE.exe + 0x88e890 (v1.5.97)
 		const REL::ID player_id{517014};    // SkyrimSE.exe + 0x2f26ef8 (v1.5.97)
+		// This probably isn't updateInventory and may actually be part of the update loop, 
+		// but updating inventory is what we use it for here.
+		const REL::ID updateInventory_id{51911};   // SkyrimSE.exe + 0x8d5710 (v1.5.97)
 
 		constexpr std::uintptr_t patchOffset = 0x2a5;
 
@@ -58,7 +61,8 @@ namespace YASTM {
 			 */
 			explicit Patch(
 				const REL::ID& player_id, 
-				const REL::ID& chargeItem_id
+				const REL::ID& chargeItem_id,
+				const REL::ID& updateInventory_id
 			) {
 				namespace logger = SKSE::log;
 				constexpr std::uintptr_t stackSize = 0xc8;
@@ -75,6 +79,7 @@ namespace YASTM {
 				//         count     = 1, 
 				//         fromRefr  = null
 				//     );
+				//     updateInventory(player, soulGem->NAM0)
 				//     player->RemoveItem(
 				//         ???, 
 				//         item      = soulGem, 
@@ -98,6 +103,9 @@ namespace YASTM {
 				// These labels duplicate the original branch's code.
 				Xbyak::Label ifExtraDataListIsNullLabel2;
 				Xbyak::Label setSoulLabel;
+
+				// These labels reference external functions.
+				Xbyak::Label updateInventoryLabel;
 
 				// Check the NAM0 entry for the soul gem.
 				mov(rcx, ptr[rbx + 0x100]); // rbx = soulGem, [rbx + 100h] = soulGem.NAM0
@@ -130,7 +138,22 @@ namespace YASTM {
 				mov(rcx, r10);                         // this = player
 				call(qword[rax + 0x2d0]);              // PlayerCharacter::AddObjectToContainer
 
-				// assign r10 to player (again, since r10 was not preserved in the last call).
+				// Updates the inventory UI. If we don't call this, the added soul gem won't show up until the user reopens 
+				// the inventory menu.
+				// 
+				// Also, it seems we need to call this before removing the item, otherwise this seems to do nothing.
+				//
+				// 1st argument of the function seems to be the actor in question, and the 2nd the item to add.
+				// When removing items, the 2nd argument should be NULL. 
+				// 
+				// This function is called for the item remove case already, but not for the added item (since it 
+				// doesn't originally call it at all).
+				mov(rdx, ptr[rbx + 0x100]);
+				mov(rcx, player_id.address());
+				mov(rcx, ptr[rcx]);
+				call(ptr[rip + updateInventoryLabel]);
+
+				// assign r10 to player (again, since r10 may not be preserved).
 				mov(r10, player_id.address());
 				mov(r10, ptr[r10]);
 
@@ -187,10 +210,13 @@ namespace YASTM {
 				dq(chargeItem_id.address() + branchReturnOffset);
 
 				jmp(ptr[rip + returnContinueLabel]);
+
+				L(updateInventoryLabel);
+				dq(updateInventory_id.address());
 			}
 		};
 
-		Patch patch{player_id, chargeItem_id};
+		Patch patch{player_id, chargeItem_id, updateInventory_id};
 		patch.ready();
 
 		logger::info("[CHARGE] Patch size: {}", patch.getSize());
