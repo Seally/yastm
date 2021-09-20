@@ -1,4 +1,5 @@
-#pragma once
+#ifndef VERSION_HPP
+#define VERSION_HPP
 
 namespace Version
 {
@@ -8,3 +9,5 @@ namespace Version
 	inline constexpr auto NAME = "@PROJECT_VERSION@"sv;
 	inline constexpr auto PROJECT = "@PROJECT_NAME@"sv;
 }
+
+#endif // VERSION_HPP

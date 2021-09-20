@@ -1,4 +1,5 @@
-#pragma once
+#ifndef VERSIONDB_HPP
+#define VERSIONDB_HPP
 
 #include <map>
 #include <fstream>
@@ -301,3 +302,5 @@ public:
 		return true;
 	}
 };
+
+#endif // VERSIONDB_HPP

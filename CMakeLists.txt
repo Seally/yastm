@@ -38,8 +38,8 @@ project(
 )
 
 configure_file(
-	${CMAKE_CURRENT_SOURCE_DIR}/cmake/Version.h.in
-	${CMAKE_CURRENT_BINARY_DIR}/include/Version.h
+	${CMAKE_CURRENT_SOURCE_DIR}/cmake/version.hpp.in
+	${CMAKE_CURRENT_BINARY_DIR}/include/version.hpp
 	@ONLY
 )
 
@@ -87,14 +87,28 @@ find_package(spdlog REQUIRED CONFIG)
 # ---- Add source files ----
 
 set(SOURCES
-	src/versiondb.h
+    src/global.hpp
+	src/versiondb.hpp
 	src/main.cpp
-	src/PCH.h
-	src/ChargeItemFix.h
+	src/PCH.hpp
+	src/ChargeItemFix.hpp
 	src/ChargeItemFix.cpp
-	src/EnchantItemFix.h
+	src/EnchantItemFix.hpp
 	src/EnchantItemFix.cpp
-)
+    
+    
+    src/SoulTrapFix.hpp
+	src/SoulTrapFix.cpp
+	src/config/SoulGemConfig.hpp
+	src/config/SoulGemConfig.cpp
+    src/config/_formaterror.hpp
+    src/config/ParseError.hpp
+    src/config/SoulGemGroup.hpp
+    src/config/SoulGemGroup.cpp
+    src/config/SoulGemId.hpp
+    src/config/SoulGemId.cpp
+    src/config/SoulSize.hpp
+  "src/Victim.hpp" "src/Victim.cpp")
 
 source_group(
 	TREE
@@ -107,7 +121,7 @@ source_group(
 	TREE
 		${CMAKE_CURRENT_BINARY_DIR}
 	FILES
-		${CMAKE_CURRENT_BINARY_DIR}/include/Version.h
+		${CMAKE_CURRENT_BINARY_DIR}/include/version.hpp
 )
 
 # ---- Create DLL ----
@@ -116,7 +130,7 @@ add_library(
 	${PROJECT_NAME}
 	SHARED
 	${SOURCES}
-	${CMAKE_CURRENT_BINARY_DIR}/include/Version.h
+	${CMAKE_CURRENT_BINARY_DIR}/include/version.hpp
 	${CMAKE_CURRENT_BINARY_DIR}/version.rc
 	.clang-format
 	.editorconfig
@@ -192,12 +206,14 @@ if (MSVC)
 			"$<$<CONFIG:DEBUG>:/INCREMENTAL;/OPT:NOREF;/OPT:NOICF>"
 			"$<$<CONFIG:RELEASE>:/INCREMENTAL:NO;/OPT:REF;/OPT:ICF;/DEBUG:FULL>"
 	)
-endif ()
+else()
+    message(WARNING "MSVC is the only supported compiler. Proceed at your own caution.")
+endif()
 
 target_precompile_headers(
 	${PROJECT_NAME}
 	PRIVATE
-		src/PCH.h
+		src/PCH.hpp
 )
 
 # ---- Post build ----

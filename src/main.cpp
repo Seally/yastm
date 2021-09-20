@@ -1,9 +1,18 @@
 #include <memory>
-#include <xbyak/xbyak.h>
 
-#include "ChargeItemFix.h"
-#include "EnchantItemFix.h"
-//#include "versiondb.h"
+#include <SKSE/SKSE.h>
+#include <xbyak/xbyak.h>
+#include <spdlog/sinks/basic_file_sink.h>
+
+#include "global.hpp"
+#include "version.hpp"
+
+#include "ChargeItemFix.hpp"
+#include "EnchantItemFix.hpp"
+#include "SoulTrapFix.hpp"
+
+#include "config/SoulGemConfig.hpp"
+//#include "versiondb.hpp"
 
 
 //bool DumpOffsets() {
@@ -26,11 +35,9 @@
 
 extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Query(const SKSE::QueryInterface* a_skse, SKSE::PluginInfo* a_info)
 {
+    using namespace std::literals;
 	namespace logger = SKSE::log;
 
-//#ifndef NDEBUG
-	//auto sink = std::make_shared<spdlog::sinks::msvc_sink_mt>();
-//#else
 	auto path = logger::log_directory();
 	if (!path) {
 		return false;
@@ -39,16 +46,15 @@ extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Query(const SKSE::QueryInterface* a
 	*path /= Version::PROJECT;
 	*path += ".log"sv;
 	auto sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(path->string(), true);
-//#endif
-
 	auto log = std::make_shared<spdlog::logger>("global log"s, std::move(sink));
 
-//#ifndef NDEBUG
-//	log->set_level(spdlog::level::trace);
-//#else
+#ifndef NDEBUG
+	log->set_level(spdlog::level::trace);
+	log->flush_on(spdlog::level::trace);
+#else
 	log->set_level(spdlog::level::info);
 	log->flush_on(spdlog::level::warn);
-//#endif
+#endif
 
 	spdlog::set_default_logger(std::move(log));
 	spdlog::set_pattern("%g(%#): [%^%l%$] %v"s);
@@ -73,30 +79,35 @@ extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Query(const SKSE::QueryInterface* a
 	return true;
 }
 
-bool installPatch(const char* patchName, bool (* const patchFnPtr)()) {
-	namespace logger = SKSE::log;
+template<typename... FArgs, typename... CArgs>
+bool installPatch(const std::string_view patchName, bool(*patchFunction)(FArgs...), CArgs&&... args) {
+    namespace logger = SKSE::log;
 
-	try {
-		logger::info(FMT_STRING("Installing patch \"{}\"..."), patchName);
-		return patchFnPtr();
-	}
-	catch (std::exception& e) {
-		logger::error(FMT_STRING("Error while installing patch \"{}\": {}"), patchName, e.what());
-	}
+    try {
+        logger::info(FMT_STRING("Installing patch \"{}\"..."), patchName);
+        return patchFunction(std::forward<CArgs>(args)...);
+    } catch (const std::exception& e) {
+        logger::error(FMT_STRING("Error while installing patch \"{}\": {}"), patchName, e.what());
+    }
 
-	return false;
+    return false;
 }
 
-extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Load(const SKSE::LoadInterface* a_skse)
-{
+extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Load(const SKSE::LoadInterface* a_skse) {
 	namespace logger = SKSE::log;
 	logger::info("Loaded.");
 
 	SKSE::Init(a_skse);
 
-	bool result = installPatch("ChargeItemFix", YASTM::InstallChargeItemFix);
+	bool result = installPatch("ChargeItemFix", yastm::installChargeItemFix);
 	// Use bitwise to avoid short-circuiting.
-	result &= installPatch("EnchantItemFix", YASTM::InstallEnchantItemFix);
+	result &= installPatch("EnchantItemFix", yastm::installEnchantItemFix);
+
+    try {
+        result &= installPatch("SoulTrapFix", yastm::installSoulTrapFix);
+    } catch (const std::exception& error) {
+        logger::error(error.what());
+    }
 		
 	return result;
 }

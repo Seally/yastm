@@ -1,0 +1,85 @@
+[[soulGems]]
+id = "Petty Soul Gem"
+isReusable = false
+capacity = 1
+members = [
+    [0x2e4e2, "Skyrim.esm"], # Empty
+    [0x2e4e3, "Skyrim.esm"], # Filled
+]
+
+[[soulGems]]
+id = "Lesser Soul Gem"
+isReusable = false
+capacity = 2
+members = [
+    [0x2e4e4, "Skyrim.esm"], # Empty
+    [0x820, "YASTM.esp"],    # Petty
+    [0x2e4e5, "Skyrim.esm"], # Filled
+]
+
+[[soulGems]]
+id = "Common Soul Gem"
+isReusable = false
+capacity = 3
+members = [
+    [0x2e4e6, "Skyrim.esm"], # Empty
+    [0x821, "YASTM.esp"],    # Petty
+    [0x822, "YASTM.esp"],    # Lesser
+    [0x2e4f3, "Skyrim.esm"], # Filled
+]
+
+[[soulGems]]
+id = "Greater Soul Gem"
+isReusable = false
+capacity = 4
+members = [
+    [0x2e4f4, "Skyrim.esm"], # Empty
+    [0x823, "YASTM.esp"],    # Petty
+    [0x824, "YASTM.esp"],    # Lesser
+    [0x825, "YASTM.esp"],    # Common
+    [0x2e4fb, "Skyrim.esm"], # Filled
+]
+
+[[soulGems]]
+id = "Grand Soul Gem"
+isReusable = false
+capacity = 5
+members = [
+    [0x2e4fc, "Skyrim.esm"], # Empty
+    [0x826, "YASTM.esp"],    # Petty
+    [0x827, "YASTM.esp"],    # Lesser
+    [0x828, "YASTM.esp"],    # Common
+    [0x829, "YASTM.esp"],    # Greater
+    [0x2e4ff, "Skyrim.esm"], # Filled
+]
+
+[[soulGems]]
+id = "Black Soul Gem"
+isReusable = false
+capacity = 6
+members = [
+    [0x2e500, "Skyrim.esm"], # Empty
+    [0x2e504, "Skyrim.esm"], # Filled
+]
+
+[[soulGems]]
+id = "Azura's Star"
+isReusable = true
+capacity = 5
+members = [
+    [0x63b27, "Skyrim.esm"], # Empty
+    [0x82e, "YASTM.esp"],    # Petty
+    [0x82f, "YASTM.esp"],    # Lesser
+    [0x830, "YASTM.esp"],    # Common
+    [0x831, "YASTM.esp"],    # Greater
+    [0x832, "YASTM.esp"],    # Filled
+]
+
+[[soulGems]]
+id = "The Black Star"
+isReusable = true
+capacity = 6
+members = [
+    [0x63b29, "Skyrim.esm"], # Empty
+    [0x837, "YASTM.esp"],    # Filled
+]

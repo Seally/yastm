@@ -1,7 +1,9 @@
-#include <xbyak/xbyak.h>
-#include "EnchantItemFix.h"
+#include "EnchantItemFix.hpp"
 
-namespace YASTM {
+#include <SKSE/SKSE.h>
+#include <xbyak/xbyak.h>
+
+namespace yastm {
 	/**
 	 * Check if memory has the expected bytes for patching.
 	 */
@@ -38,7 +40,7 @@ namespace YASTM {
 		return true;
 	}
 
-	bool InstallEnchantItemFix() {
+	bool installEnchantItemFix() {
 		namespace logger = SKSE::log;
 
 		// CraftingSubMenus::EnchantMenu::EnchantItem
@@ -202,4 +204,4 @@ namespace YASTM {
 
 		return true;
 	}
-} // namespace YASTM
+} // namespace yastm

@@ -1,8 +1,8 @@
 #ifndef YASTM_ENCHANTITEMFIX_H
 #define YASTM_ENCHANTITEMFIX_H
 
-namespace YASTM {
-	bool InstallEnchantItemFix();
-} // namespace YASTM
+namespace yastm {
+	bool installEnchantItemFix();
+} // namespace yastm
 
 #endif // YASTM_ENCHANTITEMFIX_H
