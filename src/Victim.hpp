@@ -19,19 +19,23 @@ public:
     bool isDisplacedSoul() const { return actor() == nullptr; }
 };
 
-inline bool operator<(const Victim& lhs, const Victim& rhs) {
+inline bool operator<(const Victim& lhs, const Victim& rhs)
+{
     return lhs.soulSize() < rhs.soulSize();
 }
 
-inline bool operator<=(const Victim& lhs, const Victim& rhs) {
+inline bool operator<=(const Victim& lhs, const Victim& rhs)
+{
     return lhs.soulSize() <= rhs.soulSize();
 }
 
-inline bool operator>(const Victim& lhs, const Victim& rhs) {
+inline bool operator>(const Victim& lhs, const Victim& rhs)
+{
     return lhs.soulSize() > rhs.soulSize();
 }
 
-inline bool operator>=(const Victim& lhs, const Victim& rhs) {
+inline bool operator>=(const Victim& lhs, const Victim& rhs)
+{
     return lhs.soulSize() >= rhs.soulSize();
 }
 

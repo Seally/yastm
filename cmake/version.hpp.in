@@ -1,7 +1,7 @@
 #ifndef VERSION_HPP
 #define VERSION_HPP
 
-namespace Version
+namespace version
 {
 	inline constexpr std::size_t MAJOR = @PROJECT_VERSION_MAJOR@;
 	inline constexpr std::size_t MINOR = @PROJECT_VERSION_MINOR@;

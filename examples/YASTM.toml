@@ -1,0 +1,5 @@
+[YASTM]
+allowPartiallyFillingSoulGemsGlobal = [0xd92, "YASTM.esp"]
+allowSoulDisplacementGlobal = [0xd8e, "YASTM.esp"]
+allowSoulRelocationGlobal = [0xd8f, "YASTM.esp"]
+allowSoulShrinkingGlobal = [0xd90, "YASTM.esp"]

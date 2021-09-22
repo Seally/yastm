@@ -16,26 +16,34 @@ enum SoulSize {
     Black = 6,
 };
 
-template<typename T>
-inline SoulSize toSoulSize(const T value) {
+template <typename T>
+inline SoulSize toSoulSize(const T value)
+{
     static_assert(std::is_integral_v<T>);
 
     return static_cast<SoulSize>(value);
 }
 
-inline bool isValidSoulCapacity(const SoulSize soulCapacity) {
+inline bool isValidSoulCapacity(const SoulSize soulCapacity)
+{
     return SoulSize::Petty <= soulCapacity && soulCapacity <= SoulSize::Black;
 }
 
-inline bool isValidContainedSoulSize(const SoulSize soulCapacity, const SoulSize containedSoulSize) {
+inline bool isValidContainedSoulSize(
+    const SoulSize soulCapacity,
+    const SoulSize containedSoulSize)
+{
     if (soulCapacity == SoulSize::Black) {
-        return containedSoulSize == SoulSize::None || containedSoulSize == SoulSize::Black;
+        return containedSoulSize == SoulSize::None ||
+               containedSoulSize == SoulSize::Black;
     }
 
-    return SoulSize::None <= containedSoulSize && containedSoulSize <= soulCapacity;
+    return SoulSize::None <= containedSoulSize &&
+           containedSoulSize <= soulCapacity;
 }
 
-inline std::size_t getVariantCountForCapacity(const SoulSize soulCapacity) {
+inline std::size_t getVariantCountForCapacity(const SoulSize soulCapacity)
+{
     // Black soul gems only need 2 variants: filled and unfilled.
     if (soulCapacity == SoulSize::Black) {
         return 2;

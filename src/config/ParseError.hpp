@@ -4,7 +4,9 @@
 #include <exception>
 
 class ParseError : public std::runtime_error {
-    explicit ParseError(std::string_view message) : std::runtime_error{message} {}
+    explicit ParseError(std::string_view message)
+        : std::runtime_error{message}
+    {}
 };
 
 #endif // PARSEERROR_H
