@@ -18,10 +18,16 @@ void YASTMConfig::_readYASTMConfig()
     namespace logger = SKSE::log;
 
     toml::table table;
-    std::string_view configPath = "Data/YASTM.toml"sv;
+
+    const std::filesystem::path configPath{"Data/YASTM.toml"sv};
+    const std::string configPathStr{configPath.string()};
 
     try {
-        table = toml::parse_file(configPath);
+        table = toml::parse_file(configPathStr);
+
+        logger::info(
+            FMT_STRING("Found YASTM general configuration file: {}"sv),
+            configPath.filename().string());
 
         const auto yastmTable = table["YASTM"];
 
@@ -46,12 +52,16 @@ void YASTMConfig::_readYASTMConfig()
         readIdFromToml(Key::AllowSoulDisplacement);
         readIdFromToml(Key::AllowSoulRelocation);
         readIdFromToml(Key::AllowSoulShrinking);
-    } catch (const toml::parse_error&) {
+    } catch (const toml::parse_error& error) {
         logger::warn(
-            FMT_STRING("Error while parsing config file \"{}\""sv),
-            configPath);
+            FMT_STRING(
+                "Error while parsing general configuration file \"{}\": {}"sv),
+            configPathStr,
+            error.what());
     }
 
+    // Print the loaded configuration (we can't read the in-game forms yet.
+    // Game hasn't fully initialized.)
     logger::trace("Loaded configuration from TOML:"sv);
 
     for (const auto& [key, globalId] : _globals) {
@@ -78,7 +88,7 @@ void YASTMConfig::_readSoulGemConfigs()
 
             if (fileNameStr.starts_with("YASTM_"sv)) {
                 logger::info(
-                    FMT_STRING("Found YASTM configuration file: {}"sv),
+                    FMT_STRING("Found YASTM soul gem configuration file: {}"sv),
                     fileNameStr);
                 configPaths.push_back(entry.path());
             }
@@ -119,7 +129,8 @@ void YASTMConfig::_readSoulGemConfigs()
             }
         } catch (const toml::parse_error&) {
             logger::warn(
-                FMT_STRING("Error while parsing config file \"{}\""sv),
+                FMT_STRING(
+                    "Error while parsing soul gem configuration file \"{}\""sv),
                 configPathStr);
         }
     }
@@ -202,11 +213,11 @@ bool YASTMConfig::_isValidConfig(RE::TESDataHandler* const dataHandler) const
                 static_cast<SoulSize>(soulGemForm->GetMaximumCapacity())) {
                 logger::error(
                     FMT_STRING(
-                        "Soul gem {:08x} \"{}\" from file \"{}\" listed in group '{}' does not have a capacity matching configuration."sv),
+                        "Soul gem {:08x} \"{}\" from file \"{}\" in group '{}' does not have a capacity matching configuration."sv),
                     form->GetFormID(),
                     form->GetName(),
-                    soulGemGroup->id(),
-                    soulGemId->pluginName());
+                    soulGemId->pluginName(),
+                    soulGemGroup->id());
                 return false;
             }
 
@@ -221,11 +232,11 @@ bool YASTMConfig::_isValidConfig(RE::TESDataHandler* const dataHandler) const
                 if (soulGemForm->linkedSoulGem == nullptr) {
                     logger::error(
                         FMT_STRING(
-                            "Reusable soul gem {:08x} \"{}\" from file \"{}\" that contains a soul must have a linked soul gem specified in the form."sv),
+                            "Reusable soul gem {:08x} \"{}\" from file \"{}\" in group '{}' contains a soul but has no linked soul gem specified in the form."sv),
                         form->GetFormID(),
                         form->GetName(),
-                        soulGemGroup->id(),
-                        soulGemId->pluginName());
+                        soulGemId->pluginName(),
+                        soulGemGroup->id());
                     return false;
                 }
 
@@ -233,11 +244,11 @@ bool YASTMConfig::_isValidConfig(RE::TESDataHandler* const dataHandler) const
                     RE::SOUL_LEVEL::kNone) {
                     logger::error(
                         FMT_STRING(
-                            "Linked soul gem for reusable soul gem {:08x} \"{}\" from file \"{}\" is not an empty soul gem."sv),
+                            "Linked soul gem for reusable soul gem {:08x} \"{}\" from file \"{}\" in group '{}' is not an empty soul gem."sv),
                         form->GetFormID(),
                         form->GetName(),
-                        soulGemGroup->id(),
-                        soulGemId->pluginName());
+                        soulGemId->pluginName(),
+                        soulGemGroup->id());
                     return false;
                 }
             }
@@ -286,7 +297,7 @@ bool YASTMConfig::_isValidConfig(RE::TESDataHandler* const dataHandler) const
             }
 
             logger::info(
-                FMT_STRING("- Loaded form: {:08x} {}"sv),
+                FMT_STRING("- Loaded form: [ID:{:08x}] {}"sv),
                 form->GetFormID(),
                 form->GetName());
         }
@@ -397,7 +408,7 @@ void YASTMConfig::_getGlobalForms(RE::TESDataHandler* const dataHandler)
             globalId.setForm(form->As<RE::TESGlobal>());
 
             logger::info(
-                FMT_STRING("- Loaded form: {:08x} (key: {})"sv),
+                FMT_STRING("- Loaded form: [ID:{:08x}] (key: {})"sv),
                 form->GetFormID(),
                 globalId.keyName());
         } else {
@@ -502,8 +513,8 @@ void YASTMConfig::_createSoulGemMap(RE::TESDataHandler* const dataHandler)
                     soulGemForm->GetName(),
                     soulGemForm->GetMaximumCapacity(),
                     soulGemForm->GetContainedSoul(),
-                    soulGemForm->HasKeyword(reusableSoulGemKeyword),
-                    _canHoldBlackSoul(soulGemForm));
+                    _canHoldBlackSoul(soulGemForm),
+                    soulGemForm->HasKeyword(reusableSoulGemKeyword));
             }
         }
     }
@@ -517,8 +528,8 @@ void YASTMConfig::_createSoulGemMap(RE::TESDataHandler* const dataHandler)
             soulGemForm->GetName(),
             soulGemForm->GetMaximumCapacity(),
             soulGemForm->GetContainedSoul(),
-            soulGemForm->HasKeyword(reusableSoulGemKeyword),
-            _canHoldBlackSoul(soulGemForm));
+            _canHoldBlackSoul(soulGemForm),
+            soulGemForm->HasKeyword(reusableSoulGemKeyword));
     }
 
     logger::info("Listing mapped filled black soul gems.");
@@ -530,8 +541,8 @@ void YASTMConfig::_createSoulGemMap(RE::TESDataHandler* const dataHandler)
             soulGemForm->GetName(),
             soulGemForm->GetMaximumCapacity(),
             soulGemForm->GetContainedSoul(),
-            soulGemForm->HasKeyword(reusableSoulGemKeyword),
-            _canHoldBlackSoul(soulGemForm));
+            _canHoldBlackSoul(soulGemForm),
+            soulGemForm->HasKeyword(reusableSoulGemKeyword));
     }
 }
 

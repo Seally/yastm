@@ -5,7 +5,8 @@ Manager) mod for Skyrim Special Edition.
 
 It completely overrides the soul trap logic used by the game, so Papyrus code
 can simply call `caster.TrapSoul(victim)` and it should work as long as all
-supporting TOMLs and ESPs are in place.
+supporting TOMLs and ESPs are in place. Note that the changes made by USSEP to
+`magicSoulTrapFXScript` must be reverted for this mod to operate as intended.
 
 It also fixes the crash that occurs when using a reusable soul gem whose base
 form already has a soul. In order for reusable soul gems to be supported by this

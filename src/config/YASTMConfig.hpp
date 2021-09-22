@@ -43,8 +43,6 @@ private:
     void _readYASTMConfig();
     void _readSoulGemConfigs();
 
-    bool _getGlobalAsBool(const Key key) const;
-
     void _getGlobalForms(RE::TESDataHandler* dataHandler);
     void _createSoulGemMap(RE::TESDataHandler* dataHandler);
     bool _isValidConfig(RE::TESDataHandler* dataHandler) const;

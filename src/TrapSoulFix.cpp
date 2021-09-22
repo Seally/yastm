@@ -195,6 +195,8 @@ bool _trapBlackSoul(
     const Victim& victim,
     const RE::TESObjectREFR::InventoryCountMap& soulGemCountMap)
 {
+    // Black souls are simple since they're all or none. Either you have a
+    // black soul gem or you don't. Nothing fancy to account for.
     using namespace std::literals;
     namespace logger = SKSE::log;
 
@@ -228,7 +230,33 @@ bool _trapFullSoul(
     const YASTMConfig& config = YASTMConfig::getInstance();
 
     if (allowRelocation) {
-        // If relocation is allowed, we prioritize the soul gem capacity over the size of the displaced soul.
+        // With soul relocation, we try to fit the soul into the soul gem by
+        // utilizing the "best-fit" principle:
+        //
+        // We define "fit" to be :
+        //
+        //     fit = soulCapacity - containedSoulSize
+        //
+        // The lower the value of the "fit", the better fit it is.
+        //
+        // The best-fit soul gem is a fully-filled soul gem.
+        // The worst-fit soul gem is an empty soul gem.
+        // 
+        // When "fit" is equal, the soul gem closest in size to the given soul
+        // size takes priority.
+        //
+        // To maximize the fit, the algorithm is described roughly as follows:
+        //
+        // Given a soul of size X, soul gem capacity C, and existing soul
+        // size E:
+        //
+        // From C = X up to C = 5
+        //     From E = 0 up to E = C - 1
+        //         If HasSoulGem(Capacity = C, ExistingSoulSize = E)
+        //             FillSoulGem(SoulSize = X, Capacity = C, ExistingSoulSize = E)
+        //             Return
+        //         Else
+        //             Continue searching
         const SoulSize maxSoulCapacityToSearch =
             allowPartial ? SoulSize::Grand : victim.soulSize();
         const SoulSize maxContainedSoulSizeToSearch =
@@ -275,7 +303,21 @@ bool _trapFullSoul(
             }
         }
     } else {
-        // If relocation is disabled, we need to displace the smallest soul first to reduce soul loss.
+        // Without soul relocation, we need to minimize soul loss by displacing
+        // the smallest soul first.
+        //
+        // The algorithm is described roughly as follows:
+        //
+        // Given a soul of size X, soul gem capacity C, and existing soul
+        // size E:
+        //
+        // From E = 0 up to E = X - 1
+        //     From C = X up to C = 5
+        //         If HasSoulGem(Capacity = C, ExistingSoulSize = E)
+        //             FillSoulGem(SoulSize = X, Capacity = C, ExistingSoulSize = E)
+        //             Return
+        //         Else
+        //             Continue searching
         const SoulSize maxSoulCapacityToSearch =
             allowPartial ? SoulSize::Grand : victim.soulSize();
         const SoulSize maxContainedSoulSizeToSearch =
@@ -394,8 +436,10 @@ bool trapSoul(RE::Actor* const caster, RE::Actor* const victimActor)
 
     try {
         const YASTMConfig& config = YASTMConfig::getInstance();
+        // Priority queue where largest souls are prioritized first.
+        // Needed for handling displaced souls.
         std::priority_queue<Victim, std::vector<Victim>, std::greater<Victim>>
-            victims; // We need this to handle displaced souls.
+            victims;
 
         victims.emplace(victimActor);
 
@@ -421,8 +465,6 @@ bool trapSoul(RE::Actor* const caster, RE::Actor* const victimActor)
                     return boundObject.IsSoulGem();
                 });
 
-            // Black souls are simple since they're all or none. Either you have a black soul gem or you don't.
-            // Nothing fancy to account for.
             if (victim.soulSize() == SoulSize::Black) {
                 if (_trapBlackSoul(caster, victim, soulGemCountMap)) {
                     isSoulTrapSuccessful = true;
@@ -594,7 +636,7 @@ bool installTrapSoulFix()
     TrapSoulCall patch{soulTrap1_id, returnOffset};
     patch.ready();
 
-    logger::info(FMT_STRING("[CHARGE] Patch size: {}"sv), patch.getSize());
+    logger::info(FMT_STRING("[TRAPSOUL] Patch size: {}"sv), patch.getSize());
 
     auto& trampoline = SKSE::GetTrampoline();
     trampoline.write_branch<5>(
