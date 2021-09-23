@@ -13,6 +13,15 @@ form already has a soul. In order for reusable soul gems to be supported by this
 plugin, all non-empty reusable soul gems must have their NAM0 field (linked soul
 gem) filled with their empty version.
 
+This plugin has been written to be somewhat mod-agnostic and requires a
+supporting ESP and configuration files to take advantage of its capabilities.
+It does not hardcode soul gem and global variable form IDs, relying on
+configuration files to provide this information.
+
+Configuration examples have been provided in the `examples` folder. A reference
+(and hopefully perfectly serviceable) implementation can be found
+[here](https://github.com/Seally/yastm-ck).
+
 ## Building Requirements
 
 * [CMake](https://cmake.org/)
