@@ -241,7 +241,7 @@ bool _trapFullSoul(
         //
         // The best-fit soul gem is a fully-filled soul gem.
         // The worst-fit soul gem is an empty soul gem.
-        // 
+        //
         // When "fit" is equal, the soul gem closest in size to the given soul
         // size takes priority.
         //
@@ -421,15 +421,43 @@ bool trapSoul(RE::Actor* const caster, RE::Actor* const victimActor)
     using namespace std::literals;
     namespace logger = SKSE::log;
 
-    logger::trace("entering YASTM trap soul function"sv);
+    /**
+     * @brief Use this instead of a raw return value to wrap the return value so
+     * that the exiting trace log will be printed as needed.
+     */
+    const auto wrapUpAndReturn = [](const bool returnValue) {
+        logger::trace("Exiting YASTM trap soul function"sv);
+        return returnValue;
+    };
 
+    logger::trace("Entering YASTM trap soul function"sv);
+
+    if (caster == nullptr) {
+        logger::trace("Caster is null."sv);
+        return wrapUpAndReturn(false);
+    }
+
+    if (victimActor == nullptr) {
+        logger::trace("Victim is null."sv);
+        return wrapUpAndReturn(false);
+    }
+
+    if (caster->IsDead(false)) {
+        logger::trace("Caster is dead."sv);
+        return wrapUpAndReturn(false);
+    }
+
+    if (!victimActor->IsDead(false)) {
+        logger::trace("Victim is not dead."sv);
+        return wrapUpAndReturn(false);
+    }
+
+    // We begin the mutex here since we're checking isSoulTrapped status next.
     std::lock_guard<std::mutex> guard{_trapSoulMutex};
 
-    if (caster == nullptr || victimActor == nullptr || caster->IsDead(false) ||
-        !victimActor->IsDead(false) ||
-        native::soulTrapVictimStatus(victimActor) == 0) {
-        logger::trace("Exiting YASTM trap soul function"sv);
-        return false;
+    if (native::soulTrapVictimStatus(victimActor) == 0) {
+        logger::trace("Victim has already been soul trapped."sv);
+        return wrapUpAndReturn(false);
     }
 
     bool isSoulTrapSuccessful = false;
@@ -456,6 +484,8 @@ bool trapSoul(RE::Actor* const caster, RE::Actor* const victimActor)
         logger::trace("- Allow relocation: {}"sv, allowRelocation);
         logger::trace("- Allow shrinking: {}"sv, allowShrinking);
 
+        bool casterHasAvailableSoulGems = true;
+
         while (!victims.empty()) {
             const Victim victim = victims.top();
             victims.pop();
@@ -464,6 +494,12 @@ bool trapSoul(RE::Actor* const caster, RE::Actor* const victimActor)
                 caster->GetInventoryCounts([](RE::TESBoundObject& boundObject) {
                     return boundObject.IsSoulGem();
                 });
+
+            if (soulGemCountMap.size() <= 0) {
+                // Caster doesn't have any soul gems. Stop looking.
+                casterHasAvailableSoulGems = false;
+                break;
+            }
 
             if (victim.soulSize() == SoulSize::Black) {
                 if (_trapBlackSoul(caster, victim, soulGemCountMap)) {
@@ -508,19 +544,29 @@ bool trapSoul(RE::Actor* const caster, RE::Actor* const victimActor)
                 }
             }
         } else {
-            _debugNotification(
-                getMessage(Message::NoSoulGemLargeEnough),
-                caster);
+            if (casterHasAvailableSoulGems) {
+                if (allowShrinking) {
+                    _debugNotification(
+                        getMessage(Message::NoSuitableSoulGem),
+                        caster);
+                } else {
+                    _debugNotification(
+                        getMessage(Message::NoSoulGemLargeEnough),
+                        caster);
+                }
+            } else {
+                _debugNotification(
+                    getMessage(Message::NoSoulGemsAvailable),
+                    caster);
+            }
         }
 
-        return isSoulTrapSuccessful;
+        return wrapUpAndReturn(isSoulTrapSuccessful);
     } catch (const std::exception& error) {
         logger::error(error.what());
     }
 
-    logger::trace("Exiting YASTM trap soul function"sv);
-
-    return false;
+    return wrapUpAndReturn(false);
 }
 
 void _handleMessage(SKSE::MessagingInterface::Message* message)

@@ -2,7 +2,9 @@
 #define MESSAGES_HPP
 
 enum class Message {
+    NoSoulGemsAvailable,
     NoSoulGemLargeEnough,
+    NoSuitableSoulGem,
     SoulCaptured,
     SoulDisplaced,
     SoulShrunk
@@ -11,6 +13,10 @@ enum class Message {
 inline const char* getMessage(const Message key)
 {
     switch (key) {
+    case Message::NoSoulGemsAvailable:
+        return "$YASTM_Notification_NoSoulGemsAvailable";
+    case Message::NoSuitableSoulGem:
+        return "$YASTM_Notification_NoSuitableSoulGem";
     case Message::NoSoulGemLargeEnough:
         return "$YASTM_Notification_NoSoulGemLargeEnough";
     case Message::SoulCaptured:
