@@ -34,10 +34,12 @@ private:
 
     explicit YASTMConfig()
     {
+        // Defaults used when no associated configuration key has been set up.
         _globalsDefaults[Key::AllowPartiallyFillingSoulGems] = 1;
         _globalsDefaults[Key::AllowSoulDisplacement] = 1;
         _globalsDefaults[Key::AllowSoulRelocation] = 1;
         _globalsDefaults[Key::AllowSoulShrinking] = 1;
+        _globalsDefaults[Key::AllowNotifications] = 1;
     }
 
     void _readYASTMConfig();
@@ -63,6 +65,7 @@ public:
     bool isSoulDisplacementAllowed() const;
     bool isSoulRelocationAllowed() const;
     bool isSoulShrinkingAllowed() const;
+    bool isNotificationsAllowed() const;
 
     const std::vector<std::shared_ptr<SoulGemGroup>>& getSoulGemGroups() const
     {
@@ -76,7 +79,8 @@ public:
         AllowPartiallyFillingSoulGems,
         AllowSoulDisplacement,
         AllowSoulRelocation,
-        AllowSoulShrinking
+        AllowSoulShrinking,
+        AllowNotifications,
     };
 
     static std::string_view toKeyName(const Key key)
@@ -92,6 +96,8 @@ public:
             return "allowSoulDisplacement"sv;
         case Key::AllowSoulShrinking:
             return "allowSoulShrinking"sv;
+        case Key::AllowNotifications:
+            return "allowNotifications"sv;
         }
 
         return ""sv;

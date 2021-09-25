@@ -76,9 +76,12 @@ void _incrementSoulsTrappedStat(
     native::incrementStat(manager, &victim);
 }
 
-void _debugNotification(const char* message, RE::Actor* const caster)
+void _debugNotification(
+    const char* message,
+    RE::Actor* const caster,
+    const bool allowNotifications)
 {
-    if (caster == nullptr || !caster->IsPlayerRef()) {
+    if (!allowNotifications || caster == nullptr || !caster->IsPlayerRef()) {
         return;
     }
 
@@ -88,14 +91,14 @@ void _debugNotification(const char* message, RE::Actor* const caster)
 void _debugNotification(
     const char* message,
     RE::Actor* const caster,
-    const Victim& victim)
+    const Victim& victim,
+    const bool allowNotifications)
 {
-    if (caster == nullptr || victim.isDisplacedSoul() ||
-        !caster->IsPlayerRef()) {
+    if (victim.isDisplacedSoul()) {
         return;
     }
 
-    RE::DebugNotification(message);
+    _debugNotification(message, caster, allowNotifications);
 }
 
 int _indexOfFirstOwnedObjectInList(
@@ -193,7 +196,8 @@ bool _fillSoulGem(
 bool _trapBlackSoul(
     RE::Actor* const caster,
     const Victim& victim,
-    const RE::TESObjectREFR::InventoryCountMap& soulGemCountMap)
+    const RE::TESObjectREFR::InventoryCountMap& soulGemCountMap,
+    const bool allowNotifications)
 {
     // Black souls are simple since they're all or none. Either you have a
     // black soul gem or you don't. Nothing fancy to account for.
@@ -208,7 +212,11 @@ bool _trapBlackSoul(
         soulGemCountMap);
 
     if (isSoulTrapped) {
-        _debugNotification(getMessage(Message::SoulCaptured), caster, victim);
+        _debugNotification(
+            getMessage(Message::SoulCaptured),
+            caster,
+            victim,
+            allowNotifications);
         _incrementSoulsTrappedStat(caster, victim.actor());
 
         return true;
@@ -220,12 +228,13 @@ bool _trapBlackSoul(
 bool _trapFullSoul(
     RE::Actor* const caster,
     const Victim& victim,
+    std::priority_queue<Victim, std::vector<Victim>, std::greater<Victim>>&
+        victims,
+    const RE::TESObjectREFR::InventoryCountMap& soulGemCountMap,
     const bool allowPartial,
     const bool allowDisplacement,
     const bool allowRelocation,
-    std::priority_queue<Victim, std::vector<Victim>, std::greater<Victim>>&
-        victims,
-    const RE::TESObjectREFR::InventoryCountMap& soulGemCountMap)
+    const bool allowNotifications)
 {
     const YASTMConfig& config = YASTMConfig::getInstance();
 
@@ -287,13 +296,15 @@ bool _trapFullSoul(
                         _debugNotification(
                             getMessage(Message::SoulDisplaced),
                             caster,
-                            victim);
+                            victim,
+                            allowNotifications);
                         victims.emplace(toSoulSize(containedSoulSize));
                     } else {
                         _debugNotification(
                             getMessage(Message::SoulCaptured),
                             caster,
-                            victim);
+                            victim,
+                            allowNotifications);
                     }
 
                     _incrementSoulsTrappedStat(caster, victim.actor());
@@ -341,13 +352,15 @@ bool _trapFullSoul(
                         _debugNotification(
                             getMessage(Message::SoulDisplaced),
                             caster,
-                            victim);
+                            victim,
+                            allowNotifications);
                         victims.emplace(toSoulSize(containedSoulSize));
                     } else {
                         _debugNotification(
                             getMessage(Message::SoulCaptured),
                             caster,
-                            victim);
+                            victim,
+                            allowNotifications);
                     }
 
                     _incrementSoulsTrappedStat(caster, victim.actor());
@@ -364,10 +377,11 @@ bool _trapFullSoul(
 bool _trapShrunkSoul(
     RE::Actor* const caster,
     const Victim& victim,
-    const bool allowDisplacement,
     const RE::TESObjectREFR::InventoryCountMap& soulGemCountMap,
     std::priority_queue<Victim, std::vector<Victim>, std::greater<Victim>>&
-        victims)
+        victims,
+    const bool allowDisplacement,
+    const bool allowNotifications)
 {
     const YASTMConfig& config = YASTMConfig::getInstance();
 
@@ -399,7 +413,8 @@ bool _trapShrunkSoul(
                 _debugNotification(
                     getMessage(Message::SoulShrunk),
                     caster,
-                    victim);
+                    victim,
+                    allowNotifications);
                 _incrementSoulsTrappedStat(caster, victim.actor());
 
                 if (containedSoulSize > SoulSize::None) {
@@ -477,12 +492,14 @@ bool trapSoul(RE::Actor* const caster, RE::Actor* const victimActor)
         const bool allowDisplacement = config.isSoulDisplacementAllowed();
         const bool allowRelocation = config.isSoulRelocationAllowed();
         const bool allowShrinking = config.isSoulShrinkingAllowed();
+        const bool allowNotifications = config.isNotificationsAllowed();
 
         logger::trace("Found configuration:"sv);
         logger::trace("- Allow partial: {}"sv, allowPartial);
         logger::trace("- Allow displacement: {}"sv, allowDisplacement);
         logger::trace("- Allow relocation: {}"sv, allowRelocation);
         logger::trace("- Allow shrinking: {}"sv, allowShrinking);
+        logger::trace("- Allow notifications: {}"sv, allowNotifications);
 
         bool casterHasAvailableSoulGems = true;
 
@@ -502,7 +519,11 @@ bool trapSoul(RE::Actor* const caster, RE::Actor* const victimActor)
             }
 
             if (victim.soulSize() == SoulSize::Black) {
-                if (_trapBlackSoul(caster, victim, soulGemCountMap)) {
+                if (_trapBlackSoul(
+                        caster,
+                        victim,
+                        soulGemCountMap,
+                        allowNotifications)) {
                     isSoulTrapSuccessful = true;
                     continue; // Process next soul.
                 }
@@ -510,11 +531,12 @@ bool trapSoul(RE::Actor* const caster, RE::Actor* const victimActor)
                 if (_trapFullSoul(
                         caster,
                         victim,
+                        victims,
+                        soulGemCountMap,
                         allowPartial,
                         allowDisplacement,
                         allowRelocation,
-                        victims,
-                        soulGemCountMap)) {
+                        allowNotifications)) {
                     isSoulTrapSuccessful = true;
                     continue; // Process next soul.
                 }
@@ -524,9 +546,10 @@ bool trapSoul(RE::Actor* const caster, RE::Actor* const victimActor)
                     if (_trapShrunkSoul(
                             caster,
                             victim,
-                            allowDisplacement,
                             soulGemCountMap,
-                            victims)) {
+                            victims,
+                            allowDisplacement,
+                            allowNotifications)) {
                         isSoulTrapSuccessful = true;
 
                         continue; // Process next soul.
@@ -548,16 +571,19 @@ bool trapSoul(RE::Actor* const caster, RE::Actor* const victimActor)
                 if (allowShrinking) {
                     _debugNotification(
                         getMessage(Message::NoSuitableSoulGem),
-                        caster);
+                        caster,
+                        allowNotifications);
                 } else {
                     _debugNotification(
                         getMessage(Message::NoSoulGemLargeEnough),
-                        caster);
+                        caster,
+                        allowNotifications);
                 }
             } else {
                 _debugNotification(
                     getMessage(Message::NoSoulGemsAvailable),
-                    caster);
+                    caster,
+                    allowNotifications);
             }
         }
 

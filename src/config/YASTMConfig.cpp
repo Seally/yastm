@@ -52,6 +52,7 @@ void YASTMConfig::_readYASTMConfig()
         readIdFromToml(Key::AllowSoulDisplacement);
         readIdFromToml(Key::AllowSoulRelocation);
         readIdFromToml(Key::AllowSoulShrinking);
+        readIdFromToml(Key::AllowNotifications);
     } catch (const toml::parse_error& error) {
         logger::warn(
             FMT_STRING(
@@ -382,6 +383,13 @@ bool YASTMConfig::isSoulShrinkingAllowed() const
     using namespace std::literals;
 
     return getGlobalValue(Key::AllowSoulShrinking) != 0;
+}
+
+bool YASTMConfig::isNotificationsAllowed() const
+{
+    using namespace std::literals;
+
+    return getGlobalValue(Key::AllowNotifications) != 0;
 }
 
 RE::TESSoulGem* _getFormFromId(
