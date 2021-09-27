@@ -18,9 +18,10 @@ namespace RE {
 class YASTMConfig {
 public:
     enum class Key;
+    typedef std::vector<std::unique_ptr<SoulGemGroup>> SoulGemGroupsList;
 
 private:
-    std::vector<std::shared_ptr<SoulGemGroup>> _soulGemGroups;
+    SoulGemGroupsList _soulGemGroups;
 
     std::unordered_map<Key, float> _globalsDefaults;
     std::unordered_map<Key, GlobalId> _globals;
@@ -67,10 +68,7 @@ public:
     bool isSoulShrinkingAllowed() const;
     bool isNotificationsAllowed() const;
 
-    const std::vector<std::shared_ptr<SoulGemGroup>>& getSoulGemGroups() const
-    {
-        return _soulGemGroups;
-    }
+    const SoulGemGroupsList& getSoulGemGroups() const { return _soulGemGroups; }
 
     const std::vector<RE::TESSoulGem*>&
         getSoulGemsWith(SoulSize capacity, SoulSize containedSoulSize) const;

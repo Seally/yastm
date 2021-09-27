@@ -49,9 +49,9 @@ namespace native {
     /**
      * @brief Checks the soul trap status of the given actor.
      *
-     * Note that this function returns weird numbers I can't figure out the significance of.
-     * It's not important since all we need this for is check if it's 0 or not, but it would
-     * be nice to know regardless.
+     * Note that this function returns weird numbers I can't figure out the
+     * significance of. It's not important since all we need this for is check
+     * if it's 0 or not, but it would be nice to know regardless.
      *  
      * @return 0 if it has been previously soul trapped. Weird numbers if not.
      */
@@ -486,7 +486,8 @@ bool trapSoul(RE::Actor* const caster, RE::Actor* const victimActor)
 
         victims.emplace(victimActor);
 
-        // Snapshot the configuration here so it will be immune to external changes for this run.
+        // Snapshot the configuration here so it will be immune to external
+        // changes for this run.
         // (And also because it's shorter.)
         const bool allowPartial = config.isPartialFillsAllowed();
         const bool allowDisplacement = config.isSoulDisplacementAllowed();
@@ -559,7 +560,8 @@ bool trapSoul(RE::Actor* const caster, RE::Actor* const victimActor)
         }
 
         if (isSoulTrapSuccessful) {
-            // Flag the victim so we don't soul trap the same one multiple times.
+            // Flag the victim so we don't soul trap the same one multiple
+            // times.
             if (RE::AIProcess* const process = victimActor->currentProcess;
                 process) {
                 if (process->middleHigh) {
@@ -680,8 +682,8 @@ bool installTrapSoulFix()
     }
 
     // This simply sets up the registers so they will be passed to our
-    // replacement function correctly, and jumps back to the our original
-    // function's ending address.
+    // replacement function correctly, and jumps back to our original function's
+    // ending address.
     struct TrapSoulCall : Xbyak::CodeGenerator {
         explicit TrapSoulCall(
             const REL::ID& soulTrap1_id,

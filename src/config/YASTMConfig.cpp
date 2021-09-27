@@ -115,7 +115,7 @@ void YASTMConfig::_readSoulGemConfigs()
                     elem.visit([this](auto&& el) {
                         if constexpr (toml::is_table<decltype(el)>) {
                             _soulGemGroups.push_back(
-                                std::make_shared<SoulGemGroup>(
+                                std::make_unique<SoulGemGroup>(
                                     SoulGemGroup::constructFromToml(el)));
                         } else {
                             throw std::runtime_error{
@@ -142,10 +142,11 @@ void YASTMConfig::_readSoulGemConfigs()
 
     for (const auto& soulGemGroup : _soulGemGroups) {
         logger::trace(
-            FMT_STRING("    {} (isReusable={}, capacity={})"sv),
+            FMT_STRING("    {} (isReusable={}, capacity={}, priority={})"sv),
             soulGemGroup->id(),
             soulGemGroup->isReusable(),
-            soulGemGroup->capacity());
+            soulGemGroup->capacity(),
+            toLoadPriorityString(soulGemGroup->rawPriority()));
 
         for (const auto& soulGemId : soulGemGroup->members()) {
             logger::trace(
@@ -437,57 +438,42 @@ void YASTMConfig::_createSoulGemMap(RE::TESDataHandler* const dataHandler)
             getVariantCountForCapacity(static_cast<SoulSize>(i + 1)));
     }
 
-    for (const auto& soulGemGroup : _soulGemGroups) {
-        if (soulGemGroup->isReusable()) {
-            if (soulGemGroup->capacity() == SoulSize::Black) {
-                const auto emptySoulGemForm = _getFormFromId(
-                    soulGemGroup->members()[0].get(),
-                    dataHandler);
-                const auto filledSoulGemForm = _getFormFromId(
-                    soulGemGroup->members()[1].get(),
-                    dataHandler);
+    const auto addSoulGemGroupToMap = [=, this](const SoulGemGroup& group) {
+        if (group.capacity() == SoulSize::Black) {
+            const auto emptySoulGemForm =
+                _getFormFromId(group.members()[0].get(), dataHandler);
+            const auto filledSoulGemForm =
+                _getFormFromId(group.members()[1].get(), dataHandler);
 
-                _blackSoulGemsEmpty.push_back(emptySoulGemForm);
-                _blackSoulGemsFilled.push_back(filledSoulGemForm);
-            } else {
-                for (int i = 0; i < soulGemGroup->members().size(); ++i) {
-                    const auto soulGemForm = _getFormFromId(
-                        soulGemGroup->members()[i].get(),
-                        dataHandler);
+            _blackSoulGemsEmpty.push_back(emptySoulGemForm);
+            _blackSoulGemsFilled.push_back(filledSoulGemForm);
+        } else {
+            for (int i = 0; i < group.members().size(); ++i) {
+                const auto soulGemForm =
+                    _getFormFromId(group.members()[i].get(), dataHandler);
 
-                    _whiteSoulGems
-                        [static_cast<std::size_t>(soulGemGroup->capacity()) - 1]
-                        [i]
-                            .push_back(soulGemForm);
-                }
+                _whiteSoulGems[static_cast<std::size_t>(group.capacity()) - 1]
+                              [i]
+                                  .push_back(soulGemForm);
             }
+        }
+    };
+
+    for (const auto& soulGemGroup : _soulGemGroups) {
+        if (soulGemGroup->priority() == LoadPriority::High) {
+            addSoulGemGroupToMap(*soulGemGroup);
         }
     }
 
     for (const auto& soulGemGroup : _soulGemGroups) {
-        if (!soulGemGroup->isReusable()) {
-            if (soulGemGroup->capacity() == SoulSize::Black) {
-                const auto emptySoulGemForm = _getFormFromId(
-                    soulGemGroup->members()[0].get(),
-                    dataHandler);
-                const auto filledSoulGemForm = _getFormFromId(
-                    soulGemGroup->members()[1].get(),
-                    dataHandler);
+        if (soulGemGroup->priority() == LoadPriority::Normal) {
+            addSoulGemGroupToMap(*soulGemGroup);
+        }
+    }
 
-                _blackSoulGemsEmpty.push_back(emptySoulGemForm);
-                _blackSoulGemsFilled.push_back(filledSoulGemForm);
-            } else {
-                for (int i = 0; i < soulGemGroup->members().size(); ++i) {
-                    const auto soulGemForm = _getFormFromId(
-                        soulGemGroup->members()[i].get(),
-                        dataHandler);
-
-                    _whiteSoulGems
-                        [static_cast<std::size_t>(soulGemGroup->capacity()) - 1]
-                        [i]
-                            .push_back(soulGemForm);
-                }
-            }
+    for (const auto& soulGemGroup : _soulGemGroups) {
+        if (soulGemGroup->priority() == LoadPriority::Low) {
+            addSoulGemGroupToMap(*soulGemGroup);
         }
     }
 

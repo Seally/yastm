@@ -103,6 +103,7 @@ set(SOURCES
     src/config/_formaterror.hpp
     src/config/GlobalId.hpp
     src/config/GlobalId.cpp
+    src/config/LoadPriority.hpp
     src/config/ParseError.hpp
     src/config/SoulGemGroup.hpp
     src/config/SoulGemGroup.cpp

@@ -7,14 +7,16 @@ inline SoulGemGroup::SoulGemGroup(
     const std::string& id,
     const bool isReusable,
     const SoulSize capacity,
+    const LoadPriority priority,
     iterator memberBegin,
     iterator memberEnd)
     : _id{id}
     , _isReusable{isReusable}
     , _capacity{capacity}
+    , _priority{priority}
 {
     for (auto it = memberBegin; it != memberEnd; ++it) {
-        _members.push_back(std::make_shared<SoulGemId>(*it));
+        _members.push_back(std::make_unique<SoulGemId>(*it));
     }
 }
 
@@ -25,6 +27,7 @@ SoulGemGroup SoulGemGroup::constructFromToml(toml::table& table)
     auto idValue = table["id"sv].as_string();
     bool isReusable = table["isReusable"sv].value_or(false);
     auto capacityValue = table["capacity"sv].as_integer();
+    auto priorityStr = table["priority"sv].value_or("auto"sv);
     auto membersValue = table["members"sv].as_array();
 
     if (idValue == nullptr) {
@@ -75,6 +78,16 @@ SoulGemGroup SoulGemGroup::constructFromToml(toml::table& table)
             static_cast<int>(capacity))};
     }
 
+    const LoadPriority priority = fromLoadPriorityString(priorityStr);
+
+    if (priority == LoadPriority::Invalid) {
+        throw std::runtime_error{std::format(
+            "Soul gem group '{}' has invalid priority {}.",
+            idValue->get(),
+            static_cast<int>(capacity),
+            priorityStr)};
+    }
+
     if (const auto expectedVariantCount = getVariantCountForCapacity(capacity);
         expectedVariantCount != members.size()) {
         throw std::runtime_error{std::format(
@@ -88,6 +101,7 @@ SoulGemGroup SoulGemGroup::constructFromToml(toml::table& table)
         idValue->get(),
         isReusable,
         capacity,
+        priority,
         members.cbegin(),
         members.cend()};
 }

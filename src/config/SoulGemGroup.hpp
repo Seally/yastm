@@ -7,14 +7,21 @@
 
 #include <toml++/toml.h>
 
+#include "LoadPriority.hpp"
 #include "SoulGemId.hpp"
 #include "SoulSize.hpp"
 
 class SoulGemGroup {
-    const std::string _id;
+public:
+    typedef std::string IdType;
+    typedef std::vector<std::unique_ptr<SoulGemId>> MembersType;
+
+private:
+    const IdType _id;
     const bool _isReusable;
     const SoulSize _capacity;
-    std::vector<std::shared_ptr<SoulGemId>> _members;
+    const LoadPriority _priority;
+    MembersType _members;
 
 public:
     template <typename iterator>
@@ -22,6 +29,7 @@ public:
         const std::string& id,
         const bool isReusable,
         const SoulSize capacity,
+        const LoadPriority priority,
         iterator memberBegin,
         iterator memberEnd);
 
@@ -29,23 +37,34 @@ public:
 
     const std::string& id() const { return _id; }
     bool isReusable() const { return _isReusable; }
+
     SoulSize capacity() const { return _capacity; }
     /**
      * @brief Returns the effective soul gem capacity.
      *
-     * This function exists because the game does not distinguish black souls and
-     * white grand souls except by checking a record flag for soul trap eligibility.
+     * This function exists because the game does not distinguish black souls
+     * and white grand souls except by checking a record flag for soul trap
+     * eligibility.
      *
-     * This function will return SoulSize::Grand for gems that can hold black souls.
+     * This function will return SoulSize::Grand for gems that can hold black
+     * souls.
      */
     SoulSize effectiveCapacity() const
     {
         return capacity() == SoulSize::Black ? SoulSize::Grand : capacity();
     }
-    const std::vector<std::shared_ptr<SoulGemId>>& members() const
+
+    LoadPriority rawPriority() const { return _priority; }
+    LoadPriority priority() const
     {
-        return _members;
+        if (rawPriority() == LoadPriority::Auto) {
+            return isReusable() ? LoadPriority::High : LoadPriority::Normal;
+        }
+
+        return LoadPriority::Low;
     }
+
+    const MembersType& members() const { return _members; }
 };
 
 #endif // SOULGEMGROUP_HPP
