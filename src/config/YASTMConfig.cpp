@@ -11,6 +11,7 @@
 #include <SKSE/SKSE.h>
 
 #include "SoulGemGroup.hpp"
+#include "../formatters/TESSoulGem.hpp"
 
 void YASTMConfig::_readYASTMConfig()
 {
@@ -52,6 +53,7 @@ void YASTMConfig::_readYASTMConfig()
         readIdFromToml(Key::AllowSoulDisplacement);
         readIdFromToml(Key::AllowSoulRelocation);
         readIdFromToml(Key::AllowSoulShrinking);
+        readIdFromToml(Key::PreserveOwnership);
         readIdFromToml(Key::AllowNotifications);
     } catch (const toml::parse_error& error) {
         logger::warn(
@@ -159,12 +161,6 @@ void YASTMConfig::_readSoulGemConfigs()
     if (validConfigCount <= 0) {
         throw std::runtime_error{"No valid configuration files found."};
     }
-}
-
-bool _canHoldBlackSoul(RE::TESSoulGem* const soulGemForm)
-{
-    return soulGemForm->GetFormFlags() &
-           RE::TESSoulGem::RecordFlags::kCanHoldNPCSoul;
 }
 
 bool YASTMConfig::_isValidConfig(RE::TESDataHandler* const dataHandler) const
@@ -282,8 +278,8 @@ bool YASTMConfig::_isValidConfig(RE::TESDataHandler* const dataHandler) const
                     break;
                 default:
                     logger::error(
-                        FMT_STRING("Extra members found in black soul gem "
-                                   "group \"{}\""),
+                        FMT_STRING(
+                            "Extra members found in black soul gem group \"{}\""sv),
                         soulGemGroup->id());
                     return false;
                 }
@@ -339,19 +335,18 @@ float YASTMConfig::getGlobalValue(const Key key) const
         const auto& globalId = _globals.at(key);
 
         if (globalId.form() == nullptr) {
-            logger::info(
+            logger::trace(
                 FMT_STRING(
-                    "Global variable '{}' ([ID:{:08x}] in file \"{}\") not yet loaded. Returning default value..."sv),
+                    "Global variable '{}' ({}) not yet loaded. Returning default value..."sv),
                 YASTMConfig::toKeyName(key),
-                globalId.formId(),
-                globalId.pluginName());
+                globalId);
             return _globalsDefaults.at(key);
         }
 
         return globalId.form()->value;
     }
 
-    logger::info(
+    logger::trace(
         FMT_STRING(
             "Global variable '{}' not specified in configuration. Returning default value..."sv),
         YASTMConfig::toKeyName(key));
@@ -360,30 +355,27 @@ float YASTMConfig::getGlobalValue(const Key key) const
 
 bool YASTMConfig::isPartialFillsAllowed() const
 {
-    using namespace std::literals;
-
     return getGlobalValue(Key::AllowPartiallyFillingSoulGems) != 0;
 }
 
 bool YASTMConfig::isSoulDisplacementAllowed() const
 {
-    using namespace std::literals;
-
     return getGlobalValue(Key::AllowSoulDisplacement) != 0;
 }
 
 bool YASTMConfig::isSoulRelocationAllowed() const
 {
-    using namespace std::literals;
-
     return getGlobalValue(Key::AllowSoulRelocation) != 0;
 }
 
 bool YASTMConfig::isSoulShrinkingAllowed() const
 {
-    using namespace std::literals;
-
     return getGlobalValue(Key::AllowSoulShrinking) != 0;
+}
+
+bool YASTMConfig::preserveOwnership() const
+{
+    return getGlobalValue(Key::PreserveOwnership) != 0;
 }
 
 bool YASTMConfig::isNotificationsAllowed() const
@@ -433,6 +425,9 @@ void YASTMConfig::_getGlobalForms(RE::TESDataHandler* const dataHandler)
 
 void YASTMConfig::_createSoulGemMap(RE::TESDataHandler* const dataHandler)
 {
+    namespace logger = SKSE::log;
+    using namespace std::literals;
+
     for (int i = 0; i < _whiteSoulGems.size(); ++i) {
         _whiteSoulGems[i].resize(
             getVariantCountForCapacity(static_cast<SoulSize>(i + 1)));
@@ -459,32 +454,18 @@ void YASTMConfig::_createSoulGemMap(RE::TESDataHandler* const dataHandler)
         }
     };
 
-    for (const auto& soulGemGroup : _soulGemGroups) {
-        if (soulGemGroup->priority() == LoadPriority::High) {
-            addSoulGemGroupToMap(*soulGemGroup);
-        }
-    }
+    const auto createSoulGemGroupForPriority =
+        [=, this](const LoadPriority priority) {
+            for (const auto& soulGemGroup : _soulGemGroups) {
+                if (soulGemGroup->priority() == priority) {
+                    addSoulGemGroupToMap(*soulGemGroup);
+                }
+            }
+        };
 
-    for (const auto& soulGemGroup : _soulGemGroups) {
-        if (soulGemGroup->priority() == LoadPriority::Normal) {
-            addSoulGemGroupToMap(*soulGemGroup);
-        }
-    }
-
-    for (const auto& soulGemGroup : _soulGemGroups) {
-        if (soulGemGroup->priority() == LoadPriority::Low) {
-            addSoulGemGroupToMap(*soulGemGroup);
-        }
-    }
-
-    namespace logger = SKSE::log;
-    using namespace std::literals;
-
-    const auto defaultObjectManager =
-        RE::BGSDefaultObjectManager::GetSingleton();
-    const RE::BGSKeyword* reusableSoulGemKeyword =
-        defaultObjectManager->GetObject<RE::BGSKeyword>(
-            RE::DEFAULT_OBJECT::kKeywordReusableSoulGem);
+    createSoulGemGroupForPriority(LoadPriority::High);
+    createSoulGemGroupForPriority(LoadPriority::Normal);
+    createSoulGemGroupForPriority(LoadPriority::Low);
 
     for (int i = 0; i < _whiteSoulGems.size(); ++i) {
         const int soulCapacity = i + 1;
@@ -500,43 +481,19 @@ void YASTMConfig::_createSoulGemMap(RE::TESDataHandler* const dataHandler)
 
             for (const auto soulGemForm :
                  _whiteSoulGems[i][containedSoulSize]) {
-                logger::info(
-                    FMT_STRING(
-                        "- [ID:{:08x}] {} (capacity={}, containedSoulSize={}, canHoldBlackSoul={}, reusable={})"sv),
-                    soulGemForm->GetFormID(),
-                    soulGemForm->GetName(),
-                    soulGemForm->GetMaximumCapacity(),
-                    soulGemForm->GetContainedSoul(),
-                    _canHoldBlackSoul(soulGemForm),
-                    soulGemForm->HasKeyword(reusableSoulGemKeyword));
+                logger::info(FMT_STRING("- {}"sv), soulGemForm);
             }
         }
     }
 
     logger::info("Listing mapped empty black soul gems.");
     for (const auto soulGemForm : _blackSoulGemsEmpty) {
-        logger::info(
-            FMT_STRING("- [ID:{:08x}] {} (capacity={}, containedSoulSize={}, "
-                       "canHoldBlackSoul={}, reusable={})"),
-            soulGemForm->GetFormID(),
-            soulGemForm->GetName(),
-            soulGemForm->GetMaximumCapacity(),
-            soulGemForm->GetContainedSoul(),
-            _canHoldBlackSoul(soulGemForm),
-            soulGemForm->HasKeyword(reusableSoulGemKeyword));
+        logger::info(FMT_STRING("- {}"sv), soulGemForm);
     }
 
     logger::info("Listing mapped filled black soul gems.");
     for (const auto soulGemForm : _blackSoulGemsEmpty) {
-        logger::info(
-            FMT_STRING(
-                "- [ID:{:08x}] {} (capacity={}, containedSoulSize={}, canHoldBlackSoul={}, reusable={})"sv),
-            soulGemForm->GetFormID(),
-            soulGemForm->GetName(),
-            soulGemForm->GetMaximumCapacity(),
-            soulGemForm->GetContainedSoul(),
-            _canHoldBlackSoul(soulGemForm),
-            soulGemForm->HasKeyword(reusableSoulGemKeyword));
+        logger::info(FMT_STRING("- {}"sv), soulGemForm);
     }
 }
 

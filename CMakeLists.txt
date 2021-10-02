@@ -112,7 +112,7 @@ set(SOURCES
     src/config/SoulSize.hpp
     src/config/YASTMConfig.hpp
     src/config/YASTMConfig.cpp
-)
+  "src/formatters/TESSoulGem.hpp" "src/utilities/TESSoulGem.hpp" )
 
 source_group(
     TREE
@@ -158,6 +158,7 @@ target_link_libraries(
     PRIVATE
         CommonLibSSE::CommonLibSSE
         spdlog::spdlog
+        fmt::fmt
 )
 
 if(MSVC)

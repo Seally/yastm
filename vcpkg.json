@@ -11,6 +11,7 @@
         "span-lite",
         "spdlog",
         "xbyak",
-        "tomlplusplus"
+        "tomlplusplus",
+        "fmt"
     ]
 }

@@ -18,6 +18,7 @@ namespace RE {
 class YASTMConfig {
 public:
     enum class Key;
+    struct Snapshot;
     typedef std::vector<std::unique_ptr<SoulGemGroup>> SoulGemGroupsList;
 
 private:
@@ -40,6 +41,7 @@ private:
         _globalsDefaults[Key::AllowSoulDisplacement] = 1;
         _globalsDefaults[Key::AllowSoulRelocation] = 1;
         _globalsDefaults[Key::AllowSoulShrinking] = 1;
+        _globalsDefaults[Key::PreserveOwnership] = 1;
         _globalsDefaults[Key::AllowNotifications] = 1;
     }
 
@@ -66,6 +68,7 @@ public:
     bool isSoulDisplacementAllowed() const;
     bool isSoulRelocationAllowed() const;
     bool isSoulShrinkingAllowed() const;
+    bool preserveOwnership() const;
     bool isNotificationsAllowed() const;
 
     const SoulGemGroupsList& getSoulGemGroups() const { return _soulGemGroups; }
@@ -73,11 +76,36 @@ public:
     const std::vector<RE::TESSoulGem*>&
         getSoulGemsWith(SoulSize capacity, SoulSize containedSoulSize) const;
 
+    /**
+     * @brief Represents a snapshot of the configuration at a certain point in
+     * time.
+     */
+    struct Snapshot {
+        const bool allowPartial;
+        const bool allowDisplacement;
+        const bool allowRelocation;
+        const bool allowShrinking;
+        const bool preserveOwnership;
+        const bool allowNotifications;
+    };
+
+    Snapshot createSnapshot() const
+    {
+        return Snapshot{
+            isPartialFillsAllowed(),
+            isSoulDisplacementAllowed(),
+            isSoulRelocationAllowed(),
+            isSoulShrinkingAllowed(),
+            preserveOwnership(),
+            isNotificationsAllowed()};
+    }
+
     enum class Key {
         AllowPartiallyFillingSoulGems,
         AllowSoulDisplacement,
         AllowSoulRelocation,
         AllowSoulShrinking,
+        PreserveOwnership,
         AllowNotifications,
     };
 
@@ -94,6 +122,8 @@ public:
             return "allowSoulDisplacement"sv;
         case Key::AllowSoulShrinking:
             return "allowSoulShrinking"sv;
+        case Key::PreserveOwnership:
+            return "preserveOwnership"sv;
         case Key::AllowNotifications:
             return "allowNotifications"sv;
         }
