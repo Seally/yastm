@@ -709,7 +709,7 @@ bool trapSoul(RE::Actor* const caster, RE::Actor* const victimActor)
             if (RE::AIProcess* const process = victimActor->currentProcess;
                 process) {
                 if (process->middleHigh) {
-                    LOG_TRACE("Victim has been soul trapped. Flagging them."sv);
+                    LOG_TRACE("Flagging soul trapped victim..."sv);
                     process->middleHigh->unk325 = true;
                 }
             }
