@@ -540,14 +540,27 @@ bool _trapShrunkSoul(_SoulTrapData& d)
             toSoulSize(soulCapacity),
             toSoulSize(soulCapacity));
 
-        // We actually search up to only 'max - 1' but whatever.
+        // When displacement is allowed, we search soul gems with contained soul
+        // sizes up to one size lower than the incoming soul. Since the incoming
+        // soul size varies depending on the shrunk soul size, we put this
+        // inside the loop.
+        //
+        // If it's not allowed, we only look up empty soul gems.
+        //
+        // Note: Loop range is end-EXclusive, so we set this to SoulSize::Petty
+        // as the next lowest soul size after SoulSize::None.
         const SoulSize maxContainedSoulSizeToSearch =
-            d.config.allowDisplacement ? d.victim().soulSize()
+            d.config.allowDisplacement ? toSoulSize(soulCapacity)
                                        : SoulSize::Petty;
 
         for (std::size_t containedSoulSize = SoulSize::None;
              containedSoulSize < maxContainedSoulSizeToSearch;
              ++containedSoulSize) {
+            LOG_TRACE_FMT(
+                "Looking up soul gems with capacity = {}, containedSoulSize = {}"sv,
+                soulCapacity,
+                containedSoulSize);
+
             const auto& sourceSoulGems = config.getSoulGemsWith(
                 toSoulSize(soulCapacity),
                 toSoulSize(containedSoulSize));
