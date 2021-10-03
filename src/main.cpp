@@ -14,19 +14,17 @@
 //#include "versiondb.hpp"
 
 //bool DumpOffsets() {
-//	namespace logger = SKSE::log;
-//
 //	VersionDb db;
 //
 //	if (!db.Load()) {
-//		logger::critical("Failed to load offset database."sv);
+//		LOG_CRITICAL("Failed to load offset database."sv);
 //		return false;
 //	}
 //
 //	const std::string& version{db.GetLoadedVersionString()};
 //
 //	db.Dump("offsets-" + version + ".txt");
-//	logger::info("Dumped offsets for " + version);
+//	LOG_INFO_FMT("Dumped offsets for {}", version);
 //
 //	return true;
 //}
@@ -55,28 +53,26 @@ extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Query(
     log->flush_on(spdlog::level::trace);
 #else
     log->set_level(spdlog::level::info);
-    log->flush_on(spdlog::level::warn);
+    log->flush_on(spdlog::level::info);
 #endif
 
     spdlog::set_default_logger(std::move(log));
     spdlog::set_pattern("%g(%#): [%^%l%$] %v"s);
 
-    logger::info(FMT_STRING("{} v{}"), version::PROJECT, version::NAME);
+    LOG_INFO_FMT("{} v{}"sv, version::PROJECT, version::NAME);
 
     a_info->infoVersion = SKSE::PluginInfo::kVersion;
     a_info->name = version::PROJECT.data();
     a_info->version = version::MAJOR;
 
     if (a_skse->IsEditor()) {
-        logger::critical("Loaded in editor, marking as incompatible"sv);
+        LOG_CRITICAL("Loaded in editor, marking as incompatible"sv);
         return false;
     }
 
     const auto ver = a_skse->RuntimeVersion();
     if (ver < SKSE::RUNTIME_1_5_39) {
-        logger::critical(
-            FMT_STRING("Unsupported runtime version {}"sv),
-            ver.string());
+        LOG_CRITICAL_FMT("Unsupported runtime version {}"sv, ver.string());
         return false;
     }
 
@@ -90,14 +86,13 @@ bool installPatch(
     CArgs&&... args)
 {
     using namespace std::literals;
-    namespace logger = SKSE::log;
 
     try {
-        logger::info(FMT_STRING("Installing patch \"{}\"..."), patchName);
+        LOG_INFO_FMT("Installing patch \"{}\"..."sv, patchName);
         return patchFunction(std::forward<CArgs>(args)...);
     } catch (const std::exception& e) {
-        logger::error(
-            FMT_STRING("Error while installing patch \"{}\": {}"sv),
+        LOG_ERROR_FMT(
+            "Error while installing patch \"{}\": {}"sv,
             patchName,
             e.what());
     }
@@ -109,8 +104,7 @@ extern "C" DLLEXPORT bool SKSEAPI
     SKSEPlugin_Load(const SKSE::LoadInterface* a_skse)
 {
     using namespace std::literals;
-    namespace logger = SKSE::log;
-    logger::info(FMT_STRING("Loaded {} v{}."), version::PROJECT, version::NAME);
+    LOG_INFO_FMT("Loaded {} v{}"sv, version::PROJECT, version::NAME);
 
     SKSE::Init(a_skse);
 
@@ -121,7 +115,7 @@ extern "C" DLLEXPORT bool SKSEAPI
     try {
         result &= installPatch("SoulTrapFix"sv, installTrapSoulFix);
     } catch (const std::exception& error) {
-        logger::error(error.what());
+        LOG_ERROR(error.what());
     }
 
     return result;

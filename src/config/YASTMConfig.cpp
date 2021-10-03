@@ -10,13 +10,13 @@
 #include <RE/T/TESSoulGem.h>
 #include <SKSE/SKSE.h>
 
+#include "../global.hpp"
 #include "SoulGemGroup.hpp"
 #include "../formatters/TESSoulGem.hpp"
 
 void YASTMConfig::_readYASTMConfig()
 {
     using namespace std::literals;
-    namespace logger = SKSE::log;
 
     toml::table table;
 
@@ -26,8 +26,8 @@ void YASTMConfig::_readYASTMConfig()
     try {
         table = toml::parse_file(configPathStr);
 
-        logger::info(
-            FMT_STRING("Found YASTM general configuration file: {}"sv),
+        LOG_INFO_FMT(
+            "Found YASTM general configuration file: {}"sv,
             configPath.filename().string());
 
         const auto yastmTable = table["YASTM"];
@@ -42,9 +42,8 @@ void YASTMConfig::_readYASTMConfig()
                     key,
                     GlobalId::constructFromToml(keyName, *idArray)));
             } else {
-                logger::warn(
-                    FMT_STRING(
-                        "Form data for configuration key '{}' not found."sv),
+                LOG_WARN_FMT(
+                    "Form data for configuration key '{}' not found."sv,
                     keyName);
             }
         };
@@ -53,33 +52,34 @@ void YASTMConfig::_readYASTMConfig()
         readIdFromToml(Key::AllowSoulDisplacement);
         readIdFromToml(Key::AllowSoulRelocation);
         readIdFromToml(Key::AllowSoulShrinking);
+        readIdFromToml(Key::AllowExtraSoulRelocation);
         readIdFromToml(Key::PreserveOwnership);
         readIdFromToml(Key::AllowNotifications);
     } catch (const toml::parse_error& error) {
-        logger::warn(
-            FMT_STRING(
-                "Error while parsing general configuration file \"{}\": {}"sv),
+        LOG_WARN_FMT(
+            "Error while parsing general configuration file \"{}\": {}"sv,
             configPathStr,
             error.what());
     }
 
+#ifndef NDEBUG
     // Print the loaded configuration (we can't read the in-game forms yet.
     // Game hasn't fully initialized.)
-    logger::trace("Loaded configuration from TOML:"sv);
+    LOG_TRACE("Loaded configuration from TOML:"sv);
 
     for (const auto& [key, globalId] : _globals) {
-        logger::trace(
-            FMT_STRING("- {} = [{:08x}, {}]"sv),
+        LOG_TRACE_FMT(
+            "- {} = [{:08x}, {}]"sv,
             globalId.keyName(),
             globalId.formId(),
             globalId.pluginName());
     }
+#endif // NDEBUG
 }
 
 void YASTMConfig::_readSoulGemConfigs()
 {
     using namespace std::literals;
-    namespace logger = SKSE::log;
 
     std::vector<std::filesystem::path> configPaths;
 
@@ -90,8 +90,8 @@ void YASTMConfig::_readSoulGemConfigs()
             const auto fileNameStr = fileName.string();
 
             if (fileNameStr.starts_with("YASTM_"sv)) {
-                logger::info(
-                    FMT_STRING("Found YASTM soul gem configuration file: {}"sv),
+                LOG_INFO_FMT(
+                    "Found YASTM soul gem configuration file: {}"sv,
                     fileNameStr);
                 configPaths.push_back(entry.path());
             }
@@ -131,32 +131,33 @@ void YASTMConfig::_readSoulGemConfigs()
                 ++validConfigCount;
             }
         } catch (const toml::parse_error&) {
-            logger::warn(
-                FMT_STRING(
-                    "Error while parsing soul gem configuration file \"{}\""sv),
+            LOG_WARN_FMT(
+                "Error while parsing soul gem configuration file \"{}\""sv,
                 configPathStr);
         }
     }
 
+#ifndef NDEBUG
     // Print the loaded configuration (we can't read the in-game forms yet.
     // Game hasn't fully initialized.)
-    logger::trace("Loaded soul gem configuration from TOML:"sv);
+    LOG_TRACE("Loaded soul gem configuration from TOML:"sv);
 
     for (const auto& soulGemGroup : _soulGemGroups) {
-        logger::trace(
-            FMT_STRING("    {} (isReusable={}, capacity={}, priority={})"sv),
+        LOG_TRACE_FMT(
+            "    {} (isReusable={}, capacity={}, priority={})"sv,
             soulGemGroup->id(),
             soulGemGroup->isReusable(),
             soulGemGroup->capacity(),
             toLoadPriorityString(soulGemGroup->rawPriority()));
 
         for (const auto& soulGemId : soulGemGroup->members()) {
-            logger::trace(
-                FMT_STRING("        [{:#08x}, {}]"sv),
+            LOG_TRACE_FMT(
+                "        [{:#08x}, {}]"sv,
                 soulGemId->formId(),
                 soulGemId->pluginName());
         }
     }
+#endif // NDEBUG
 
     if (validConfigCount <= 0) {
         throw std::runtime_error{"No valid configuration files found."};
@@ -166,15 +167,10 @@ void YASTMConfig::_readSoulGemConfigs()
 bool YASTMConfig::_isValidConfig(RE::TESDataHandler* const dataHandler) const
 {
     using namespace std::literals;
-    namespace logger = SKSE::log;
 
-    logger::info("Loading soul gem forms..."sv);
+    LOG_INFO("Loading soul gem forms..."sv);
 
-    const auto defaultObjectManager =
-        RE::BGSDefaultObjectManager::GetSingleton();
-    const RE::BGSKeyword* reusableSoulGemKeyword =
-        defaultObjectManager->GetObject<RE::BGSKeyword>(
-            RE::DEFAULT_OBJECT::kKeywordReusableSoulGem);
+    const auto reusableSoulGemKeyword = getReusableSoulGemKeyword();
 
     for (const auto& soulGemGroup : _soulGemGroups) {
         for (int i = 0; i < soulGemGroup->members().size(); ++i) {
@@ -185,18 +181,16 @@ bool YASTMConfig::_isValidConfig(RE::TESDataHandler* const dataHandler) const
                 soulGemId->pluginName());
 
             if (form == nullptr) {
-                logger::error(
-                    FMT_STRING(
-                        "Form with ID {:08x} does not exist in file \"{}\""sv),
+                LOG_ERROR_FMT(
+                    "Form with ID {:08x} does not exist in file \"{}\""sv,
                     soulGemId->formId(),
                     soulGemId->pluginName());
                 return false;
             }
 
             if (!form->IsSoulGem()) {
-                logger::error(
-                    FMT_STRING(
-                        "Form {:08x} \"{}\" from file \"{}\" is not a soul gem."sv),
+                LOG_ERROR_FMT(
+                    "Form {:08x} \"{}\" from file \"{}\" is not a soul gem."sv,
                     form->GetFormID(),
                     form->GetName(),
                     soulGemId->pluginName());
@@ -209,9 +203,8 @@ bool YASTMConfig::_isValidConfig(RE::TESDataHandler* const dataHandler) const
             // in-game.
             if (soulGemGroup->effectiveCapacity() !=
                 static_cast<SoulSize>(soulGemForm->GetMaximumCapacity())) {
-                logger::error(
-                    FMT_STRING(
-                        "Soul gem {:08x} \"{}\" from file \"{}\" in group '{}' does not have a capacity matching configuration."sv),
+                LOG_ERROR_FMT(
+                    "Soul gem {:08x} \"{}\" from file \"{}\" in group '{}' does not have a capacity matching configuration."sv,
                     form->GetFormID(),
                     form->GetName(),
                     soulGemId->pluginName(),
@@ -228,9 +221,8 @@ bool YASTMConfig::_isValidConfig(RE::TESDataHandler* const dataHandler) const
             if (soulGemForm->HasKeyword(reusableSoulGemKeyword) &&
                 soulGemForm->GetContainedSoul() != RE::SOUL_LEVEL::kNone) {
                 if (soulGemForm->linkedSoulGem == nullptr) {
-                    logger::error(
-                        FMT_STRING(
-                            "Reusable soul gem {:08x} \"{}\" from file \"{}\" in group '{}' contains a soul but has no linked soul gem specified in the form."sv),
+                    LOG_ERROR_FMT(
+                        "Reusable soul gem {:08x} \"{}\" from file \"{}\" in group '{}' contains a soul but has no linked soul gem specified in the form."sv,
                         form->GetFormID(),
                         form->GetName(),
                         soulGemId->pluginName(),
@@ -240,9 +232,8 @@ bool YASTMConfig::_isValidConfig(RE::TESDataHandler* const dataHandler) const
 
                 if (soulGemForm->linkedSoulGem->GetContainedSoul() !=
                     RE::SOUL_LEVEL::kNone) {
-                    logger::error(
-                        FMT_STRING(
-                            "Linked soul gem for reusable soul gem {:08x} \"{}\" from file \"{}\" in group '{}' is not an empty soul gem."sv),
+                    LOG_ERROR_FMT(
+                        "Linked soul gem for reusable soul gem {:08x} \"{}\" from file \"{}\" in group '{}' is not an empty soul gem."sv,
                         form->GetFormID(),
                         form->GetName(),
                         soulGemId->pluginName(),
@@ -257,9 +248,8 @@ bool YASTMConfig::_isValidConfig(RE::TESDataHandler* const dataHandler) const
                 case 0:
                     if (soulGemForm->GetContainedSoul() !=
                         RE::SOUL_LEVEL::kNone) {
-                        logger::error(
-                            FMT_STRING(
-                                "Black soul gem group \"{}\" member at index {} is not an empty soul gem."sv),
+                        LOG_ERROR_FMT(
+                            "Black soul gem group \"{}\" member at index {} is not an empty soul gem."sv,
                             soulGemGroup->id(),
                             i);
                         return false;
@@ -268,34 +258,31 @@ bool YASTMConfig::_isValidConfig(RE::TESDataHandler* const dataHandler) const
                 case 1:
                     if (soulGemForm->GetContainedSoul() !=
                         RE::SOUL_LEVEL::kGrand) {
-                        logger::error(
-                            FMT_STRING(
-                                "Black soul gem group \"{}\" member at index {} is not a filled soul gem."sv),
+                        LOG_ERROR_FMT(
+                            "Black soul gem group \"{}\" member at index {} is not a filled soul gem."sv,
                             soulGemGroup->id(),
                             i);
                         return false;
                     }
                     break;
                 default:
-                    logger::error(
-                        FMT_STRING(
-                            "Extra members found in black soul gem group \"{}\""sv),
+                    LOG_ERROR_FMT(
+                        "Extra members found in black soul gem group \"{}\""sv,
                         soulGemGroup->id());
                     return false;
                 }
             } else {
                 if (static_cast<int>(soulGemForm->GetContainedSoul()) != i) {
-                    logger::error(
-                        FMT_STRING(
-                            "Soul gem group \"{}\" member at index {} does not contain the appropriate soul size."sv),
+                    LOG_ERROR_FMT(
+                        "Soul gem group \"{}\" member at index {} does not contain the appropriate soul size."sv,
                         soulGemGroup->id(),
                         i);
                     return false;
                 }
             }
 
-            logger::info(
-                FMT_STRING("- Loaded form: [ID:{:08x}] {}"sv),
+            LOG_INFO_FMT(
+                "- Loaded form: [ID:{:08x}] {}"sv,
                 form->GetFormID(),
                 form->GetName());
         }
@@ -306,14 +293,12 @@ bool YASTMConfig::_isValidConfig(RE::TESDataHandler* const dataHandler) const
 
 bool YASTMConfig::loadConfig()
 {
-    namespace logger = SKSE::log;
-
     try {
         _readYASTMConfig();
         _readSoulGemConfigs();
         return true;
     } catch (const std::exception& error) {
-        logger::error(error.what());
+        LOG_ERROR(error.what());
     }
 
     return false;
@@ -329,15 +314,12 @@ void YASTMConfig::processGameForms(RE::TESDataHandler* const dataHandler)
 
 float YASTMConfig::getGlobalValue(const Key key) const
 {
-    namespace logger = SKSE::log;
-
     if (_globals.contains(key)) {
         const auto& globalId = _globals.at(key);
 
         if (globalId.form() == nullptr) {
-            logger::trace(
-                FMT_STRING(
-                    "Global variable '{}' ({}) not yet loaded. Returning default value..."sv),
+            LOG_TRACE_FMT(
+                "Global variable '{}' ({}) not yet loaded. Returning default value..."sv,
                 YASTMConfig::toKeyName(key),
                 globalId);
             return _globalsDefaults.at(key);
@@ -346,9 +328,8 @@ float YASTMConfig::getGlobalValue(const Key key) const
         return globalId.form()->value;
     }
 
-    logger::trace(
-        FMT_STRING(
-            "Global variable '{}' not specified in configuration. Returning default value..."sv),
+    LOG_TRACE_FMT(
+        "Global variable '{}' not specified in configuration. Returning default value..."sv,
         YASTMConfig::toKeyName(key));
     return _globalsDefaults.at(key);
 }
@@ -366,6 +347,11 @@ bool YASTMConfig::isSoulDisplacementAllowed() const
 bool YASTMConfig::isSoulRelocationAllowed() const
 {
     return getGlobalValue(Key::AllowSoulRelocation) != 0;
+}
+
+bool YASTMConfig::isExtraSoulRelocationAllowed() const
+{
+    return getGlobalValue(Key::AllowExtraSoulRelocation) != 0;
 }
 
 bool YASTMConfig::isSoulShrinkingAllowed() const
@@ -397,9 +383,8 @@ RE::TESSoulGem* _getFormFromId(
 void YASTMConfig::_getGlobalForms(RE::TESDataHandler* const dataHandler)
 {
     using namespace std::literals;
-    namespace logger = SKSE::log;
 
-    logger::info("Loading global variable forms..."sv);
+    LOG_INFO("Loading global variable forms..."sv);
 
     for (auto& [key, globalId] : _globals) {
         const auto form =
@@ -408,14 +393,13 @@ void YASTMConfig::_getGlobalForms(RE::TESDataHandler* const dataHandler)
         if (form->Is(RE::FormType::Global)) {
             globalId.setForm(form->As<RE::TESGlobal>());
 
-            logger::info(
-                FMT_STRING("- Loaded form: [ID:{:08x}] (key: {})"sv),
+            LOG_INFO_FMT(
+                "- Loaded form: [ID:{:08x}] (key: {})"sv,
                 form->GetFormID(),
                 globalId.keyName());
         } else {
-            logger::error(
-                FMT_STRING(
-                    "Form {:08x} \"{}\" from file \"{}\" is not a global variable."sv),
+            LOG_ERROR_FMT(
+                "Form {:08x} \"{}\" from file \"{}\" is not a global variable."sv,
                 form->GetFormID(),
                 form->GetName(),
                 globalId.pluginName());
@@ -425,7 +409,6 @@ void YASTMConfig::_getGlobalForms(RE::TESDataHandler* const dataHandler)
 
 void YASTMConfig::_createSoulGemMap(RE::TESDataHandler* const dataHandler)
 {
-    namespace logger = SKSE::log;
     using namespace std::literals;
 
     for (int i = 0; i < _whiteSoulGems.size(); ++i) {
@@ -473,27 +456,27 @@ void YASTMConfig::_createSoulGemMap(RE::TESDataHandler* const dataHandler)
         for (int containedSoulSize = 0;
              containedSoulSize < _whiteSoulGems[i].size();
              ++containedSoulSize) {
-            logger::info(
-                FMT_STRING("Listing mapped soul gems with capacity={} "
-                           "containedSoulSize={}"),
+            LOG_INFO_FMT(
+                "Listing mapped soul gems with capacity={} "
+                "containedSoulSize={}",
                 soulCapacity,
                 containedSoulSize);
 
             for (const auto soulGemForm :
                  _whiteSoulGems[i][containedSoulSize]) {
-                logger::info(FMT_STRING("- {}"sv), soulGemForm);
+                LOG_INFO_FMT("- {}"sv, soulGemForm);
             }
         }
     }
 
-    logger::info("Listing mapped empty black soul gems.");
+    LOG_INFO("Listing mapped empty black soul gems."sv);
     for (const auto soulGemForm : _blackSoulGemsEmpty) {
-        logger::info(FMT_STRING("- {}"sv), soulGemForm);
+        LOG_INFO_FMT("- {}"sv, soulGemForm);
     }
 
-    logger::info("Listing mapped filled black soul gems.");
+    LOG_INFO("Listing mapped filled black soul gems."sv);
     for (const auto soulGemForm : _blackSoulGemsEmpty) {
-        logger::info(FMT_STRING("- {}"sv), soulGemForm);
+        LOG_INFO_FMT("- {}"sv, soulGemForm);
     }
 }
 

@@ -112,7 +112,10 @@ set(SOURCES
     src/config/SoulSize.hpp
     src/config/YASTMConfig.hpp
     src/config/YASTMConfig.cpp
-  "src/formatters/TESSoulGem.hpp" "src/utilities/TESSoulGem.hpp" )
+    src/formatters/TESSoulGem.hpp
+    src/utilities/TESSoulGem.hpp
+    src/utilities/TESSoulGem.cpp
+)
 
 source_group(
     TREE

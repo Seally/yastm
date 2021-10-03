@@ -1,5 +1,5 @@
-#ifndef SOULSIZE_HPP
-#define SOULSIZE_HPP
+#ifndef CONFIG_SOULSIZE_HPP
+#define CONFIG_SOULSIZE_HPP
 
 #include <type_traits>
 
@@ -52,4 +52,4 @@ inline std::size_t getVariantCountForCapacity(const SoulSize soulCapacity)
     return static_cast<std::size_t>(soulCapacity) + 1;
 }
 
-#endif // SOULSIZE_HPP
+#endif // CONFIG_SOULSIZE_HPP

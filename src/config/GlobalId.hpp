@@ -1,5 +1,5 @@
-#ifndef GLOBALID_HPP
-#define GLOBALID_HPP
+#ifndef CONFIG_GLOBALID_HPP
+#define CONFIG_GLOBALID_HPP
 
 #include <cstdint>
 #include <string>
@@ -89,4 +89,4 @@ struct fmt::formatter<GlobalId> {
     }
 };
 
-#endif // GLOBALID_HPP
+#endif // CONFIG_GLOBALID_HPP

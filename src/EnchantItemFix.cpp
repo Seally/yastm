@@ -3,13 +3,14 @@
 #include <SKSE/SKSE.h>
 #include <xbyak/xbyak.h>
 
+#include "global.hpp"
+
 /**
  * Check if memory has the expected bytes for patching.
  */
 bool _isEnchantItemPatchable(std::uintptr_t baseAddress, std::uintptr_t offset)
 {
     using namespace std::literals;
-    namespace logger = SKSE::log;
 
     // Reuseable soul gem handling branch code.
     const std::uint8_t expected[] = {
@@ -35,7 +36,7 @@ bool _isEnchantItemPatchable(std::uintptr_t baseAddress, std::uintptr_t offset)
                 static_cast<std::uintptr_t>(baseAddress + offset)),
             expected,
             sizeof expected) != 0) {
-        logger::critical(
+        LOG_CRITICAL(
             "[ENCHANT] Expected bytes for reusable soul gem handling not found."sv);
 
         return false;
@@ -47,7 +48,6 @@ bool _isEnchantItemPatchable(std::uintptr_t baseAddress, std::uintptr_t offset)
 bool installEnchantItemFix()
 {
     using namespace std::literals;
-    namespace logger = SKSE::log;
 
     // CraftingSubMenus::EnchantMenu::EnchantItem
     // SkyrimSE.exe + 0x86c640 (v1.5.97)
@@ -72,7 +72,6 @@ bool installEnchantItemFix()
             const REL::ID& player_id,
             const REL::ID& craftingSubMenus_enchantConstructMenu_enchantItem_id)
         {
-            namespace logger = SKSE::log;
             constexpr std::uintptr_t stackSize = 0xb8;
             constexpr std::uintptr_t returnOffset = 0x236;
 
@@ -120,8 +119,9 @@ bool installEnchantItemFix()
             mov(r10, player_id.address());
             mov(r10, ptr[r10]);
 
-            // For details on how arguments are passed, see the x64 calling convention documentation
-            // from Microsoft (specifically __fastcall).
+            // For details on how arguments are passed, see the x64 calling
+            // convention documentation from Microsoft (especially for
+            // __fastcall).
             //
             // - https://docs.microsoft.com/en-us/cpp/cpp/fastcall?view=msvc-160
             // - https://docs.microsoft.com/en-us/cpp/build/x64-software-conventions?view=msvc-160#register-usage
@@ -141,11 +141,13 @@ bool installEnchantItemFix()
             mov(rcx, r10);                         // this = player
             call(qword[rax + 0x2d0]); // PlayerCharacter::AddObjectToContainer
 
-            // assign r10 to player (again, since r10 was not preserved in the last call).
+            // assign r10 to player (again, since r10 was not preserved in the
+            // last call).
             mov(r10, player_id.address());
             mov(r10, ptr[r10]);
 
-            // re-fetch the original value for rcx since we just used it for the function call.
+            // re-fetch the original value for rcx since we just used it for the
+            // function call.
             mov(rax, ptr[rbx + 0x18]);
             mov(rcx, ptr[rax + 0x8]); // rcx is probably extraDataList
 
@@ -187,7 +189,8 @@ bool installEnchantItemFix()
                returnOffset);
 
             L(ifNAM0IsNullLabel);
-            // Original branch code since we've overwritten some of it when performing the jump.
+            // Original branch code since we've overwritten some of it when
+            // performing the jump.
             test(rcx, rcx);
             jz(ifExtraDataListIsNullLabel2);
             mov(rcx, ptr[rcx]);
@@ -208,10 +211,11 @@ bool installEnchantItemFix()
         craftingSubMenus_enchantConstructMenu_enchantItem_id};
     patch.ready();
 
-    logger::info(FMT_STRING("[ENCHANT] Patch size: {}"sv), patch.getSize());
+    LOG_INFO_FMT("[ENCHANT] Patch size: {}"sv, patch.getSize());
 
     auto& trampoline = SKSE::GetTrampoline();
-    // Code is significantly larger than the default trampoline size, so we need to allocate more.
+    // Code is significantly larger than the default trampoline size, so we need
+    // to allocate more.
     SKSE::AllocTrampoline(1 << 8);
     trampoline.write_branch<6>(
         craftingSubMenus_enchantConstructMenu_enchantItem_id.address() +

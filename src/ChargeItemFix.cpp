@@ -3,13 +3,13 @@
 #include <SKSE/SKSE.h>
 #include <xbyak/xbyak.h>
 
+#include "global.hpp"
+
 /**
  * @brief Check if memory has the expected bytes for patching.
  */
 bool _isChargeItemPatchable(std::uintptr_t baseAddress, std::uintptr_t offset)
 {
-    namespace logger = SKSE::log;
-
     // Reuseable soul gem handling branch code.
     const std::uint8_t expected[] = {
         // clang-format off
@@ -34,7 +34,7 @@ bool _isChargeItemPatchable(std::uintptr_t baseAddress, std::uintptr_t offset)
                 static_cast<std::uintptr_t>(baseAddress + offset)),
             expected,
             sizeof expected) != 0) {
-        logger::critical(
+        LOG_CRITICAL(
             "[CHARGE] Expected bytes for reusable soul gem handling not "
             "found.");
 
@@ -46,15 +46,14 @@ bool _isChargeItemPatchable(std::uintptr_t baseAddress, std::uintptr_t offset)
 
 bool installChargeItemFix()
 {
-    namespace logger = SKSE::log;
-
     // CraftingSubMenus::EnchantMenu::EnchantItem
     const REL::ID chargeItem_id{50980}; // SkyrimSE.exe + 0x88e890 (v1.5.97)
     const REL::ID player_id{517014};    // SkyrimSE.exe + 0x2f26ef8 (v1.5.97)
-    // This probably isn't updateInventory and may actually be part of the update loop,
-    // but updating inventory is what we use it for here.
-    const REL::ID updateInventory_id{
-        51911}; // SkyrimSE.exe + 0x8d5710 (v1.5.97)
+    // This probably isn't updateInventory and may actually be part of the
+    // update loop, but updating inventory is what we use it for here.
+    // 
+    // SkyrimSE.exe + 0x8d5710 (v1.5.97)
+    const REL::ID updateInventory_id{51911};
 
     constexpr std::uintptr_t patchOffset = 0x2a5;
 
@@ -72,7 +71,6 @@ bool installChargeItemFix()
             const REL::ID& chargeItem_id,
             const REL::ID& updateInventory_id)
         {
-            namespace logger = SKSE::log;
             constexpr std::uintptr_t stackSize = 0xc8;
             constexpr std::uintptr_t returnOffset = 0x2b9;
             constexpr std::uintptr_t branchReturnOffset = 0x2b2;
@@ -125,8 +123,9 @@ bool installChargeItemFix()
             mov(r10, player_id.address());
             mov(r10, ptr[r10]);
 
-            // For details on how arguments are passed, see the x64 calling convention documentation
-            // from Microsoft (specifically __fastcall).
+            // For details on how arguments are passed, see the x64 calling
+            // convention documentation from Microsoft (especially for
+            // __fastcall).
             //
             // - https://docs.microsoft.com/en-us/cpp/cpp/fastcall?view=msvc-160
             // - https://docs.microsoft.com/en-us/cpp/build/x64-software-conventions?view=msvc-160#register-usage
@@ -147,16 +146,18 @@ bool installChargeItemFix()
             mov(rcx, r10);                         // this = player
             call(qword[rax + 0x2d0]); // PlayerCharacter::AddObjectToContainer
 
-            // Updates the inventory UI. If we don't call this, the added soul gem won't show up until the user reopens
-            // the inventory menu.
+            // Updates the inventory UI. If we don't call this, the added soul
+            // gem won't show up until the user reopens the inventory menu.
             //
-            // Also, it seems we need to call this before removing the item, otherwise this seems to do nothing.
+            // Also, it seems we need to call this before removing the item,
+            // otherwise this seems to do nothing.
             //
-            // 1st argument of the function seems to be the actor in question, and the 2nd the item to add.
-            // When removing items, the 2nd argument should be NULL.
+            // 1st argument of the function seems to be the actor in question,
+            // and the 2nd the item to add. When removing items, the 2nd
+            // argument should be NULL.
             //
-            // This function is called for the item remove case already, but not for the added item (since it
-            // doesn't originally call it at all).
+            // This function is called for the item remove case already, but not
+            // for the added item (since it doesn't originally call it at all).
             mov(rdx, ptr[rbx + 0x100]);
             mov(rcx, player_id.address());
             mov(rcx, ptr[rcx]);
@@ -206,7 +207,8 @@ bool installChargeItemFix()
             dq(chargeItem_id.address() + returnOffset);
 
             L(ifNAM0IsNullLabel);
-            // Original branch code since we've overwritten some of it when performing the jump.
+            // Original branch code since we've overwritten some of it when
+            // performing the jump.
             test(rax, rax);
             jz(ifExtraDataListIsNullLabel2);
             mov(rcx, ptr[rax]);
@@ -229,10 +231,11 @@ bool installChargeItemFix()
     Patch patch{player_id, chargeItem_id, updateInventory_id};
     patch.ready();
 
-    logger::info(FMT_STRING("[CHARGE] Patch size: {}"), patch.getSize());
+    LOG_INFO_FMT("[CHARGE] Patch size: {}", patch.getSize());
 
     auto& trampoline = SKSE::GetTrampoline();
-    // Patch code is significantly larger than the default trampoline size, so we need to allocate more.
+    // Patch code is significantly larger than the default trampoline size,
+    // so we need to allocate more.
     SKSE::AllocTrampoline(1 << 8);
     trampoline.write_branch<6>(
         chargeItem_id.address() + patchOffset,

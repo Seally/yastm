@@ -1,5 +1,5 @@
-#ifndef SOULGEMID_HPP
-#define SOULGEMID_HPP
+#ifndef CONFIG_SOULGEMID_HPP
+#define CONFIG_SOULGEMID_HPP
 
 #include <cstdint>
 #include <string>
@@ -80,4 +80,4 @@ bool SoulGemId::areAllUnique(iterator begin, iterator end)
     return uniques.size() == count;
 }
 
-#endif // SOULGEMID_HPP
+#endif // CONFIG_SOULGEMID_HPP

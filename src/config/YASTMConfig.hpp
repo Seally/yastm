@@ -1,5 +1,5 @@
-#ifndef YASTMCONFIG_HPP
-#define YASTMCONFIG_HPP
+#ifndef CONFIG_YASTMCONFIG_HPP
+#define CONFIG_YASTMCONFIG_HPP
 
 #include <memory>
 #include <unordered_map>
@@ -41,6 +41,7 @@ private:
         _globalsDefaults[Key::AllowSoulDisplacement] = 1;
         _globalsDefaults[Key::AllowSoulRelocation] = 1;
         _globalsDefaults[Key::AllowSoulShrinking] = 1;
+        _globalsDefaults[Key::AllowExtraSoulRelocation] = 1;
         _globalsDefaults[Key::PreserveOwnership] = 1;
         _globalsDefaults[Key::AllowNotifications] = 1;
     }
@@ -68,6 +69,7 @@ public:
     bool isSoulDisplacementAllowed() const;
     bool isSoulRelocationAllowed() const;
     bool isSoulShrinkingAllowed() const;
+    bool isExtraSoulRelocationAllowed() const;
     bool preserveOwnership() const;
     bool isNotificationsAllowed() const;
 
@@ -85,6 +87,7 @@ public:
         const bool allowDisplacement;
         const bool allowRelocation;
         const bool allowShrinking;
+        const bool allowExtraSoulRelocation;
         const bool preserveOwnership;
         const bool allowNotifications;
     };
@@ -96,6 +99,7 @@ public:
             isSoulDisplacementAllowed(),
             isSoulRelocationAllowed(),
             isSoulShrinkingAllowed(),
+            isExtraSoulRelocationAllowed(),
             preserveOwnership(),
             isNotificationsAllowed()};
     }
@@ -105,6 +109,7 @@ public:
         AllowSoulDisplacement,
         AllowSoulRelocation,
         AllowSoulShrinking,
+        AllowExtraSoulRelocation,
         PreserveOwnership,
         AllowNotifications,
     };
@@ -122,6 +127,8 @@ public:
             return "allowSoulDisplacement"sv;
         case Key::AllowSoulShrinking:
             return "allowSoulShrinking"sv;
+        case Key::AllowExtraSoulRelocation:
+            return "allowExtraSoulRelocation"sv;
         case Key::PreserveOwnership:
             return "preserveOwnership"sv;
         case Key::AllowNotifications:
@@ -132,4 +139,4 @@ public:
     }
 };
 
-#endif // YASTMCONFIG_HPP
+#endif // CONFIG_YASTMCONFIG_HPP

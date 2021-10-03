@@ -316,9 +316,8 @@ public:
                 }
             }
 
-            tpoffset = (high & 8) != 0 ?
-                           (poffset / (unsigned long long)ptrSize) :
-                           poffset;
+            tpoffset = (high & 8) != 0 ? (poffset / (unsigned long long)ptrSize)
+                                       : poffset;
 
             switch (high & 7) {
             case 0:

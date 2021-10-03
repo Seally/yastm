@@ -1,5 +1,5 @@
-#ifndef SOULGEMGROUP_HPP
-#define SOULGEMGROUP_HPP
+#ifndef CONFIG_SOULGEMGROUP_HPP
+#define CONFIG_SOULGEMGROUP_HPP
 
 #include <memory>
 #include <string>
@@ -67,4 +67,4 @@ public:
     const MembersType& members() const { return _members; }
 };
 
-#endif // SOULGEMGROUP_HPP
+#endif // CONFIG_SOULGEMGROUP_HPP

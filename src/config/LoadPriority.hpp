@@ -1,5 +1,5 @@
-#ifndef LOADPRIORITY_HPP
-#define LOADPRIORITY_HPP
+#ifndef CONFIG_LOADPRIORITY_HPP
+#define CONFIG_LOADPRIORITY_HPP
 
 #include <string>
 
@@ -65,4 +65,4 @@ inline LoadPriority fromLoadPriorityString(std::string_view str)
     return LoadPriority::Invalid;
 }
 
-#endif // LOADPRIORITY_HPP
+#endif // CONFIG_LOADPRIORITY_HPP

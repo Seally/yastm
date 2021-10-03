@@ -44,7 +44,7 @@ BraceWrapping:
     SplitEmptyNamespace: 'false'
 BreakBeforeBinaryOperators: None
 BreakBeforeBraces: Custom
-BreakBeforeTernaryOperators: 'false'
+BreakBeforeTernaryOperators: 'true'
 BreakConstructorInitializers: BeforeComma
 BreakInheritanceList: AfterColon
 BreakStringLiterals: 'true'

@@ -1,23 +1,12 @@
 #ifndef UTILITIES_TESSOULGEM_HPP
 #define UTILITIES_TESSOULGEM_HPP
 
-#include <RE/T/TESSoulGem.h>
-#include <RE/B/BGSDefaultObjectManager.h>
-#include <RE/B/BGSKeyword.h>
+namespace RE {
+    class BGSKeyword;
+    class TESSoulGem;
+} // end namespace RE
 
-inline RE::BGSKeyword* getReusableSoulGemKeyword()
-{
-    static const auto reusableSoulGemKeyword =
-        RE::BGSDefaultObjectManager::GetSingleton()->GetObject<RE::BGSKeyword>(
-            RE::DEFAULT_OBJECT::kKeywordReusableSoulGem);
-
-    return reusableSoulGemKeyword;
-}
-
-inline bool canHoldBlackSoul(RE::TESSoulGem* const soulGemForm)
-{
-    return soulGemForm->GetFormFlags() &
-           RE::TESSoulGem::RecordFlags::kCanHoldNPCSoul;
-}
+RE::BGSKeyword* getReusableSoulGemKeyword();
+bool canHoldBlackSoul(RE::TESSoulGem* const soulGemForm);
 
 #endif // UTILITIES_TESSOULGEM_HPP

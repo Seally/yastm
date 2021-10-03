@@ -1,5 +1,5 @@
-#ifndef FORMATERROR_H
-#define FORMATERROR_H
+#ifndef CONFIG_FORMATERROR_H
+#define CONFIG_FORMATERROR_H
 
 #include <format>
 #include <string>
@@ -34,4 +34,4 @@ namespace formatError {
     }
 }
 
-#endif // FORMATERROR_H
+#endif // CONFIG_FORMATERROR_H
