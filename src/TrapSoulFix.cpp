@@ -627,13 +627,6 @@ bool trapSoul(RE::Actor* const caster, RE::Actor* const victim)
                 })};
             d.victims.pop();
 
-            // Set it here so we don't have to pass half a dozen arguments
-            // everywhere.
-            //
-            // Do NOT access these outside this loop as their scope ends once
-            // we reach the end of this block. The values are NOT changed to
-            // null once it falls outside this scope.
-
             if (dl.inventoryMap.size() <= 0) {
                 // Caster doesn't have any soul gems. Stop looking.
                 LOG_TRACE("Caster has no soul gems. Stop looking."sv);
