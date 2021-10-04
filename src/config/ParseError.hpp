@@ -1,5 +1,5 @@
-#ifndef CONFIG_PARSEERROR_H
-#define CONFIG_PARSEERROR_H
+#ifndef CONFIG_PARSEERROR_HPP
+#define CONFIG_PARSEERROR_HPP
 
 #include <exception>
 
@@ -9,4 +9,4 @@ class ParseError : public std::runtime_error {
     {}
 };
 
-#endif // CONFIG_PARSEERROR_H
+#endif // CONFIG_PARSEERROR_HPP
