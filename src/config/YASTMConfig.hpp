@@ -27,7 +27,7 @@ private:
     std::unordered_map<Key, float> _globalsDefaults;
     std::unordered_map<Key, GlobalId> _globals;
 
-    std::array<std::vector<std::vector<RE::TESSoulGem*>>, SoulSize::Grand>
+    std::array<std::vector<std::vector<RE::TESSoulGem*>>, static_cast<std::size_t>(SoulSize::Grand)>
         _whiteSoulGems;
     std::vector<RE::TESSoulGem*> _blackSoulGemsEmpty;
     std::vector<RE::TESSoulGem*> _blackSoulGemsFilled;

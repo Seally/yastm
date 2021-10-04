@@ -56,17 +56,24 @@ namespace native {
     }
 
     /**
-     * @brief Checks the soul trap status of the given actor.
+     * @brief Returns the remaining "raw" soul size of the actor.
      *
-     * Note that this function can return weird numbers I can't figure out the
-     * significance of. It's not important since all we need this for is check
-     * if it's 0 or not, but it would be nice to know regardless.
-     *  
-     * @return 0 if it has been previously soul trapped. Weird numbers if not.
+     * The raw soul size is the actual capacity of the soul. They're mapped to
+     * the enumerated soul sizes as follows:
+     *
+     * - None = 0
+     * - Petty = 250
+     * - Lesser = 500
+     * - Common = 1000
+     * - Greater = 2000
+     * - Grand = 3000
+     *
+     * @returns 0 if the actor has already been soul trapped, otherwise returns
+     * their raw soul size.
      */
-    std::uint64_t soulTrapVictimStatus(RE::Actor* const actor)
+    RawSoulSize getRemainingRawSoulSize(RE::Actor* const actor)
     {
-        using func_t = decltype(soulTrapVictimStatus);
+        using func_t = decltype(getRemainingRawSoulSize);
         REL::Relocation<func_t> func{
             REL::ID{37861}}; // SkyrimSE.exe + 0x634830 (v1.5.97.0)
         return func(actor);
@@ -373,14 +380,14 @@ bool _trapFullSoul(_SoulTrapData& d, _SoulTrapLoopData& dl)
         //             Return
         //         Else
         //             Continue searching
-        for (std::size_t soulCapacity = dl.victim.soulSize();
+        for (int soulCapacity = static_cast<int>(dl.victim.soulSize());
              soulCapacity <= maxSoulCapacityToSearch;
              ++soulCapacity) {
             const auto& targetSoulGems = config.getSoulGemsWith(
-                toSoulSize(soulCapacity),
+                static_cast<SoulSize>(soulCapacity),
                 dl.victim.soulSize());
 
-            for (std::size_t containedSoulSize = SoulSize::None;
+            for (int containedSoulSize = static_cast<int>(SoulSize::None);
                  containedSoulSize < maxContainedSoulSizeToSearch;
                  ++containedSoulSize) {
                 LOG_TRACE_FMT(
@@ -389,8 +396,8 @@ bool _trapFullSoul(_SoulTrapData& d, _SoulTrapLoopData& dl)
                     containedSoulSize);
 
                 const auto& sourceSoulGems = config.getSoulGemsWith(
-                    toSoulSize(soulCapacity),
-                    toSoulSize(containedSoulSize));
+                    static_cast<SoulSize>(soulCapacity),
+                    static_cast<SoulSize>(containedSoulSize));
 
                 const bool result =
                     _fillSoulGem(sourceSoulGems, targetSoulGems, d, dl);
@@ -399,7 +406,8 @@ bool _trapFullSoul(_SoulTrapData& d, _SoulTrapLoopData& dl)
                     if (d.config.allowRelocation &&
                         containedSoulSize > SoulSize::None) {
                         _debugNotification(Message::SoulDisplaced, d, dl);
-                        d.victims.emplace(toSoulSize(containedSoulSize));
+                        d.victims.emplace(
+                            static_cast<SoulSize>(containedSoulSize));
                     } else {
                         _debugNotification(Message::SoulCaptured, d, dl);
                     }
@@ -426,10 +434,10 @@ bool _trapFullSoul(_SoulTrapData& d, _SoulTrapLoopData& dl)
         //             Return
         //         Else
         //             Continue searching
-        for (std::size_t containedSoulSize = SoulSize::None;
+        for (int containedSoulSize = static_cast<int>(SoulSize::None);
              containedSoulSize < maxContainedSoulSizeToSearch;
              ++containedSoulSize) {
-            for (std::size_t soulCapacity = dl.victim.soulSize();
+            for (int soulCapacity = static_cast<int>(dl.victim.soulSize());
                  soulCapacity <= maxSoulCapacityToSearch;
                  ++soulCapacity) {
                 LOG_TRACE_FMT(
@@ -438,8 +446,8 @@ bool _trapFullSoul(_SoulTrapData& d, _SoulTrapLoopData& dl)
                     containedSoulSize);
 
                 const bool result = _fillSoulGem(
-                    toSoulSize(soulCapacity),
-                    toSoulSize(containedSoulSize),
+                    static_cast<SoulSize>(soulCapacity),
+                    static_cast<SoulSize>(containedSoulSize),
                     dl.victim.soulSize(),
                     d,
                     dl);
@@ -448,7 +456,8 @@ bool _trapFullSoul(_SoulTrapData& d, _SoulTrapLoopData& dl)
                     if (d.config.allowRelocation &&
                         containedSoulSize > SoulSize::None) {
                         _debugNotification(Message::SoulDisplaced, d, dl);
-                        d.victims.emplace(toSoulSize(containedSoulSize));
+                        d.victims.emplace(
+                            static_cast<SoulSize>(containedSoulSize));
                     } else {
                         _debugNotification(Message::SoulCaptured, d, dl);
                     }
@@ -483,12 +492,14 @@ bool _trapShrunkSoul(_SoulTrapData& d, _SoulTrapLoopData& dl)
     // This algorithm matches the one for trapping full white souls when both
     // displacement and relocation are enabled, except that we iterate over soul
     // capacity in descending order.
-    for (std::size_t soulCapacity = dl.victim.soulSize() - 1;
+
+    // Use a signed int instead of size_t to prevent a possible underflow issue.
+    for (int soulCapacity = dl.victim.soulSize() - 1;
          soulCapacity > SoulSize::None;
          --soulCapacity) {
         const auto& targetSoulGems = config.getSoulGemsWith(
-            toSoulSize(soulCapacity),
-            toSoulSize(soulCapacity));
+            static_cast<SoulSize>(soulCapacity),
+            static_cast<SoulSize>(soulCapacity));
 
         // When displacement is allowed, we search soul gems with contained soul
         // sizes up to one size lower than the incoming soul. Since the incoming
@@ -500,10 +511,10 @@ bool _trapShrunkSoul(_SoulTrapData& d, _SoulTrapLoopData& dl)
         // Note: Loop range is end-EXclusive, so we set this to SoulSize::Petty
         // as the next lowest soul size after SoulSize::None.
         const SoulSize maxContainedSoulSizeToSearch =
-            d.config.allowDisplacement ? toSoulSize(soulCapacity)
+            d.config.allowDisplacement ? static_cast<SoulSize>(soulCapacity)
                                        : SoulSize::Petty;
 
-        for (std::size_t containedSoulSize = SoulSize::None;
+        for (int containedSoulSize = static_cast<int>(SoulSize::None);
              containedSoulSize < maxContainedSoulSizeToSearch;
              ++containedSoulSize) {
             LOG_TRACE_FMT(
@@ -512,8 +523,8 @@ bool _trapShrunkSoul(_SoulTrapData& d, _SoulTrapLoopData& dl)
                 containedSoulSize);
 
             const auto& sourceSoulGems = config.getSoulGemsWith(
-                toSoulSize(soulCapacity),
-                toSoulSize(containedSoulSize));
+                static_cast<SoulSize>(soulCapacity),
+                static_cast<SoulSize>(containedSoulSize));
 
             const bool isFillSuccessful =
                 _fillSoulGem(sourceSoulGems, targetSoulGems, d, dl);
@@ -523,7 +534,7 @@ bool _trapShrunkSoul(_SoulTrapData& d, _SoulTrapLoopData& dl)
                 _incrementSoulsTrappedStat(d.caster, dl.victim.actor());
 
                 if (containedSoulSize > SoulSize::None) {
-                    d.victims.emplace(toSoulSize(containedSoulSize));
+                    d.victims.emplace(static_cast<SoulSize>(containedSoulSize));
                 }
 
                 return true;
@@ -574,7 +585,7 @@ bool trapSoul(RE::Actor* const caster, RE::Actor* const victim)
     // We begin the mutex here since we're checking isSoulTrapped status next.
     std::lock_guard<std::mutex> guard{_trapSoulMutex};
 
-    if (native::soulTrapVictimStatus(victim) == 0) {
+    if (native::getRemainingRawSoulSize(victim) == RawSoulSize::None) {
         LOG_TRACE("Victim has already been soul trapped."sv);
         return wrapUpAndReturn(false);
     }
@@ -611,8 +622,9 @@ bool trapSoul(RE::Actor* const caster, RE::Actor* const victim)
         while (!d.victims.empty()) {
             _SoulTrapLoopData dl{
                 d.victims.top(),
-                d.caster->GetInventory(
-                    [](RE::TESBoundObject& a) { return a.IsSoulGem(); })};
+                d.caster->GetInventory([](RE::TESBoundObject& object) {
+                    return object.IsSoulGem();
+                })};
             d.victims.pop();
 
             // Set it here so we don't have to pass half a dozen arguments

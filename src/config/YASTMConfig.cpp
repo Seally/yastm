@@ -506,8 +506,8 @@ const std::vector<RE::TESSoulGem*>& YASTMConfig::getSoulGemsWith(
             return _blackSoulGemsFilled;
         }
     } else {
-        return _whiteSoulGems[static_cast<std::size_t>(soulCapacity) - 1]
-                             [containedSoulSize];
+        return _whiteSoulGems[soulCapacity - 1]
+                             [static_cast<std::size_t>(containedSoulSize)];
     }
 
     throw std::range_error(std::format(
