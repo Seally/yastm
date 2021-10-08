@@ -1,5 +1,4 @@
-#ifndef UTILITIES_TESSOULGEM_HPP
-#define UTILITIES_TESSOULGEM_HPP
+#pragma once
 
 namespace RE {
     class BGSKeyword;
@@ -8,5 +7,3 @@ namespace RE {
 
 RE::BGSKeyword* getReusableSoulGemKeyword();
 bool canHoldBlackSoul(RE::TESSoulGem* const soulGemForm);
-
-#endif // UTILITIES_TESSOULGEM_HPP

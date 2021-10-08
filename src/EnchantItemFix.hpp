@@ -1,6 +1,3 @@
-#ifndef YASTM_ENCHANTITEMFIX_H
-#define YASTM_ENCHANTITEMFIX_H
+#pragma once
 
 bool installEnchantItemFix();
-
-#endif // YASTM_ENCHANTITEMFIX_H

@@ -1,13 +1,13 @@
 {
     "name": "yastm",
-    "version-string": "1.0.0",
+    "version-string": "1.4.0",
     "description": "Yet Another Soul Trap Manager for Skyrim Special Edition",
     "homepage": "https://github.com/Seally/yastm",
     "license": "MIT",
     "dependencies": [
         "boost-atomic",
-        "boost-stl-interfaces",
         "boost-container-hash",
+        "boost-stl-interfaces",
         "span-lite",
         "spdlog",
         "xbyak",

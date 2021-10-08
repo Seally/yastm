@@ -1,13 +1,14 @@
-#ifndef CONFIG_YASTMCONFIG_HPP
-#define CONFIG_YASTMCONFIG_HPP
+#pragma once
 
 #include <memory>
 #include <unordered_map>
 #include <vector>
 
-#include "GlobalId.hpp"
+#include "ConfigKey.hpp"
+#include "GlobalVariable.hpp"
 #include "SoulGemGroup.hpp"
 #include "SoulSize.hpp"
+#include "SoulGemMap.hpp"
 
 namespace RE {
     class TESDataHandler;
@@ -17,41 +18,21 @@ namespace RE {
 
 class YASTMConfig {
 public:
-    enum class Key;
     struct Snapshot;
-    typedef std::vector<std::unique_ptr<SoulGemGroup>> SoulGemGroupsList;
+    using SoulGemGroupsList = std::vector<std::unique_ptr<SoulGemGroup>>;
 
 private:
     SoulGemGroupsList _soulGemGroups;
+    std::unordered_map<ConfigKey, GlobalVariable> _globals;
+    SoulGemMap _soulGemMap;
 
-    std::unordered_map<Key, float> _globalsDefaults;
-    std::unordered_map<Key, GlobalId> _globals;
-
-    std::array<std::vector<std::vector<RE::TESSoulGem*>>, static_cast<std::size_t>(SoulSize::Grand)>
-        _whiteSoulGems;
-    std::vector<RE::TESSoulGem*> _blackSoulGemsEmpty;
-    std::vector<RE::TESSoulGem*> _blackSoulGemsFilled;
-
-    bool _soulGemMapCreated = false;
-
-    explicit YASTMConfig()
-    {
-        // Defaults used when no associated configuration key has been set up.
-        _globalsDefaults[Key::AllowPartiallyFillingSoulGems] = 1;
-        _globalsDefaults[Key::AllowSoulDisplacement] = 1;
-        _globalsDefaults[Key::AllowSoulRelocation] = 1;
-        _globalsDefaults[Key::AllowSoulShrinking] = 1;
-        _globalsDefaults[Key::AllowExtraSoulRelocation] = 1;
-        _globalsDefaults[Key::PreserveOwnership] = 1;
-        _globalsDefaults[Key::AllowNotifications] = 1;
-    }
+    explicit YASTMConfig();
 
     void _readYASTMConfig();
     void _readSoulGemConfigs();
 
     void _getGlobalForms(RE::TESDataHandler* dataHandler);
     void _createSoulGemMap(RE::TESDataHandler* dataHandler);
-    bool _isValidConfig(RE::TESDataHandler* dataHandler) const;
 
 public:
     static YASTMConfig& getInstance()
@@ -61,17 +42,17 @@ public:
         return instance;
     }
 
-    bool loadConfig();
+    void loadConfig();
     void processGameForms(RE::TESDataHandler* dataHandler);
 
-    float getGlobalValue(const Key key) const;
-    bool isPartialFillsAllowed() const;
-    bool isSoulDisplacementAllowed() const;
-    bool isSoulRelocationAllowed() const;
-    bool isSoulShrinkingAllowed() const;
-    bool isExtraSoulRelocationAllowed() const;
-    bool preserveOwnership() const;
-    bool isNotificationsAllowed() const;
+    float getGlobalValue(const ConfigKey key) const
+    {
+        return _globals.at(key).value();
+    }
+    bool getGlobalBool(const ConfigKey key) const
+    {
+        return getGlobalValue(key) != 0;
+    }
 
     const SoulGemGroupsList& getSoulGemGroups() const { return _soulGemGroups; }
 
@@ -95,48 +76,17 @@ public:
     Snapshot createSnapshot() const
     {
         return Snapshot{
-            isPartialFillsAllowed(),
-            isSoulDisplacementAllowed(),
-            isSoulRelocationAllowed(),
-            isSoulShrinkingAllowed(),
-            isExtraSoulRelocationAllowed(),
-            preserveOwnership(),
-            isNotificationsAllowed()};
-    }
-
-    enum class Key {
-        AllowPartiallyFillingSoulGems,
-        AllowSoulDisplacement,
-        AllowSoulRelocation,
-        AllowSoulShrinking,
-        AllowExtraSoulRelocation,
-        PreserveOwnership,
-        AllowNotifications,
-    };
-
-    static std::string_view toKeyName(const Key key)
-    {
-        using namespace std::literals;
-
-        switch (key) {
-        case Key::AllowPartiallyFillingSoulGems:
-            return "allowPartiallyFillingSoulGems"sv;
-        case Key::AllowSoulDisplacement:
-            return "allowSoulDisplacement"sv;
-        case Key::AllowSoulRelocation:
-            return "allowSoulDisplacement"sv;
-        case Key::AllowSoulShrinking:
-            return "allowSoulShrinking"sv;
-        case Key::AllowExtraSoulRelocation:
-            return "allowExtraSoulRelocation"sv;
-        case Key::PreserveOwnership:
-            return "preserveOwnership"sv;
-        case Key::AllowNotifications:
-            return "allowNotifications"sv;
-        }
-
-        return ""sv;
+            getGlobalBool(ConfigKey::AllowPartiallyFillingSoulGems),
+            getGlobalBool(ConfigKey::AllowSoulDisplacement),
+            getGlobalBool(ConfigKey::AllowSoulRelocation),
+            getGlobalBool(ConfigKey::AllowSoulShrinking),
+            getGlobalBool(ConfigKey::AllowExtraSoulRelocation),
+            getGlobalBool(ConfigKey::PreserveOwnership),
+            getGlobalBool(ConfigKey::AllowNotifications)};
     }
 };
 
-#endif // CONFIG_YASTMCONFIG_HPP
+class YASTMConfigLoadError : public std::runtime_error {
+public:
+    explicit YASTMConfigLoadError(const std::string& message);
+};

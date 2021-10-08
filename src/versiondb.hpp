@@ -1,5 +1,4 @@
-#ifndef VERSIONDB_HPP
-#define VERSIONDB_HPP
+#pragma once
 
 #include <Windows.h>
 #include <fstream>
@@ -385,5 +384,3 @@ public:
         return true;
     }
 };
-
-#endif // VERSIONDB_HPP

@@ -1,7 +1,8 @@
-#ifndef CONFIG_SOULSIZE_HPP
-#define CONFIG_SOULSIZE_HPP
+#pragma once
 
 #include <type_traits>
+
+#include <fmt/format.h>
 
 enum class SoulSize {
     None = 0,
@@ -22,6 +23,10 @@ enum class RawSoulSize {
     Grand = 3000,
 };
 
+/**
+ * @brief Converts the given soul size to its raw soul size value.
+ * This function is lossy and does not perfectly mirror toSoulSize().
+ */
 inline constexpr RawSoulSize toRawSoulSize(const SoulSize soulSize) {
     switch (soulSize) {
     case SoulSize::None:
@@ -175,10 +180,19 @@ inline constexpr bool operator<=(const T other, const SoulSize soulSize)
     return other <= static_cast<T>(soulSize);
 }
 
+template<typename T>
+inline constexpr bool isValidSoulCapacity(const T soulCapacity) {
+    static_assert(std::is_integral_v<T>);
+
+    return static_cast<T>(SoulSize::Petty) <= soulCapacity && soulCapacity <= static_cast<T>(SoulSize::Black);
+}
+
+template<>
 inline constexpr bool isValidSoulCapacity(const SoulSize soulCapacity)
 {
     return SoulSize::Petty <= soulCapacity && soulCapacity <= SoulSize::Black;
 }
+
 
 inline constexpr bool isValidContainedSoulSize(
     const SoulSize soulCapacity,
@@ -204,4 +218,14 @@ inline constexpr std::size_t
     return static_cast<std::size_t>(soulCapacity) + 1;
 }
 
-#endif // CONFIG_SOULSIZE_HPP
+template <>
+struct fmt::formatter<SoulSize> : formatter<unsigned int> {
+    // parse is inherited from formatter<unsigned int>.
+    template <typename FormatContext>
+    auto format(const SoulSize soulSize, FormatContext& ctx)
+    {
+        return formatter<unsigned int>::format(
+            static_cast<unsigned int>(soulSize),
+            ctx);
+    }
+};

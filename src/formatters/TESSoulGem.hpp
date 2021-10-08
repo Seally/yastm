@@ -1,5 +1,4 @@
-#ifndef FORMATTERS_TESSOULGEM_HPP
-#define FORMATTERS_TESSOULGEM_HPP
+#pragma once
 
 #include <fmt/format.h>
 
@@ -50,5 +49,3 @@ struct fmt::formatter<RE::TESSoulGem*> {
             soulGemForm->HasKeyword(getReusableSoulGemKeyword()));
     }
 };
-
-#endif // FORMATTERS_TESSOULGEM_HPP

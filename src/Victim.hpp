@@ -1,5 +1,4 @@
-#ifndef VICTIM_HPP
-#define VICTIM_HPP
+#pragma once
 
 #include <RE/A/Actor.h>
 
@@ -38,5 +37,3 @@ inline bool operator>=(const Victim& lhs, const Victim& rhs)
 {
     return lhs.soulSize() >= rhs.soulSize();
 }
-
-#endif // VICTIM_HPP

@@ -1,39 +1,35 @@
-#ifndef CONFIG_SOULGEMGROUP_HPP
-#define CONFIG_SOULGEMGROUP_HPP
+#pragma once
 
+#include <exception>
 #include <memory>
 #include <string>
 #include <vector>
 
-#include <toml++/toml.h>
+#include <toml++/toml_table.h>
 
+#include "FormId.hpp"
 #include "LoadPriority.hpp"
-#include "SoulGemId.hpp"
 #include "SoulSize.hpp"
+
+namespace RE {
+    class TESDataHandler;
+    class TESSoulGem;
+} // end namespace RE
 
 class SoulGemGroup {
 public:
     typedef std::string IdType;
-    typedef std::vector<std::unique_ptr<SoulGemId>> MembersType;
+    typedef std::vector<std::unique_ptr<FormId>> MembersType;
 
 private:
-    const IdType _id;
-    const bool _isReusable;
-    const SoulSize _capacity;
-    const LoadPriority _priority;
+    IdType _id;
+    bool _isReusable;
+    SoulSize _capacity;
+    LoadPriority _priority;
     MembersType _members;
 
 public:
-    template <typename iterator>
-    explicit SoulGemGroup(
-        const std::string& id,
-        const bool isReusable,
-        const SoulSize capacity,
-        const LoadPriority priority,
-        iterator memberBegin,
-        iterator memberEnd);
-
-    static SoulGemGroup constructFromToml(toml::table& table);
+    explicit SoulGemGroup(const toml::table& table);
 
     const std::string& id() const { return _id; }
     bool isReusable() const { return _isReusable; }
@@ -67,4 +63,9 @@ public:
     const MembersType& members() const { return _members; }
 };
 
-#endif // CONFIG_SOULGEMGROUP_HPP
+class SoulGemGroupError : public std::runtime_error {
+public:
+    const std::string id;
+
+    explicit SoulGemGroupError(std::string_view id, const std::string& message);
+};

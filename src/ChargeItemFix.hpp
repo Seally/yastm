@@ -1,6 +1,3 @@
-#ifndef YASTM_CHARGEITEMFIX_H
-#define YASTM_CHARGEITEMFIX_H
+#pragma once
 
 bool installChargeItemFix();
-
-#endif // YASTM_CHARGEITEMFIX_H

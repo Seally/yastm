@@ -22,6 +22,7 @@
 #include "Victim.hpp"
 #include "config/YASTMConfig.hpp"
 #include "formatters/TESSoulGem.hpp"
+#include "utilities/printerror.hpp"
 #include "utilities/TESSoulGem.hpp"
 
 using VictimsQueue =
@@ -753,7 +754,14 @@ bool installTrapSoulFix()
 {
     using namespace std::literals;
 
-    YASTMConfig::getInstance().loadConfig();
+    try {
+        YASTMConfig::getInstance().loadConfig();
+    } catch (const std::exception& error) {
+        printError(error);
+        LOG_ERROR("Not installing trapSoul patch.");
+
+        return false;
+    }
 
     auto messaging = SKSE::GetMessagingInterface();
     messaging->RegisterListener(_handleMessage);

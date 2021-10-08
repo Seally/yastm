@@ -1,6 +1,3 @@
-#ifndef TRAPSOULFIX_HPP
-#define TRAPSOULFIX_HPP
+#pragma once
 
 bool installTrapSoulFix();
-
-#endif // TRAPSOULFIX_HPP

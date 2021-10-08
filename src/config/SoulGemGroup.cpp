@@ -1,107 +1,130 @@
 #include "SoulGemGroup.hpp"
 
-#include "_formaterror.hpp"
+#include <queue>
 
-template <typename iterator>
-inline SoulGemGroup::SoulGemGroup(
-    const std::string& id,
-    const bool isReusable,
-    const SoulSize capacity,
-    const LoadPriority priority,
-    iterator memberBegin,
-    iterator memberEnd)
-    : _id{id}
-    , _isReusable{isReusable}
-    , _capacity{capacity}
-    , _priority{priority}
-{
-    for (auto it = memberBegin; it != memberEnd; ++it) {
-        _members.push_back(std::make_unique<SoulGemId>(*it));
-    }
-}
+#include "../global.hpp"
+#include "ParseError.hpp"
 
-SoulGemGroup SoulGemGroup::constructFromToml(toml::table& table)
+SoulGemGroup::SoulGemGroup(const toml::table& table)
 {
     using namespace std::literals;
 
-    auto idValue = table["id"sv].as_string();
-    bool isReusable = table["isReusable"sv].value_or(false);
-    auto capacityValue = table["capacity"sv].as_integer();
-    auto priorityStr = table["priority"sv].value_or("auto"sv);
-    auto membersValue = table["members"sv].as_array();
+    std::string_view ID_KEY{"id"};
+    std::string_view ISREUSABLE_KEY{"isReusable"};
+    std::string_view CAPACITY_KEY{"capacity"};
+    std::string_view PRIORITY_KEY{"priority"};
+    std::string_view MEMBERS_KEY{"members"};
+
+    auto idValue = table[ID_KEY].as_string();
+    bool isReusable = table[ISREUSABLE_KEY].value_or(false);
+    auto capacityValue = table[CAPACITY_KEY].as_integer();
+    auto priorityStr = table[PRIORITY_KEY].value_or("auto"sv);
+    auto membersValue = table[MEMBERS_KEY].as_array();
 
     if (idValue == nullptr) {
-        throw std::runtime_error{formatError::missingOrInvalid(
-            "soul gem group"sv,
-            "id"sv,
-            "string"sv)};
+        throw InvalidEntryValueTypeError{
+            ID_KEY.data(),
+            ValueType::String,
+            "Expected string entry named 'id'"};
     }
 
-    if (capacityValue == nullptr) {
-        throw std::runtime_error{formatError::missingOrInvalid(
-            "soul gem group"sv,
-            "capacity"sv,
-            "integer"sv)};
-    }
+    const auto id = idValue->get();
 
-    if (membersValue == nullptr || membersValue->empty()) {
-        throw std::runtime_error{std::format(
-            "Soul gem group '{}' does not have any members."sv,
-            idValue->get())};
-    }
+    try {
+        if (capacityValue == nullptr) {
+            throw InvalidEntryValueTypeError{
+                CAPACITY_KEY.data(),
+                ValueType::Integer,
+                "Expected integer entry named 'capacity'"};
+        }
 
-    std::vector<SoulGemId> members;
+        if (membersValue == nullptr || membersValue->empty()) {
+            throw InvalidEntryValueTypeError{
+                MEMBERS_KEY.data(),
+                ValueType::Array,
+                "Expected non-empty array entry named 'members'"};
+        }
 
-    for (toml::node& elem : *membersValue) {
-        elem.visit([&](auto&& el) {
-            if constexpr (toml::is_array<decltype(el)>) {
-                members.push_back(SoulGemId::constructFromToml(el));
-            } else {
-                throw std::runtime_error{
-                    "Invalid member type in members array."};
+        MembersType members;
+        std::size_t index;
+
+        for (const toml::node& elem : *membersValue) {
+            try {
+                elem.visit([&](auto&& el) {
+                    if constexpr (toml::is_array<decltype(el)>) {
+                        members.emplace_back(new FormId{el});
+                    } else {
+                        throw EntryError(
+                            index,
+                            fmt::format(
+                                FMT_STRING("members[{}] is not an array"),
+                                index));
+                    }
+                });
+            } catch (...) {
+                std::throw_with_nested(EntryError(
+                    index,
+                    fmt::format(
+                        FMT_STRING("Invalid form ID entry at members[{}]"sv),
+                        index)));
             }
-        });
+            ++index;
+        }
+
+        const auto capacity = capacityValue->get();
+
+        if (!isValidSoulCapacity(capacity)) {
+            throw EntryValueOutOfRangeError(
+                CAPACITY_KEY.data(),
+                EntryRange(
+                    static_cast<int>(SoulSize::Petty),
+                    static_cast<int>(SoulSize::Black)),
+                "Invalid value for entry 'capacity'");
+        }
+
+        const SoulSize soulCapacity = static_cast<SoulSize>(capacity);
+
+        if (!FormId::areAllUnique(members.cbegin(), members.cend())) {
+            throw ArrayDuplicateEntriesError(
+                MEMBERS_KEY.data(),
+                "Duplicate values in 'members' array");
+        }
+
+        const LoadPriority priority = fromLoadPriorityString(priorityStr);
+
+        if (priority == LoadPriority::Invalid) {
+            throw EntryValueOutOfRangeError(
+                PRIORITY_KEY.data(),
+                EntryRange{"auto", "low", "normal", "high"},
+                "Invalid value for entry 'priority'");
+        }
+
+        if (const auto expectedVariantCount =
+                getVariantCountForCapacity(soulCapacity);
+            expectedVariantCount != members.size()) {
+            throw ArrayInvalidSizeError{
+                MEMBERS_KEY.data(),
+                EntryRange(static_cast<int>(expectedVariantCount)),
+                "Invalid number of members in 'members' array"};
+        }
+
+        _id = id;
+        _isReusable = isReusable;
+        _capacity = soulCapacity;
+        _priority = priority;
+        _members = std::move(members);
+    } catch (...) {
+        std::throw_with_nested(SoulGemGroupError(
+            id,
+            fmt::format(
+                FMT_STRING("Error while parsing soul gem group \"{}\":"sv),
+                id)));
     }
-
-    if (!SoulGemId::areAllUnique(members.cbegin(), members.cend())) {
-        throw std::runtime_error{std::format(
-            "Soul gem group '{}' contains duplicate members."sv,
-            idValue->get())};
-    }
-
-    SoulSize capacity = static_cast<SoulSize>(capacityValue->get());
-
-    if (!isValidSoulCapacity(capacity)) {
-        throw std::runtime_error{std::format(
-            "Soul gem group '{}' has invalid capacity {}"sv,
-            idValue->get(),
-            static_cast<int>(capacity))};
-    }
-
-    const LoadPriority priority = fromLoadPriorityString(priorityStr);
-
-    if (priority == LoadPriority::Invalid) {
-        throw std::runtime_error{std::format(
-            "Soul gem group '{}' has invalid priority {}.",
-            idValue->get(),
-            static_cast<int>(capacity),
-            priorityStr)};
-    }
-
-    if (const auto expectedVariantCount = getVariantCountForCapacity(capacity);
-        expectedVariantCount != members.size()) {
-        throw std::runtime_error{std::format(
-            "Soul gem group '{}' has capacity {} and must have {} members.",
-            idValue->get(),
-            static_cast<int>(capacity),
-            expectedVariantCount)};
-    }
-
-    return SoulGemGroup{
-        idValue->get(),
-        isReusable,
-        capacity,
-        priority,
-        members.cbegin(),
-        members.cend()};
 }
+
+SoulGemGroupError::SoulGemGroupError(
+    std::string_view id,
+    const std::string& message)
+    : std::runtime_error{message}
+    , id{id}
+{}

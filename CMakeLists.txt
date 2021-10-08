@@ -33,7 +33,7 @@ set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>" CACHE STR
 
 project(
     YASTM
-    VERSION 1.3.0
+    VERSION 1.4.0
     LANGUAGES CXX
 )
 
@@ -83,6 +83,7 @@ set(Boost_USE_STATIC_LIBS ON)
 add_subdirectory("extern/CommonLibSSE" CommonLibSSE)
 
 find_package(spdlog REQUIRED CONFIG)
+find_package(tomlplusplus REQUIRED)
 
 # ---- Add source files ----
 
@@ -100,22 +101,30 @@ set(SOURCES
     src/TrapSoulFix.cpp
     src/Victim.hpp
     src/Victim.cpp
-    src/config/_formaterror.hpp
-    src/config/GlobalId.hpp
-    src/config/GlobalId.cpp
+    src/config/ConfigKey.hpp
+    src/config/FormError.hpp
+    src/config/FormError.cpp
+    src/config/FormId.hpp
+    src/config/FormId.cpp
+    src/config/GlobalVariable.hpp
+    src/config/GlobalVariable.cpp
     src/config/LoadPriority.hpp
     src/config/ParseError.hpp
+    src/config/ParseError.cpp
     src/config/SoulGemGroup.hpp
     src/config/SoulGemGroup.cpp
-    src/config/SoulGemId.hpp
-    src/config/SoulGemId.cpp
+    src/config/SoulGemMap.hpp
+    src/config/SoulGemMap.cpp
     src/config/SoulSize.hpp
+    src/config/SpecificationError.hpp
+    src/config/SpecificationError.cpp
     src/config/YASTMConfig.hpp
     src/config/YASTMConfig.cpp
     src/formatters/TESSoulGem.hpp
+    src/utilities/FormType.hpp
     src/utilities/TESSoulGem.hpp
     src/utilities/TESSoulGem.cpp
-)
+ "src/utilities/printerror.hpp" "src/utilities/printerror.cpp")
 
 source_group(
     TREE
@@ -162,6 +171,7 @@ target_link_libraries(
         CommonLibSSE::CommonLibSSE
         spdlog::spdlog
         fmt::fmt
+        tomlplusplus::tomlplusplus
 )
 
 if(MSVC)

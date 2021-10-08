@@ -11,13 +11,23 @@
 #include <SKSE/SKSE.h>
 
 #include "../global.hpp"
+#include "ParseError.hpp"
 #include "SoulGemGroup.hpp"
 #include "../formatters/TESSoulGem.hpp"
+#include "../utilities/printerror.hpp"
+
+using namespace std::literals;
+
+YASTMConfig::YASTMConfig()
+{
+    // Defaults used when no associated configuration key has been set up.
+    forEachConfigKey([this](const ConfigKey key, const float defaultValue) {
+        _globals.emplace(key, GlobalVariable{defaultValue});
+    });
+}
 
 void YASTMConfig::_readYASTMConfig()
 {
-    using namespace std::literals;
-
     toml::table table;
 
     const std::filesystem::path configPath{"Data/YASTM.toml"sv};
@@ -32,29 +42,32 @@ void YASTMConfig::_readYASTMConfig()
 
         const auto yastmTable = table["YASTM"];
 
-        const auto readIdFromToml = [&](const Key key) {
-            const auto& keyName = YASTMConfig::toKeyName(key);
+        forEachConfigKey([&](const ConfigKey key) {
+            const auto keyName = toKeyName(key);
+            const auto tomlKeyName = std::string{keyName} + "Global";
 
-            if (const auto idArray =
-                    yastmTable[std::string{keyName} + "Global"].as_array();
+            if (const auto idArray = yastmTable[tomlKeyName].as_array();
                 idArray) {
-                _globals.insert(std::make_pair(
-                    key,
-                    GlobalId::constructFromToml(keyName, *idArray)));
+                if (_globals.contains(key)) {
+                    try {
+                        _globals.at(key).setFromToml(*idArray);
+                    } catch (const ParseError& error) {
+                        LOG_ERROR_FMT(
+                            "Error while reading configuration for key \"{}\":"sv,
+                            keyName);
+                        printError(error, 1);
+                    }
+                } else {
+                    LOG_ERROR_FMT(
+                        "Initialized global map does not contain configuration for key \"{}\"."sv,
+                        keyName);
+                }
             } else {
                 LOG_WARN_FMT(
-                    "Form data for configuration key '{}' not found."sv,
+                    "Form data for configuration key \"{}\" not found."sv,
                     keyName);
             }
-        };
-
-        readIdFromToml(Key::AllowPartiallyFillingSoulGems);
-        readIdFromToml(Key::AllowSoulDisplacement);
-        readIdFromToml(Key::AllowSoulRelocation);
-        readIdFromToml(Key::AllowSoulShrinking);
-        readIdFromToml(Key::AllowExtraSoulRelocation);
-        readIdFromToml(Key::PreserveOwnership);
-        readIdFromToml(Key::AllowNotifications);
+        });
     } catch (const toml::parse_error& error) {
         LOG_WARN_FMT(
             "Error while parsing general configuration file \"{}\": {}"sv,
@@ -67,12 +80,10 @@ void YASTMConfig::_readYASTMConfig()
     // Game hasn't fully initialized.)
     LOG_TRACE("Loaded configuration from TOML:"sv);
 
-    for (const auto& [key, globalId] : _globals) {
-        LOG_TRACE_FMT(
-            "- {} = [{:08x}, {}]"sv,
-            globalId.keyName(),
-            globalId.formId(),
-            globalId.pluginName());
+    for (const auto& [key, globalVar] : _globals) {
+        if (globalVar.isConfigLoaded()) {
+            LOG_TRACE_FMT("- {} = {}"sv, key, globalVar.formId());
+        }
     }
 #endif // NDEBUG
 }
@@ -102,7 +113,7 @@ void YASTMConfig::_readSoulGemConfigs()
         throw std::runtime_error("No YASTM configuration files found.");
     }
 
-    std::size_t validConfigCount = 0;
+    std::size_t validSoulGemGroupsCount = 0;
 
     for (const auto& configPath : configPaths) {
         toml::table table;
@@ -112,28 +123,38 @@ void YASTMConfig::_readSoulGemConfigs()
         try {
             table = toml::parse_file(configPathStr);
 
-            if (auto soulGems = table["soulGems"sv].as_array()) {
-                for (toml::node& elem : *soulGems) {
-                    elem.visit([this](auto&& el) {
-                        if constexpr (toml::is_table<decltype(el)>) {
-                            _soulGemGroups.push_back(
-                                std::make_unique<SoulGemGroup>(
-                                    SoulGemGroup::constructFromToml(el)));
-                        } else {
-                            throw std::runtime_error{
-                                "Value of key 'soulGems' must be a table."};
-                        }
-                    });
-                }
-
-                // If we made it here without an error thrown, it's a valid
-                // configuration.
-                ++validConfigCount;
-            }
-        } catch (const toml::parse_error&) {
-            LOG_WARN_FMT(
-                "Error while parsing soul gem configuration file \"{}\""sv,
+            LOG_INFO_FMT(
+                "Reading soul gem configuration file: {}"sv,
                 configPathStr);
+
+            if (const auto soulGems = table["soulGems"sv].as_array();
+                soulGems != nullptr) {
+                for (toml::node& elem : *soulGems) {
+                    try {
+                        elem.visit([&, this](auto&& el) {
+                            if constexpr (toml::is_table<decltype(el)>) {
+                                _soulGemGroups.emplace_back(
+                                    new SoulGemGroup(el));
+                                // We've found a valid soul gem group!
+                                ++validSoulGemGroupsCount;
+                            } else {
+                                throw InvalidEntryValueTypeError{
+                                    "soulGems",
+                                    ValueType::Table,
+                                    "Member of 'soulGems' array must be a "
+                                    "table."};
+                            }
+                        });
+                    } catch (const std::exception& error) {
+                        printError(error, 1);
+                    }
+                }
+            }
+        } catch (const toml::parse_error& error) {
+            LOG_WARN_FMT(
+                "Error while parsing soul gem configuration file \"{}\": {}"sv,
+                configPathStr,
+                error.what());
         }
     }
 
@@ -153,231 +174,27 @@ void YASTMConfig::_readSoulGemConfigs()
         for (const auto& soulGemId : soulGemGroup->members()) {
             LOG_TRACE_FMT(
                 "        [{:#08x}, {}]"sv,
-                soulGemId->formId(),
+                soulGemId->id(),
                 soulGemId->pluginName());
         }
     }
 #endif // NDEBUG
 
-    if (validConfigCount <= 0) {
-        throw std::runtime_error{"No valid configuration files found."};
+    if (validSoulGemGroupsCount <= 0) {
+        throw YASTMConfigLoadError{"No valid soul gem groups found."};
     }
 }
 
-bool YASTMConfig::_isValidConfig(RE::TESDataHandler* const dataHandler) const
+void YASTMConfig::loadConfig()
 {
-    using namespace std::literals;
-
-    LOG_INFO("Loading soul gem forms..."sv);
-
-    const auto reusableSoulGemKeyword = getReusableSoulGemKeyword();
-
-    for (const auto& soulGemGroup : _soulGemGroups) {
-        for (int i = 0; i < soulGemGroup->members().size(); ++i) {
-            auto& soulGemId = soulGemGroup->members()[i];
-
-            RE::TESForm* const form = dataHandler->LookupForm(
-                soulGemId->formId(),
-                soulGemId->pluginName());
-
-            if (form == nullptr) {
-                LOG_ERROR_FMT(
-                    "Form with ID {:08x} does not exist in file \"{}\""sv,
-                    soulGemId->formId(),
-                    soulGemId->pluginName());
-                return false;
-            }
-
-            if (!form->IsSoulGem()) {
-                LOG_ERROR_FMT(
-                    "Form {:08x} \"{}\" from file \"{}\" is not a soul gem."sv,
-                    form->GetFormID(),
-                    form->GetName(),
-                    soulGemId->pluginName());
-                return false;
-            }
-
-            RE::TESSoulGem* const soulGemForm = form->As<RE::TESSoulGem>();
-
-            // We use effective capacity since black souls are grand souls
-            // in-game.
-            if (soulGemGroup->effectiveCapacity() !=
-                static_cast<SoulSize>(soulGemForm->GetMaximumCapacity())) {
-                LOG_ERROR_FMT(
-                    "Soul gem {:08x} \"{}\" from file \"{}\" in group '{}' does not have a capacity matching configuration."sv,
-                    form->GetFormID(),
-                    form->GetName(),
-                    soulGemId->pluginName(),
-                    soulGemGroup->id());
-                return false;
-            }
-
-            // Checks reusable soul gems for the appropriate fields.
-            //
-            // We use the linked soul gem field to fix a crash that occurs when
-            // trying to use reusable soul gems whose base form does not have an
-            // empty soul gem (the entire point of the ChargeItemFix and
-            // EnchantItemFix) so it is absolutely important to get this right.
-            if (soulGemForm->HasKeyword(reusableSoulGemKeyword) &&
-                soulGemForm->GetContainedSoul() != RE::SOUL_LEVEL::kNone) {
-                if (soulGemForm->linkedSoulGem == nullptr) {
-                    LOG_ERROR_FMT(
-                        "Reusable soul gem {:08x} \"{}\" from file \"{}\" in group '{}' contains a soul but has no linked soul gem specified in the form."sv,
-                        form->GetFormID(),
-                        form->GetName(),
-                        soulGemId->pluginName(),
-                        soulGemGroup->id());
-                    return false;
-                }
-
-                if (soulGemForm->linkedSoulGem->GetContainedSoul() !=
-                    RE::SOUL_LEVEL::kNone) {
-                    LOG_ERROR_FMT(
-                        "Linked soul gem for reusable soul gem {:08x} \"{}\" from file \"{}\" in group '{}' is not an empty soul gem."sv,
-                        form->GetFormID(),
-                        form->GetName(),
-                        soulGemId->pluginName(),
-                        soulGemGroup->id());
-                    return false;
-                }
-            }
-
-            // TODO: Check NAM0 field for reusable soul gems.
-            if (soulGemGroup->capacity() == SoulSize::Black) {
-                switch (i) {
-                case 0:
-                    if (soulGemForm->GetContainedSoul() !=
-                        RE::SOUL_LEVEL::kNone) {
-                        LOG_ERROR_FMT(
-                            "Black soul gem group \"{}\" member at index {} is not an empty soul gem."sv,
-                            soulGemGroup->id(),
-                            i);
-                        return false;
-                    }
-                    break;
-                case 1:
-                    if (soulGemForm->GetContainedSoul() !=
-                        RE::SOUL_LEVEL::kGrand) {
-                        LOG_ERROR_FMT(
-                            "Black soul gem group \"{}\" member at index {} is not a filled soul gem."sv,
-                            soulGemGroup->id(),
-                            i);
-                        return false;
-                    }
-                    break;
-                default:
-                    LOG_ERROR_FMT(
-                        "Extra members found in black soul gem group \"{}\""sv,
-                        soulGemGroup->id());
-                    return false;
-                }
-            } else {
-                if (static_cast<int>(soulGemForm->GetContainedSoul()) != i) {
-                    LOG_ERROR_FMT(
-                        "Soul gem group \"{}\" member at index {} does not contain the appropriate soul size."sv,
-                        soulGemGroup->id(),
-                        i);
-                    return false;
-                }
-            }
-
-            LOG_INFO_FMT(
-                "- Loaded form: [ID:{:08x}] {}"sv,
-                form->GetFormID(),
-                form->GetName());
-        }
-    }
-
-    return true;
-}
-
-bool YASTMConfig::loadConfig()
-{
-    try {
-        _readYASTMConfig();
-        _readSoulGemConfigs();
-        return true;
-    } catch (const std::exception& error) {
-        LOG_ERROR(error.what());
-    }
-
-    return false;
+    _readYASTMConfig();
+    _readSoulGemConfigs();
 }
 
 void YASTMConfig::processGameForms(RE::TESDataHandler* const dataHandler)
 {
-    if (_isValidConfig(dataHandler)) {
-        _getGlobalForms(dataHandler);
-        _createSoulGemMap(dataHandler);
-    }
-}
-
-float YASTMConfig::getGlobalValue(const Key key) const
-{
-    if (_globals.contains(key)) {
-        const auto& globalId = _globals.at(key);
-
-        if (globalId.form() == nullptr) {
-            LOG_TRACE_FMT(
-                "Global variable '{}' ({}) not yet loaded. Returning default value..."sv,
-                YASTMConfig::toKeyName(key),
-                globalId);
-            return _globalsDefaults.at(key);
-        }
-
-        return globalId.form()->value;
-    }
-
-    LOG_TRACE_FMT(
-        "Global variable '{}' not specified in configuration. Returning default value..."sv,
-        YASTMConfig::toKeyName(key));
-    return _globalsDefaults.at(key);
-}
-
-bool YASTMConfig::isPartialFillsAllowed() const
-{
-    return getGlobalValue(Key::AllowPartiallyFillingSoulGems) != 0;
-}
-
-bool YASTMConfig::isSoulDisplacementAllowed() const
-{
-    return getGlobalValue(Key::AllowSoulDisplacement) != 0;
-}
-
-bool YASTMConfig::isSoulRelocationAllowed() const
-{
-    return getGlobalValue(Key::AllowSoulRelocation) != 0;
-}
-
-bool YASTMConfig::isExtraSoulRelocationAllowed() const
-{
-    return getGlobalValue(Key::AllowExtraSoulRelocation) != 0;
-}
-
-bool YASTMConfig::isSoulShrinkingAllowed() const
-{
-    return getGlobalValue(Key::AllowSoulShrinking) != 0;
-}
-
-bool YASTMConfig::preserveOwnership() const
-{
-    return getGlobalValue(Key::PreserveOwnership) != 0;
-}
-
-bool YASTMConfig::isNotificationsAllowed() const
-{
-    using namespace std::literals;
-
-    return getGlobalValue(Key::AllowNotifications) != 0;
-}
-
-RE::TESSoulGem* _getFormFromId(
-    SoulGemId* const soulGemId,
-    RE::TESDataHandler* const dataHandler)
-{
-    return dataHandler->LookupForm<RE::TESSoulGem>(
-        soulGemId->formId(),
-        soulGemId->pluginName());
+    _getGlobalForms(dataHandler);
+    _createSoulGemMap(dataHandler);
 }
 
 void YASTMConfig::_getGlobalForms(RE::TESDataHandler* const dataHandler)
@@ -386,132 +203,61 @@ void YASTMConfig::_getGlobalForms(RE::TESDataHandler* const dataHandler)
 
     LOG_INFO("Loading global variable forms..."sv);
 
-    for (auto& [key, globalId] : _globals) {
-        const auto form =
-            dataHandler->LookupForm(globalId.formId(), globalId.pluginName());
-
-        if (form->Is(RE::FormType::Global)) {
-            globalId.setForm(form->As<RE::TESGlobal>());
-
-            LOG_INFO_FMT(
-                "- Loaded form: [ID:{:08x}] (key: {})"sv,
-                form->GetFormID(),
-                globalId.keyName());
+    for (auto& [key, globalVar] : _globals) {
+        if (globalVar.isConfigLoaded()) {
+            LOG_TRACE_FMT("Loading form for \"{}\"..."sv, key);
+            try {
+                globalVar.loadForm(dataHandler);
+            } catch (const std::exception& error) {
+                printError(error, 1);
+            }
         } else {
-            LOG_ERROR_FMT(
-                "Form {:08x} \"{}\" from file \"{}\" is not a global variable."sv,
-                form->GetFormID(),
-                form->GetName(),
-                globalId.pluginName());
+            LOG_INFO_FMT(
+                "Form ID for '{}' not specified in configuration file. Using default of {}"sv,
+                globalVar.defaultValue());
+        }
+    }
+
+    LOG_INFO("Listing loaded global variable forms:"sv);
+
+    for (auto& [key, globalVar] : _globals) {
+        if (globalVar.isFormLoaded()) {
+            LOG_INFO_FMT("- {}: {}"sv, key, globalVar.formId());
+        } else {
+            LOG_INFO_FMT("- {}: Not loaded."sv, key);
         }
     }
 }
 
 void YASTMConfig::_createSoulGemMap(RE::TESDataHandler* const dataHandler)
 {
-    using namespace std::literals;
-
-    for (int i = 0; i < _whiteSoulGems.size(); ++i) {
-        _whiteSoulGems[i].resize(
-            getVariantCountForCapacity(static_cast<SoulSize>(i + 1)));
-    }
-
-    const auto addSoulGemGroupToMap = [=, this](const SoulGemGroup& group) {
-        if (group.capacity() == SoulSize::Black) {
-            const auto emptySoulGemForm =
-                _getFormFromId(group.members()[0].get(), dataHandler);
-            const auto filledSoulGemForm =
-                _getFormFromId(group.members()[1].get(), dataHandler);
-
-            _blackSoulGemsEmpty.push_back(emptySoulGemForm);
-            _blackSoulGemsFilled.push_back(filledSoulGemForm);
-        } else {
-            for (int i = 0; i < group.members().size(); ++i) {
-                const auto soulGemForm =
-                    _getFormFromId(group.members()[i].get(), dataHandler);
-
-                _whiteSoulGems[static_cast<std::size_t>(group.capacity()) - 1]
-                              [i]
-                                  .push_back(soulGemForm);
-            }
-        }
-    };
-
-    const auto createSoulGemGroupForPriority =
+    const auto addSoulGemGroupsForPriority =
         [=, this](const LoadPriority priority) {
             for (const auto& soulGemGroup : _soulGemGroups) {
                 if (soulGemGroup->priority() == priority) {
-                    addSoulGemGroupToMap(*soulGemGroup);
+                    try {
+                        _soulGemMap.addSoulGemGroup(*soulGemGroup, dataHandler);
+                    } catch (const std::exception& error) {
+                        printError(error);
+                    }
                 }
             }
         };
 
-    createSoulGemGroupForPriority(LoadPriority::High);
-    createSoulGemGroupForPriority(LoadPriority::Normal);
-    createSoulGemGroupForPriority(LoadPriority::Low);
+    addSoulGemGroupsForPriority(LoadPriority::High);
+    addSoulGemGroupsForPriority(LoadPriority::Normal);
+    addSoulGemGroupsForPriority(LoadPriority::Low);
 
-    for (int i = 0; i < _whiteSoulGems.size(); ++i) {
-        const int soulCapacity = i + 1;
-
-        for (int containedSoulSize = 0;
-             containedSoulSize < _whiteSoulGems[i].size();
-             ++containedSoulSize) {
-            LOG_INFO_FMT(
-                "Listing mapped soul gems with capacity={} "
-                "containedSoulSize={}",
-                soulCapacity,
-                containedSoulSize);
-
-            for (const auto soulGemForm :
-                 _whiteSoulGems[i][containedSoulSize]) {
-                LOG_INFO_FMT("- {}"sv, soulGemForm);
-            }
-        }
-    }
-
-    LOG_INFO("Listing mapped empty black soul gems."sv);
-    for (const auto soulGemForm : _blackSoulGemsEmpty) {
-        LOG_INFO_FMT("- {}"sv, soulGemForm);
-    }
-
-    LOG_INFO("Listing mapped filled black soul gems."sv);
-    for (const auto soulGemForm : _blackSoulGemsEmpty) {
-        LOG_INFO_FMT("- {}"sv, soulGemForm);
-    }
+    _soulGemMap.printContents();
 }
 
 const std::vector<RE::TESSoulGem*>& YASTMConfig::getSoulGemsWith(
     const SoulSize soulCapacity,
     const SoulSize containedSoulSize) const
 {
-    using namespace std::literals;
-
-    if (!isValidSoulCapacity(soulCapacity)) {
-        throw std::range_error(std::format(
-            "Attempting to lookup invalid soul capacity: {}"sv,
-            static_cast<int>(soulCapacity)));
-    }
-
-    if (!isValidContainedSoulSize(soulCapacity, containedSoulSize)) {
-        throw std::range_error(std::format(
-            "Attempting to lookup invalid contained soul size {} for capacity {}"sv,
-            static_cast<int>(containedSoulSize),
-            static_cast<int>(soulCapacity)));
-    }
-
-    if (soulCapacity == SoulSize::Black) {
-        if (containedSoulSize == SoulSize::None) {
-            return _blackSoulGemsEmpty;
-        } else if (containedSoulSize == SoulSize::Black) {
-            return _blackSoulGemsFilled;
-        }
-    } else {
-        return _whiteSoulGems[soulCapacity - 1]
-                             [static_cast<std::size_t>(containedSoulSize)];
-    }
-
-    throw std::range_error(std::format(
-        "Attempting to lookup invalid contained soul size {} for capacity {}"sv,
-        static_cast<int>(containedSoulSize),
-        static_cast<int>(soulCapacity)));
+    return _soulGemMap.getSoulGemsWith(soulCapacity, containedSoulSize);
 }
+
+YASTMConfigLoadError::YASTMConfigLoadError(const std::string& message)
+    : std::runtime_error{message}
+{}

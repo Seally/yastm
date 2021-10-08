@@ -1,3 +1,5 @@
+#pragma once
+
 #define DLLEXPORT __declspec(dllexport)
 
 // These macros allow potentially zero-overhead log calls (compiled out)
