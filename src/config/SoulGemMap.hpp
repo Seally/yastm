@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "SoulSize.hpp"
+#include "SpecificationError.hpp"
 
 namespace RE {
     class TESDataHandler;

@@ -73,7 +73,7 @@ public:
         const bool allowDisplacement;
         const bool allowRelocation;
         const bool allowShrinking;
-        const bool allowSoulSplitting;
+        const bool allowSplitting;
         const bool allowExtraSoulRelocation;
         const bool preserveOwnership;
         const bool allowNotifications;

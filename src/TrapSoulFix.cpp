@@ -1,7 +1,9 @@
 #include "TrapSoulFix.hpp"
 
+#include <deque>
 #include <mutex>
 #include <queue>
+#include <cassert>
 
 #include <xbyak/xbyak.h>
 
@@ -26,8 +28,9 @@
 #include "utilities/TESSoulGem.hpp"
 #include "utilities/Timer.hpp"
 
-using VictimsQueue =
-    std::priority_queue<Victim, std::vector<Victim>, std::greater<Victim>>;
+using namespace std::literals;
+
+using VictimsQueue = std::priority_queue<Victim, std::deque<Victim>>;
 
 namespace native {
     /**
@@ -208,7 +211,7 @@ std::optional<_SearchResult> _findFirstOwnedObjectInList(
 [[nodiscard]] RE::ExtraDataList*
     _createExtraDataListFromOriginal(RE::ExtraDataList* const originalExtraList)
 {
-    if (originalExtraList) {
+    if (originalExtraList != nullptr) {
         // Inherit ownership.
         if (const auto owner = originalExtraList->GetOwner(); owner) {
             const auto newExtraList = new RE::ExtraDataList{};
@@ -226,8 +229,6 @@ void _replaceSoulGem(
     RE::InventoryEntryData* const soulGemToRemoveEntryData,
     _SoulTrapData& d)
 {
-    using namespace std::literals;
-
     RE::ExtraDataList* oldExtraList = nullptr;
     RE::ExtraDataList* newExtraList = nullptr;
 
@@ -320,8 +321,6 @@ bool _trapBlackSoul(_SoulTrapData& d, _SoulTrapLoopData& dl)
 {
     // Black souls are simple since they're all or none. Either you have a
     // black soul gem or you don't. Nothing fancy to account for.
-    using namespace std::literals;
-
     LOG_TRACE("Trapping black soul..."sv);
 
     const bool isSoulTrapped = _fillSoulGem(
@@ -344,8 +343,6 @@ bool _trapBlackSoul(_SoulTrapData& d, _SoulTrapLoopData& dl)
 
 bool _trapFullSoul(_SoulTrapData& d, _SoulTrapLoopData& dl)
 {
-    using namespace std::literals;
-
     LOG_TRACE("Trapping full white soul..."sv);
 
     const YASTMConfig& config = YASTMConfig::getInstance();
@@ -494,8 +491,6 @@ bool _trapFullSoul(_SoulTrapData& d, _SoulTrapLoopData& dl)
 
 bool _trapShrunkSoul(_SoulTrapData& d, _SoulTrapLoopData& dl)
 {
-    using namespace std::literals;
-
     LOG_TRACE("Trapping shrunk white soul..."sv);
 
     const YASTMConfig& config = YASTMConfig::getInstance();
@@ -568,8 +563,6 @@ bool _trapShrunkSoul(_SoulTrapData& d, _SoulTrapLoopData& dl)
 
 bool _trapSplitSoul(_SoulTrapData& d, _SoulTrapLoopData& dl)
 {
-    using namespace std::literals;
-
     LOG_TRACE("Trapping split white soul..."sv);
 
     const YASTMConfig& config = YASTMConfig::getInstance();
@@ -616,6 +609,12 @@ bool _trapSplitSoul(_SoulTrapData& d, _SoulTrapLoopData& dl)
 
 void _splitSoul(const Victim& victim, VictimsQueue& victimQueue)
 {
+    // Raw Soul Sizes:
+    // - Grand   = 3000 = Greater + Common
+    // - Greater = 2000 = Common + Common
+    // - Common  = 1000 = Lesser + Lesser
+    // - Lesser  = 500  = Petty + Petty
+    // - Petty   = 250
     switch (victim.soulSize()) {
     case SoulSize::Black:
         [[fallthrough]];
@@ -645,13 +644,12 @@ void _splitSoul(const Victim& victim, VictimsQueue& victimQueue)
  * It is also a timer object which will print the lifetime of this wrapper
  * object if profiling is enabled. 
  */
-template <
-    const char* EnterString,
-    const char* ExitString,
-    const char* TimerFormatString>
 class _TrapSoulWrapper : public Timer {
 public:
-    explicit _TrapSoulWrapper() { LOG_TRACE(EnterString); }
+    explicit _TrapSoulWrapper()
+    {
+        LOG_TRACE("Entering YASTM trap soul function"sv);
+    }
 
     virtual ~_TrapSoulWrapper()
     {
@@ -659,35 +657,25 @@ public:
 
         if (YASTMConfig::getInstance().getGlobalBool(
                 ConfigKey::AllowProfiling)) {
-            LOG_INFO_FMT(TimerFormatString, elapsedTime);
-            RE::DebugNotification(fmt::format(TimerFormatString, elapsedTime).c_str());
+            LOG_INFO_FMT("Time to trap soul: {:.7f} seconds", elapsedTime);
+            RE::DebugNotification(fmt::format(getMessage(MiscMessage::TimeTakenToTrapSoul), elapsedTime).c_str());
         }
 
-        LOG_TRACE(ExitString);
+        LOG_TRACE("Exiting YASTM trap soul function"sv);
     }
 };
-
-char _ENTER_TRAPSOUL_STRING[] = "Entering YASTM trap soul function";
-char _EXIT_TRAPSOUL_STRING[] = "Exiting YASTM trap soul function";
-char _TRAPSOUL_TIMER_FORMAT_STRING[] = "Time to trap soul: {:.7f} seconds";
 
 std::mutex _trapSoulMutex; /* Process only one soul trap at a time. */
 
 bool trapSoul(RE::Actor* const caster, RE::Actor* const victim)
 {
-    using namespace std::literals;
-
     // This logs the "enter" and "exit" messages upon construction and
     // destruction, respectively.
     //
     // Also prints the time taken to run the function if profiling is enabled
     // (timer will still run if profiling is disabled, just with no visible
     // output).
-    _TrapSoulWrapper<
-        _ENTER_TRAPSOUL_STRING,
-        _EXIT_TRAPSOUL_STRING,
-        _TRAPSOUL_TIMER_FORMAT_STRING>
-        wrapper;
+    _TrapSoulWrapper wrapper;
 
     if (caster == nullptr) {
         LOG_TRACE("Caster is null."sv);
@@ -749,11 +737,13 @@ bool trapSoul(RE::Actor* const caster, RE::Actor* const victim)
         while (!d.victims.empty()) {
             _SoulTrapLoopData dl{
                 d.victims.top(),
-                d.caster->GetInventory([](RE::TESBoundObject& object) {
+                d.caster->GetInventory([](const RE::TESBoundObject& object) {
                     return object.IsSoulGem();
                 })};
 
             d.victims.pop();
+
+            LOG_TRACE_FMT("Processing soul trap victim: {}", dl.victim);
 
             if (dl.inventoryMap.size() <= 0) {
                 // Caster doesn't have any soul gems. Stop looking.
@@ -768,6 +758,9 @@ bool trapSoul(RE::Actor* const caster, RE::Actor* const victim)
                     continue; // Process next soul.
                 }
             } else if (dl.victim.isSplitSoul()) {
+                assert(d.config.allowSplitting);
+                assert(!d.config.allowShrinking);
+
                 if (_trapSplitSoul(d, dl)) {
                     isSoulTrapSuccessful = true;
                     continue; // Process next soul.
@@ -781,16 +774,21 @@ bool trapSoul(RE::Actor* const caster, RE::Actor* const victim)
                     continue; // Process next soul.
                 }
 
-                if (d.config.allowSoulSplitting) {
-                    _splitSoul(dl.victim, d.victims);
-
-                    continue; // Process next soul.
-                } else {
+                // If we've reached this point, we start reducing the size of
+                // the soul.
+                //
+                // Standard soul shrinking is prioritized over soul splitting.
+                // Enabling both will implicitly turn off soul splitting.
+                if (d.config.allowShrinking) {
                     if (_trapShrunkSoul(d, dl)) {
                         isSoulTrapSuccessful = true;
 
                         continue; // Process next soul.
                     }
+                } else if (d.config.allowSplitting) {
+                    _splitSoul(dl.victim, d.victims);
+
+                    continue; // Process next soul.
                 }
             }
         }

@@ -10,7 +10,6 @@
 
 #include "../global.hpp"
 #include "FormError.hpp"
-#include "SpecificationError.hpp"
 #include "SoulGemGroup.hpp"
 #include "../utilities/TESSoulGem.hpp"
 #include "../formatters/TESSoulGem.hpp"

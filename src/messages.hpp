@@ -1,5 +1,4 @@
-#ifndef MESSAGES_HPP
-#define MESSAGES_HPP
+#pragma once
 
 enum class SoulTrapSuccessMessage {
     SoulCaptured,
@@ -14,7 +13,18 @@ enum class SoulTrapFailureMessage {
     NoSuitableSoulGem,
 };
 
-inline const char* getMessage(const SoulTrapFailureMessage key)
+enum class MiscMessage {
+    /**
+     * @brief The translation string for the time taken to trap soul
+     * notification. Resulting message requires processing with fmt::format()
+     * with a double as an argument.
+     *
+     * fmt::format(getMessage(MiscMessage::TimeTakenToTrapSoul), elapsedTime)
+     */
+    TimeTakenToTrapSoul
+};
+
+inline constexpr const char* getMessage(const SoulTrapFailureMessage key)
 {
     switch (key) {
     case SoulTrapFailureMessage::NoSoulGemsAvailable:
@@ -28,7 +38,8 @@ inline const char* getMessage(const SoulTrapFailureMessage key)
     return "";
 }
 
-inline const char* getMessage(const SoulTrapSuccessMessage key) {
+inline constexpr const char* getMessage(const SoulTrapSuccessMessage key)
+{
     switch (key) {
     case SoulTrapSuccessMessage::SoulCaptured:
         return "$YASTM_Notification_SoulCaptured";
@@ -43,4 +54,12 @@ inline const char* getMessage(const SoulTrapSuccessMessage key) {
     return "";
 }
 
-#endif // MESSAGES_HPP
+inline constexpr const char* getMessage(const MiscMessage key)
+{
+    switch (key) {
+    case MiscMessage::TimeTakenToTrapSoul:
+        return "$YASTM_Notification_TimeTakenToTrapSoul{{{:.7f}}}";
+    }
+
+    return "";
+}

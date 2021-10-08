@@ -104,11 +104,9 @@ struct fmt::formatter<ConfigKey> {
     }
 
     template <typename FormatContext>
-    auto format(const ConfigKey globalId, FormatContext& ctx)
+    auto format(const ConfigKey key, FormatContext& ctx)
         -> decltype(ctx.out())
     {
-        using namespace std::literals;
-
-        return format_to(ctx.out(), toString(globalId));
+        return format_to(ctx.out(), toString(key));
     }
 };
