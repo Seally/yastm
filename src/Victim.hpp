@@ -92,9 +92,9 @@ struct fmt::formatter<Victim> {
 
         return format_to(
             ctx.out(),
-            FMT_STRING("Victim(actor={}, soulSize={}, isSplitSoul={})"sv),
-            actor != nullptr ? actor->GetName() : "null"sv,
+            FMT_STRING("(soulSize={}, actor={}, isSplitSoul={})"sv),
             victim.soulSize(),
+            actor != nullptr ? actor->GetName() : "null"sv,
             victim.isSplitSoul());
     }
 };
