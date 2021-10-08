@@ -10,12 +10,14 @@ enum class ConfigKey {
     AllowSoulDisplacement,
     AllowSoulRelocation,
     AllowSoulShrinking,
+    AllowSoulSplitting,
     AllowExtraSoulRelocation,
     PreserveOwnership,
     AllowNotifications,
+    AllowProfiling,
 };
 
-inline constexpr std::string_view toKeyName(const ConfigKey key)
+inline constexpr std::string_view toString(const ConfigKey key)
 {
     using namespace std::literals;
 
@@ -28,12 +30,16 @@ inline constexpr std::string_view toKeyName(const ConfigKey key)
         return "allowSoulRelocation"sv;
     case ConfigKey::AllowSoulShrinking:
         return "allowSoulShrinking"sv;
+    case ConfigKey::AllowSoulSplitting:
+        return "allowSoulSplitting"sv;
     case ConfigKey::AllowExtraSoulRelocation:
         return "allowExtraSoulRelocation"sv;
     case ConfigKey::PreserveOwnership:
         return "preserveOwnership"sv;
     case ConfigKey::AllowNotifications:
         return "allowNotifications"sv;
+    case ConfigKey::AllowProfiling:
+        return "allowProfiling"sv;
     }
 
     return ""sv;
@@ -48,9 +54,11 @@ inline void forEachConfigKey(const std::function<void(ConfigKey)>& fn)
     fn(ConfigKey::AllowSoulDisplacement);
     fn(ConfigKey::AllowSoulRelocation);
     fn(ConfigKey::AllowSoulShrinking);
+    fn(ConfigKey::AllowSoulSplitting);
     fn(ConfigKey::AllowExtraSoulRelocation);
     fn(ConfigKey::PreserveOwnership);
     fn(ConfigKey::AllowNotifications);
+    fn(ConfigKey::AllowProfiling);
 }
 
 /**
@@ -63,9 +71,11 @@ inline void forEachConfigKey(const std::function<void(ConfigKey, bool)>& fn)
     fn(ConfigKey::AllowSoulDisplacement, 1);
     fn(ConfigKey::AllowSoulRelocation, 1);
     fn(ConfigKey::AllowSoulShrinking, 1);
+    fn(ConfigKey::AllowSoulSplitting, 0);
     fn(ConfigKey::AllowExtraSoulRelocation, 1);
     fn(ConfigKey::PreserveOwnership, 1);
     fn(ConfigKey::AllowNotifications, 1);
+    fn(ConfigKey::AllowProfiling, 0);
 }
 
 template <>
@@ -99,6 +109,6 @@ struct fmt::formatter<ConfigKey> {
     {
         using namespace std::literals;
 
-        return format_to(ctx.out(), toKeyName(globalId));
+        return format_to(ctx.out(), toString(globalId));
     }
 };

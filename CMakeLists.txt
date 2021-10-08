@@ -89,7 +89,6 @@ find_package(tomlplusplus REQUIRED)
 
 set(SOURCES
     src/global.hpp
-    src/versiondb.hpp
     src/main.cpp
     src/PCH.hpp
     src/ChargeItemFix.hpp
@@ -99,6 +98,7 @@ set(SOURCES
     src/messages.hpp
     src/TrapSoulFix.hpp
     src/TrapSoulFix.cpp
+    src/versiondb.hpp
     src/Victim.hpp
     src/Victim.cpp
     src/config/ConfigKey.hpp
@@ -122,9 +122,12 @@ set(SOURCES
     src/config/YASTMConfig.cpp
     src/formatters/TESSoulGem.hpp
     src/utilities/FormType.hpp
+    src/utilities/printerror.hpp
+    src/utilities/printerror.cpp
     src/utilities/TESSoulGem.hpp
     src/utilities/TESSoulGem.cpp
- "src/utilities/printerror.hpp" "src/utilities/printerror.cpp")
+    src/utilities/Timer.hpp
+)
 
 source_group(
     TREE

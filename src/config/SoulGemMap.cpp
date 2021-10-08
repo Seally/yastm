@@ -161,29 +161,6 @@ void SoulGemMap::addSoulGemGroup(
     }
 }
 
-const std::vector<RE::TESSoulGem*>& SoulGemMap::getSoulGemsWith(
-    SoulSize capacity,
-    SoulSize containedSoulSize) const
-{
-    using namespace std::literals;
-
-    if (!isValidSoulCapacity(capacity) ||
-        !isValidContainedSoulSize(capacity, containedSoulSize)) {
-        throw InvalidSoulSpecificationError(capacity, containedSoulSize);
-    }
-
-    if (capacity == SoulSize::Black) {
-        if (containedSoulSize == SoulSize::None) {
-            return _blackSoulGemsEmpty;
-        } else if (containedSoulSize == SoulSize::Black) {
-            return _blackSoulGemsFilled;
-        }
-    }
-
-    return _whiteSoulGems[capacity - 1]
-                         [static_cast<std::size_t>(containedSoulSize)];
-}
-
 void SoulGemMap::initializeLists()
 {
     for (std::size_t i = 0; i < _whiteSoulGems.size(); ++i) {

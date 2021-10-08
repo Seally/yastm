@@ -49,6 +49,7 @@ public:
     {
         return _globals.at(key).value();
     }
+
     bool getGlobalBool(const ConfigKey key) const
     {
         return getGlobalValue(key) != 0;
@@ -56,8 +57,12 @@ public:
 
     const SoulGemGroupsList& getSoulGemGroups() const { return _soulGemGroups; }
 
-    const std::vector<RE::TESSoulGem*>&
-        getSoulGemsWith(SoulSize capacity, SoulSize containedSoulSize) const;
+    constexpr const std::vector<RE::TESSoulGem*>& getSoulGemsWith(
+        const SoulSize capacity,
+        const SoulSize containedSoulSize) const
+    {
+        return _soulGemMap.getSoulGemsWith(capacity, containedSoulSize);
+    }
 
     /**
      * @brief Represents a snapshot of the configuration at a certain point in
@@ -68,6 +73,7 @@ public:
         const bool allowDisplacement;
         const bool allowRelocation;
         const bool allowShrinking;
+        const bool allowSoulSplitting;
         const bool allowExtraSoulRelocation;
         const bool preserveOwnership;
         const bool allowNotifications;
@@ -80,6 +86,7 @@ public:
             getGlobalBool(ConfigKey::AllowSoulDisplacement),
             getGlobalBool(ConfigKey::AllowSoulRelocation),
             getGlobalBool(ConfigKey::AllowSoulShrinking),
+            getGlobalBool(ConfigKey::AllowSoulSplitting),
             getGlobalBool(ConfigKey::AllowExtraSoulRelocation),
             getGlobalBool(ConfigKey::PreserveOwnership),
             getGlobalBool(ConfigKey::AllowNotifications)};

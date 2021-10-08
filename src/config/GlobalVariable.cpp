@@ -47,6 +47,8 @@ float GlobalVariable::value() const
         return _form->value;
     }
 
-    LOG_INFO("Form not loaded. Returning default value."sv);
+    LOG_INFO_FMT(
+        "Form for {} not loaded. Returning default value."sv,
+        toString(key()));
     return _defaultValue;
 }

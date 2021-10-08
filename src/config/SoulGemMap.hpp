@@ -24,10 +24,34 @@ class SoulGemMap {
     void initializeLists();
 
 public:
-    void addSoulGemGroup(const SoulGemGroup& group, RE::TESDataHandler* dataHandler);
+    void addSoulGemGroup(
+        const SoulGemGroup& group,
+        RE::TESDataHandler* dataHandler);
 
-    const std::vector<RE::TESSoulGem*>&
-        getSoulGemsWith(SoulSize capacity, SoulSize containedSoulSize) const;
+    constexpr const std::vector<RE::TESSoulGem*>& getSoulGemsWith(
+        const SoulSize capacity,
+        const SoulSize containedSoulSize) const
+    {
+        using namespace std::literals;
+
+#ifndef NDEBUG
+        if (!isValidSoulCapacity(capacity) ||
+            !isValidContainedSoulSize(capacity, containedSoulSize)) {
+            throw InvalidSoulSpecificationError(capacity, containedSoulSize);
+        }
+#endif // NDEBUG
+
+        if (capacity == SoulSize::Black) {
+            if (containedSoulSize == SoulSize::None) {
+                return _blackSoulGemsEmpty;
+            } else if (containedSoulSize == SoulSize::Black) {
+                return _blackSoulGemsFilled;
+            }
+        }
+
+        return _whiteSoulGems[capacity - 1]
+                             [static_cast<std::size_t>(containedSoulSize)];
+    }
 
     void printContents() const;
 };

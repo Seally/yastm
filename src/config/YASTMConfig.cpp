@@ -22,7 +22,7 @@ YASTMConfig::YASTMConfig()
 {
     // Defaults used when no associated configuration key has been set up.
     forEachConfigKey([this](const ConfigKey key, const float defaultValue) {
-        _globals.emplace(key, GlobalVariable{defaultValue});
+        _globals.emplace(key, GlobalVariable{key, defaultValue});
     });
 }
 
@@ -43,7 +43,7 @@ void YASTMConfig::_readYASTMConfig()
         const auto yastmTable = table["YASTM"];
 
         forEachConfigKey([&](const ConfigKey key) {
-            const auto keyName = toKeyName(key);
+            const auto keyName = toString(key);
             const auto tomlKeyName = std::string{keyName} + "Global";
 
             if (const auto idArray = yastmTable[tomlKeyName].as_array();
@@ -249,13 +249,6 @@ void YASTMConfig::_createSoulGemMap(RE::TESDataHandler* const dataHandler)
     addSoulGemGroupsForPriority(LoadPriority::Low);
 
     _soulGemMap.printContents();
-}
-
-const std::vector<RE::TESSoulGem*>& YASTMConfig::getSoulGemsWith(
-    const SoulSize soulCapacity,
-    const SoulSize containedSoulSize) const
-{
-    return _soulGemMap.getSoulGemsWith(soulCapacity, containedSoulSize);
 }
 
 YASTMConfigLoadError::YASTMConfigLoadError(const std::string& message)

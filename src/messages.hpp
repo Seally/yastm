@@ -1,30 +1,43 @@
 #ifndef MESSAGES_HPP
 #define MESSAGES_HPP
 
-enum class Message {
+enum class SoulTrapSuccessMessage {
+    SoulCaptured,
+    SoulDisplaced,
+    SoulShrunk,
+    SoulSplit,
+};
+
+enum class SoulTrapFailureMessage {
     NoSoulGemsAvailable,
     NoSoulGemLargeEnough,
     NoSuitableSoulGem,
-    SoulCaptured,
-    SoulDisplaced,
-    SoulShrunk
 };
 
-inline const char* getMessage(const Message key)
+inline const char* getMessage(const SoulTrapFailureMessage key)
 {
     switch (key) {
-    case Message::NoSoulGemsAvailable:
+    case SoulTrapFailureMessage::NoSoulGemsAvailable:
         return "$YASTM_Notification_NoSoulGemsAvailable";
-    case Message::NoSuitableSoulGem:
+    case SoulTrapFailureMessage::NoSuitableSoulGem:
         return "$YASTM_Notification_NoSuitableSoulGem";
-    case Message::NoSoulGemLargeEnough:
+    case SoulTrapFailureMessage::NoSoulGemLargeEnough:
         return "$YASTM_Notification_NoSoulGemLargeEnough";
-    case Message::SoulCaptured:
+    }
+
+    return "";
+}
+
+inline const char* getMessage(const SoulTrapSuccessMessage key) {
+    switch (key) {
+    case SoulTrapSuccessMessage::SoulCaptured:
         return "$YASTM_Notification_SoulCaptured";
-    case Message::SoulDisplaced:
+    case SoulTrapSuccessMessage::SoulDisplaced:
         return "$YASTM_Notification_SoulDisplaced";
-    case Message::SoulShrunk:
+    case SoulTrapSuccessMessage::SoulShrunk:
         return "$YASTM_Notification_SoulShrunk";
+    case SoulTrapSuccessMessage::SoulSplit:
+        return "$YASTM_Notification_SoulSplit";
     }
 
     return "";

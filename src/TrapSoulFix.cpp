@@ -24,6 +24,7 @@
 #include "formatters/TESSoulGem.hpp"
 #include "utilities/printerror.hpp"
 #include "utilities/TESSoulGem.hpp"
+#include "utilities/Timer.hpp"
 
 using VictimsQueue =
     std::priority_queue<Victim, std::vector<Victim>, std::greater<Victim>>;
@@ -81,23 +82,34 @@ namespace native {
     }
 }
 
-void _incrementSoulsTrappedStat(
-    RE::Actor* const caster,
-    RE::Actor* const victim)
-{
-    if (caster == nullptr || victim == nullptr || !caster->IsPlayerRef()) {
-        return;
-    }
-
-    void* manager = native::getStatManager();
-    native::incrementStat(manager, &victim);
-}
-
 /**
  * @brief Stores the data for various soul trap variables so we don't end up
  * with functions needing half a dozen arguments.
  */
-struct _SoulTrapData {
+class _SoulTrapData {
+    static const std::size_t MAX_NOTIFICATION_COUNT = 1;
+    std::size_t _notifyCount;
+    bool _isStatIncremented;
+
+    template <typename MessageKey>
+    void _notify(const MessageKey message)
+    {
+        if (_notifyCount < MAX_NOTIFICATION_COUNT &&
+            config.allowNotifications) {
+            RE::DebugNotification(getMessage(message));
+            ++_notifyCount;
+        }
+    }
+
+    void _incrementSoulsTrappedStat(RE::Actor* const victim)
+    {
+        if (!_isStatIncremented) {
+            void* manager = native::getStatManager();
+            native::incrementStat(manager, &victim);
+            _isStatIncremented = true;
+        }
+    }
+
 public:
     RE::Actor* const caster;
     VictimsQueue victims;
@@ -106,48 +118,49 @@ public:
     _SoulTrapData(RE::Actor* const caster)
         : caster{caster}
         , config{YASTMConfig::getInstance().createSnapshot()}
+        , _notifyCount{0}
+        , _isStatIncremented{false}
     {}
+
+    _SoulTrapData(const _SoulTrapData&) = delete;
+    _SoulTrapData(_SoulTrapData&&) = delete;
+    _SoulTrapData& operator=(const _SoulTrapData&) = delete;
+    _SoulTrapData& operator=(_SoulTrapData&&) = delete;
+
+    void notifySoulTrapFailure(const SoulTrapFailureMessage message)
+    {
+        if (caster->IsPlayerRef()) {
+            _notify(message);
+        }
+    }
+
+    void notifySoulTrapSuccess(
+        const SoulTrapSuccessMessage message,
+        const Victim& victim)
+    {
+        if (caster->IsPlayerRef() && victim.isPrimarySoul()) {
+            _notify(message);
+            _incrementSoulsTrappedStat(victim.actor());
+        }
+    }
 };
 
 struct _SoulTrapLoopData {
     const Victim victim;
     const RE::TESObjectREFR::InventoryItemMap inventoryMap;
+
+    explicit _SoulTrapLoopData(
+        const Victim& victim,
+        RE::TESObjectREFR::InventoryItemMap&& inventoryMap)
+        : victim{victim}
+        , inventoryMap{std::move(inventoryMap)}
+    {}
+
+    _SoulTrapLoopData(const _SoulTrapLoopData&) = delete;
+    _SoulTrapLoopData(_SoulTrapLoopData&&) = delete;
+    _SoulTrapLoopData& operator=(const _SoulTrapLoopData&) = delete;
+    _SoulTrapLoopData& operator=(_SoulTrapLoopData&&) = delete;
 };
-
-void _debugNotification(const char* message, _SoulTrapData& d)
-{
-    if (!d.config.allowNotifications || d.caster == nullptr ||
-        !d.caster->IsPlayerRef()) {
-        return;
-    }
-
-    RE::DebugNotification(message);
-}
-
-void _debugNotification(const Message message, _SoulTrapData& d)
-{
-    _debugNotification(getMessage(message), d);
-}
-
-void _debugNotification(
-    const char* message,
-    _SoulTrapData& d,
-    _SoulTrapLoopData& dl)
-{
-    if (dl.victim.isDisplacedSoul()) {
-        return;
-    }
-
-    _debugNotification(message, d);
-}
-
-void _debugNotification(
-    const Message message,
-    _SoulTrapData& d,
-    _SoulTrapLoopData& dl)
-{
-    _debugNotification(getMessage(message), d, dl);
-}
 
 struct _SearchResult {
     const std::size_t index;
@@ -198,7 +211,7 @@ std::optional<_SearchResult> _findFirstOwnedObjectInList(
     if (originalExtraList) {
         // Inherit ownership.
         if (const auto owner = originalExtraList->GetOwner(); owner) {
-            auto newExtraList = new RE::ExtraDataList{};
+            const auto newExtraList = new RE::ExtraDataList{};
             newExtraList->SetOwner(owner);
             return newExtraList;
         }
@@ -319,8 +332,9 @@ bool _trapBlackSoul(_SoulTrapData& d, _SoulTrapLoopData& dl)
         dl);
 
     if (isSoulTrapped) {
-        _debugNotification(Message::SoulCaptured, d, dl);
-        _incrementSoulsTrappedStat(d.caster, dl.victim.actor());
+        d.notifySoulTrapSuccess(
+            SoulTrapSuccessMessage::SoulCaptured,
+            dl.victim);
 
         return true;
     }
@@ -406,14 +420,16 @@ bool _trapFullSoul(_SoulTrapData& d, _SoulTrapLoopData& dl)
                 if (result) {
                     if (d.config.allowRelocation &&
                         containedSoulSize > SoulSize::None) {
-                        _debugNotification(Message::SoulDisplaced, d, dl);
+                        d.notifySoulTrapSuccess(
+                            SoulTrapSuccessMessage::SoulDisplaced,
+                            dl.victim);
                         d.victims.emplace(
                             static_cast<SoulSize>(containedSoulSize));
                     } else {
-                        _debugNotification(Message::SoulCaptured, d, dl);
+                        d.notifySoulTrapSuccess(
+                            SoulTrapSuccessMessage::SoulCaptured,
+                            dl.victim);
                     }
-
-                    _incrementSoulsTrappedStat(d.caster, dl.victim.actor());
 
                     return true;
                 }
@@ -456,14 +472,16 @@ bool _trapFullSoul(_SoulTrapData& d, _SoulTrapLoopData& dl)
                 if (result) {
                     if (d.config.allowRelocation &&
                         containedSoulSize > SoulSize::None) {
-                        _debugNotification(Message::SoulDisplaced, d, dl);
+                        d.notifySoulTrapSuccess(
+                            SoulTrapSuccessMessage::SoulDisplaced,
+                            dl.victim);
                         d.victims.emplace(
                             static_cast<SoulSize>(containedSoulSize));
                     } else {
-                        _debugNotification(Message::SoulCaptured, d, dl);
+                        d.notifySoulTrapSuccess(
+                            SoulTrapSuccessMessage::SoulCaptured,
+                            dl.victim);
                     }
-
-                    _incrementSoulsTrappedStat(d.caster, dl.victim.actor());
 
                     return true;
                 }
@@ -531,10 +549,12 @@ bool _trapShrunkSoul(_SoulTrapData& d, _SoulTrapLoopData& dl)
                 _fillSoulGem(sourceSoulGems, targetSoulGems, d, dl);
 
             if (isFillSuccessful) {
-                _debugNotification(Message::SoulShrunk, d, dl);
-                _incrementSoulsTrappedStat(d.caster, dl.victim.actor());
+                d.notifySoulTrapSuccess(
+                    SoulTrapSuccessMessage::SoulShrunk,
+                    dl.victim);
 
-                if (containedSoulSize > SoulSize::None) {
+                if (d.config.allowRelocation &&
+                    containedSoulSize > SoulSize::None) {
                     d.victims.emplace(static_cast<SoulSize>(containedSoulSize));
                 }
 
@@ -546,41 +566,147 @@ bool _trapShrunkSoul(_SoulTrapData& d, _SoulTrapLoopData& dl)
     return false;
 }
 
+bool _trapSplitSoul(_SoulTrapData& d, _SoulTrapLoopData& dl)
+{
+    using namespace std::literals;
+
+    LOG_TRACE("Trapping split white soul..."sv);
+
+    const YASTMConfig& config = YASTMConfig::getInstance();
+
+    const SoulSize maxContainedSoulSizeToSearch =
+        d.config.allowDisplacement ? static_cast<SoulSize>(dl.victim.soulSize())
+                                   : SoulSize::Petty;
+
+    const auto& targetSoulGems = config.getSoulGemsWith(
+        static_cast<SoulSize>(dl.victim.soulSize()),
+        static_cast<SoulSize>(dl.victim.soulSize()));
+
+    for (int containedSoulSize = static_cast<int>(SoulSize::None);
+         containedSoulSize < maxContainedSoulSizeToSearch;
+         ++containedSoulSize) {
+        LOG_TRACE_FMT(
+            "Looking up soul gems with capacity = {}, containedSoulSize = {}"sv,
+            dl.victim.soulSize(),
+            containedSoulSize);
+
+        const auto& sourceSoulGems = config.getSoulGemsWith(
+            static_cast<SoulSize>(dl.victim.soulSize()),
+            static_cast<SoulSize>(containedSoulSize));
+
+        const bool isFillSuccessful =
+            _fillSoulGem(sourceSoulGems, targetSoulGems, d, dl);
+
+        if (isFillSuccessful) {
+            d.notifySoulTrapSuccess(
+                SoulTrapSuccessMessage::SoulSplit,
+                dl.victim);
+
+            if (d.config.allowRelocation &&
+                containedSoulSize > SoulSize::None) {
+                d.victims.emplace(static_cast<SoulSize>(containedSoulSize));
+            }
+
+            return true;
+        }
+    }
+
+    return false;
+}
+
+void _splitSoul(const Victim& victim, VictimsQueue& victimQueue)
+{
+    switch (victim.soulSize()) {
+    case SoulSize::Black:
+        [[fallthrough]];
+    case SoulSize::Grand:
+        victimQueue.emplace(victim.actor(), SoulSize::Greater);
+        victimQueue.emplace(victim.actor(), SoulSize::Common);
+        break;
+    case SoulSize::Greater:
+        victimQueue.emplace(victim.actor(), SoulSize::Common);
+        victimQueue.emplace(victim.actor(), SoulSize::Common);
+        break;
+    case SoulSize::Common:
+        victimQueue.emplace(victim.actor(), SoulSize::Lesser);
+        victimQueue.emplace(victim.actor(), SoulSize::Lesser);
+        break;
+    case SoulSize::Lesser:
+        victimQueue.emplace(victim.actor(), SoulSize::Petty);
+        victimQueue.emplace(victim.actor(), SoulSize::Petty);
+        break;
+    }
+}
+
+/**
+ * @brief This logs the "enter" and "exit" messages upon construction and
+ * destruction, respectively.
+ *
+ * It is also a timer object which will print the lifetime of this wrapper
+ * object if profiling is enabled. 
+ */
+template <
+    const char* EnterString,
+    const char* ExitString,
+    const char* TimerFormatString>
+class _TrapSoulWrapper : public Timer {
+public:
+    explicit _TrapSoulWrapper() { LOG_TRACE(EnterString); }
+
+    virtual ~_TrapSoulWrapper()
+    {
+        const auto elapsedTime = elapsed();
+
+        if (YASTMConfig::getInstance().getGlobalBool(
+                ConfigKey::AllowProfiling)) {
+            LOG_INFO_FMT(TimerFormatString, elapsedTime);
+            RE::DebugNotification(fmt::format(TimerFormatString, elapsedTime).c_str());
+        }
+
+        LOG_TRACE(ExitString);
+    }
+};
+
+char _ENTER_TRAPSOUL_STRING[] = "Entering YASTM trap soul function";
+char _EXIT_TRAPSOUL_STRING[] = "Exiting YASTM trap soul function";
+char _TRAPSOUL_TIMER_FORMAT_STRING[] = "Time to trap soul: {:.7f} seconds";
+
 std::mutex _trapSoulMutex; /* Process only one soul trap at a time. */
 
 bool trapSoul(RE::Actor* const caster, RE::Actor* const victim)
 {
     using namespace std::literals;
 
-    /**
-     * @brief Use this instead of a raw return value to wrap the return value so
-     * that the exiting trace log will be printed as needed.
-     */
-    const auto wrapUpAndReturn = [](const bool returnValue) {
-        LOG_TRACE("Exiting YASTM trap soul function"sv);
-        return returnValue;
-    };
-
-    LOG_TRACE("Entering YASTM trap soul function"sv);
+    // This logs the "enter" and "exit" messages upon construction and
+    // destruction, respectively.
+    //
+    // Also prints the time taken to run the function if profiling is enabled
+    // (timer will still run if profiling is disabled, just with no visible
+    // output).
+    _TrapSoulWrapper<
+        _ENTER_TRAPSOUL_STRING,
+        _EXIT_TRAPSOUL_STRING,
+        _TRAPSOUL_TIMER_FORMAT_STRING>
+        wrapper;
 
     if (caster == nullptr) {
         LOG_TRACE("Caster is null."sv);
-        return wrapUpAndReturn(false);
+        return false;
     }
 
     if (victim == nullptr) {
         LOG_TRACE("Victim is null."sv);
-        return wrapUpAndReturn(false);
+        return false;
     }
 
     if (caster->IsDead(false)) {
         LOG_TRACE("Caster is dead."sv);
-        return wrapUpAndReturn(false);
+        return false;
     }
 
     if (!victim->IsDead(false)) {
         LOG_TRACE("Victim is not dead."sv);
-        return wrapUpAndReturn(false);
+        return false;
     }
 
     // We begin the mutex here since we're checking isSoulTrapped status next.
@@ -588,7 +714,7 @@ bool trapSoul(RE::Actor* const caster, RE::Actor* const victim)
 
     if (native::getRemainingRawSoulSize(victim) == RawSoulSize::None) {
         LOG_TRACE("Victim has already been soul trapped."sv);
-        return wrapUpAndReturn(false);
+        return false;
     }
 
     bool isSoulTrapSuccessful = false;
@@ -626,6 +752,7 @@ bool trapSoul(RE::Actor* const caster, RE::Actor* const victim)
                 d.caster->GetInventory([](RE::TESBoundObject& object) {
                     return object.IsSoulGem();
                 })};
+
             d.victims.pop();
 
             if (dl.inventoryMap.size() <= 0) {
@@ -640,14 +767,25 @@ bool trapSoul(RE::Actor* const caster, RE::Actor* const victim)
                     isSoulTrapSuccessful = true;
                     continue; // Process next soul.
                 }
-            } else /* White souls */ {
+            } else if (dl.victim.isSplitSoul()) {
+                if (_trapSplitSoul(d, dl)) {
+                    isSoulTrapSuccessful = true;
+                    continue; // Process next soul.
+                }
+
+                _splitSoul(dl.victim, d.victims);
+                continue; // Process next soul.
+            } else {
                 if (_trapFullSoul(d, dl)) {
                     isSoulTrapSuccessful = true;
                     continue; // Process next soul.
                 }
 
-                // If we failed the previous step, start shrinking.
-                if (d.config.allowShrinking) {
+                if (d.config.allowSoulSplitting) {
+                    _splitSoul(dl.victim, d.victims);
+
+                    continue; // Process next soul.
+                } else {
                     if (_trapShrunkSoul(d, dl)) {
                         isSoulTrapSuccessful = true;
 
@@ -670,21 +808,24 @@ bool trapSoul(RE::Actor* const caster, RE::Actor* const victim)
         } else {
             if (casterHasAvailableSoulGems) {
                 if (d.config.allowShrinking) {
-                    _debugNotification(Message::NoSuitableSoulGem, d);
+                    d.notifySoulTrapFailure(
+                        SoulTrapFailureMessage::NoSuitableSoulGem);
                 } else {
-                    _debugNotification(Message::NoSoulGemLargeEnough, d);
+                    d.notifySoulTrapFailure(
+                        SoulTrapFailureMessage::NoSoulGemLargeEnough);
                 }
             } else {
-                _debugNotification(Message::NoSoulGemsAvailable, d);
+                d.notifySoulTrapFailure(
+                    SoulTrapFailureMessage::NoSoulGemsAvailable);
             }
         }
 
-        return wrapUpAndReturn(isSoulTrapSuccessful);
+        return isSoulTrapSuccessful;
     } catch (const std::exception& error) {
         LOG_ERROR(error.what());
     }
 
-    return wrapUpAndReturn(false);
+    return false;
 }
 
 void _handleMessage(SKSE::MessagingInterface::Message* message)

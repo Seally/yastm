@@ -72,11 +72,15 @@ inline constexpr SoulSize
     return SoulSize::None;
 }
 
+// -----------------------------------------------------------------------------
+// SoulSize operator overloads
+// -----------------------------------------------------------------------------
 template <typename T>
 inline constexpr T operator+(const SoulSize soulSize, const T other)
 {
     static_assert(std::is_integral_v<T>);
     static_assert(!std::is_same_v<SoulSize, T>);
+    static_assert(!std::is_same_v<RawSoulSize, T>);
 
     return static_cast<T>(soulSize) + other;
 }
@@ -86,6 +90,7 @@ inline constexpr T operator+(const T other, const SoulSize soulSize)
 {
     static_assert(std::is_integral_v<T>);
     static_assert(!std::is_same_v<SoulSize, T>);
+    static_assert(!std::is_same_v<RawSoulSize, T>);
 
     return other + static_cast<T>(soulSize);
 }
@@ -95,6 +100,7 @@ inline constexpr T operator-(const SoulSize soulSize, const T other)
 {
     static_assert(std::is_integral_v<T>);
     static_assert(!std::is_same_v<SoulSize, T>);
+    static_assert(!std::is_same_v<RawSoulSize, T>);
 
     return static_cast<T>(soulSize) - other;
 }
@@ -104,6 +110,7 @@ inline constexpr T operator-(const T other, const SoulSize soulSize)
 {
     static_assert(std::is_integral_v<T>);
     static_assert(!std::is_same_v<SoulSize, T>);
+    static_assert(!std::is_same_v<RawSoulSize, T>);
 
     return other - static_cast<T>(soulSize);
 }
@@ -113,6 +120,7 @@ inline constexpr bool operator>(const SoulSize soulSize, const T other)
 {
     static_assert(std::is_integral_v<T>);
     static_assert(!std::is_same_v<SoulSize, T>);
+    static_assert(!std::is_same_v<RawSoulSize, T>);
 
     return static_cast<T>(soulSize) > other;
 }
@@ -122,6 +130,7 @@ inline constexpr bool operator>(const T other, const SoulSize soulSize)
 {
     static_assert(std::is_integral_v<T>);
     static_assert(!std::is_same_v<SoulSize, T>);
+    static_assert(!std::is_same_v<RawSoulSize, T>);
 
     return other > static_cast<T>(soulSize);
 }
@@ -131,6 +140,7 @@ inline constexpr bool operator<(const SoulSize soulSize, const T other)
 {
     static_assert(std::is_integral_v<T>);
     static_assert(!std::is_same_v<SoulSize, T>);
+    static_assert(!std::is_same_v<RawSoulSize, T>);
 
     return static_cast<T>(soulSize) < other;
 }
@@ -140,6 +150,7 @@ inline constexpr bool operator<(const T other, const SoulSize soulSize)
 {
     static_assert(std::is_integral_v<T>);
     static_assert(!std::is_same_v<SoulSize, T>);
+    static_assert(!std::is_same_v<RawSoulSize, T>);
 
     return other < static_cast<T>(soulSize);
 }
@@ -149,6 +160,7 @@ inline constexpr bool operator>=(const SoulSize soulSize, const T other)
 {
     static_assert(std::is_integral_v<T>);
     static_assert(!std::is_same_v<SoulSize, T>);
+    static_assert(!std::is_same_v<RawSoulSize, T>);
 
     return static_cast<T>(soulSize) >= other;
 }
@@ -158,6 +170,7 @@ inline constexpr bool operator>=(const T other, const SoulSize soulSize)
 {
     static_assert(std::is_integral_v<T>);
     static_assert(!std::is_same_v<SoulSize, T>);
+    static_assert(!std::is_same_v<RawSoulSize, T>);
 
     return other >= static_cast<T>(soulSize);
 }
@@ -167,6 +180,7 @@ inline constexpr bool operator<=(const SoulSize soulSize, const T other)
 {
     static_assert(std::is_integral_v<T>);
     static_assert(!std::is_same_v<SoulSize, T>);
+    static_assert(!std::is_same_v<RawSoulSize, T>);
 
     return static_cast<T>(soulSize) <= other;
 }
@@ -176,10 +190,147 @@ inline constexpr bool operator<=(const T other, const SoulSize soulSize)
 {
     static_assert(std::is_integral_v<T>);
     static_assert(!std::is_same_v<SoulSize, T>);
+    static_assert(!std::is_same_v<RawSoulSize, T>);
 
     return other <= static_cast<T>(soulSize);
 }
 
+// -----------------------------------------------------------------------------
+// RawSoulSize operator overloads
+// -----------------------------------------------------------------------------
+template <typename T>
+inline constexpr T operator+(const RawSoulSize soulSize, const T other)
+{
+    static_assert(std::is_integral_v<T>);
+    static_assert(!std::is_same_v<SoulSize, T>);
+    static_assert(!std::is_same_v<RawSoulSize, T>);
+
+    return static_cast<T>(soulSize) + other;
+}
+
+template <typename T>
+inline constexpr T operator+(const T other, const RawSoulSize soulSize)
+{
+    static_assert(std::is_integral_v<T>);
+    static_assert(!std::is_same_v<SoulSize, T>);
+    static_assert(!std::is_same_v<RawSoulSize, T>);
+
+    return other + static_cast<T>(soulSize);
+}
+
+template <typename T>
+inline constexpr T operator-(const RawSoulSize soulSize, const T other)
+{
+    static_assert(std::is_integral_v<T>);
+    static_assert(!std::is_same_v<SoulSize, T>);
+    static_assert(!std::is_same_v<RawSoulSize, T>);
+
+    return static_cast<T>(soulSize) - other;
+}
+
+template <typename T>
+inline constexpr T operator-(const T other, const RawSoulSize soulSize)
+{
+    static_assert(std::is_integral_v<T>);
+    static_assert(!std::is_same_v<SoulSize, T>);
+    static_assert(!std::is_same_v<RawSoulSize, T>);
+
+    return other - static_cast<T>(soulSize);
+}
+
+template <typename T>
+inline constexpr bool operator>(const RawSoulSize soulSize, const T other)
+{
+    static_assert(std::is_integral_v<T>);
+    static_assert(!std::is_same_v<SoulSize, T>);
+    static_assert(!std::is_same_v<RawSoulSize, T>);
+
+    return static_cast<T>(soulSize) > other;
+}
+
+template <typename T>
+inline constexpr bool operator>(const T other, const RawSoulSize soulSize)
+{
+    static_assert(std::is_integral_v<T>);
+    static_assert(!std::is_same_v<SoulSize, T>);
+    static_assert(!std::is_same_v<RawSoulSize, T>);
+
+    return other > static_cast<T>(soulSize);
+}
+
+template <typename T>
+inline constexpr bool operator<(const RawSoulSize soulSize, const T other)
+{
+    static_assert(std::is_integral_v<T>);
+    static_assert(!std::is_same_v<SoulSize, T>);
+    static_assert(!std::is_same_v<RawSoulSize, T>);
+
+    return static_cast<T>(soulSize) < other;
+}
+
+template <typename T>
+inline constexpr bool operator<(const T other, const RawSoulSize soulSize)
+{
+    static_assert(std::is_integral_v<T>);
+    static_assert(!std::is_same_v<SoulSize, T>);
+    static_assert(!std::is_same_v<RawSoulSize, T>);
+
+    return other < static_cast<T>(soulSize);
+}
+
+template <typename T>
+inline constexpr bool operator>=(const RawSoulSize soulSize, const T other)
+{
+    static_assert(std::is_integral_v<T>);
+    static_assert(!std::is_same_v<SoulSize, T>);
+    static_assert(!std::is_same_v<RawSoulSize, T>);
+
+    return static_cast<T>(soulSize) >= other;
+}
+
+template <typename T>
+inline constexpr bool operator>=(const T other, const RawSoulSize soulSize)
+{
+    static_assert(std::is_integral_v<T>);
+    static_assert(!std::is_same_v<SoulSize, T>);
+    static_assert(!std::is_same_v<RawSoulSize, T>);
+
+    return other >= static_cast<T>(soulSize);
+}
+
+template <typename T>
+inline constexpr bool operator<=(const RawSoulSize soulSize, const T other)
+{
+    static_assert(std::is_integral_v<T>);
+    static_assert(!std::is_same_v<SoulSize, T>);
+    static_assert(!std::is_same_v<RawSoulSize, T>);
+
+    return static_cast<T>(soulSize) <= other;
+}
+
+template <typename T>
+inline constexpr bool operator<=(const T other, const RawSoulSize soulSize)
+{
+    static_assert(std::is_integral_v<T>);
+    static_assert(!std::is_same_v<SoulSize, T>);
+    static_assert(!std::is_same_v<RawSoulSize, T>);
+
+    return other <= static_cast<T>(soulSize);
+}
+
+template<typename T>
+inline constexpr T& operator-=(T& other, const RawSoulSize soulSize)
+{
+    static_assert(std::is_integral_v<T>);
+    static_assert(!std::is_same_v<SoulSize, T>);
+    static_assert(!std::is_same_v<RawSoulSize, T>);
+
+    return other = other - soulSize;
+}
+
+// -----------------------------------------------------------------------------
+// Utility functions
+// -----------------------------------------------------------------------------
 template<typename T>
 inline constexpr bool isValidSoulCapacity(const T soulCapacity) {
     static_assert(std::is_integral_v<T>);
