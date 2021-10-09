@@ -1,3 +1,7 @@
 #pragma once
 
-bool installTrapSoulFix();
+namespace SKSE {
+    class LoadInterface;
+} // end namespace SKSE
+
+bool installTrapSoulFix(const SKSE::LoadInterface* loadInterface);

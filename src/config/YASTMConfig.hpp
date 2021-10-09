@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "ConfigKey.hpp"
+#include "DllDependencyKey.hpp"
 #include "GlobalVariable.hpp"
 #include "SoulGemGroup.hpp"
 #include "SoulSize.hpp"
@@ -25,6 +26,7 @@ private:
     SoulGemGroupsList _soulGemGroups;
     std::unordered_map<ConfigKey, GlobalVariable> _globals;
     SoulGemMap _soulGemMap;
+    std::unordered_map<DllDependencyKey, const SKSE::PluginInfo*> _dependencies;
 
     explicit YASTMConfig();
 
@@ -42,8 +44,13 @@ public:
         return instance;
     }
 
+    void loadDllDependencies(const SKSE::LoadInterface* loadInterface);
     void loadConfig();
     void processGameForms(RE::TESDataHandler* dataHandler);
+
+    bool isDllLoaded(const DllDependencyKey key) const {
+        return _dependencies.contains(key) && _dependencies.at(key) != nullptr;
+    }
 
     float getGlobalValue(const ConfigKey key) const
     {

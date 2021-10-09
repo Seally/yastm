@@ -113,7 +113,7 @@ extern "C" DLLEXPORT bool SKSEAPI
     result &= installPatch("EnchantItemFix"sv, installEnchantItemFix);
 
     try {
-        result &= installPatch("SoulTrapFix"sv, installTrapSoulFix);
+        result &= installPatch("SoulTrapFix"sv, installTrapSoulFix, a_skse);
     } catch (const std::exception& error) {
         LOG_ERROR(error.what());
     }

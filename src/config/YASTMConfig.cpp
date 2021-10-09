@@ -185,6 +185,19 @@ void YASTMConfig::_readSoulGemConfigs()
     }
 }
 
+void YASTMConfig::loadDllDependencies(const SKSE::LoadInterface* loadInterface) {
+    forEachDllDependencyKey(
+        [&, this](const DllDependencyKey key, const char* name, const char* issueIfMissing) {
+            const auto pluginInfo = loadInterface->GetPluginInfo(name);
+            _dependencies.emplace(key, pluginInfo);
+
+            if (pluginInfo == nullptr) {
+                // Bypass LOG_WARN(issueIfMissing) not compiling.
+                LOG_WARN_FMT("{}"sv, issueIfMissing);
+            }
+        });
+}
+
 void YASTMConfig::loadConfig()
 {
     _readYASTMConfig();

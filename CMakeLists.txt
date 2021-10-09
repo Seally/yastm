@@ -33,7 +33,7 @@ set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>" CACHE STR
 
 project(
     YASTM
-    VERSION 1.4.0
+    VERSION 1.4.2
     LANGUAGES CXX
 )
 
@@ -102,6 +102,7 @@ set(SOURCES
     src/Victim.hpp
     src/Victim.cpp
     src/config/ConfigKey.hpp
+    src/config/DllDependencyKey.hpp
     src/config/FormError.hpp
     src/config/FormError.cpp
     src/config/FormId.hpp

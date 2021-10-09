@@ -1,5 +1,8 @@
 #pragma once
 
+#include "config/DllDependencyKey.hpp"
+#include "config/YASTMConfig.hpp"
+
 enum class SoulTrapSuccessMessage {
     SoulCaptured,
     SoulDisplaced,
@@ -58,7 +61,12 @@ inline constexpr const char* getMessage(const MiscMessage key)
 {
     switch (key) {
     case MiscMessage::TimeTakenToTrapSoul:
-        return "$YASTM_Notification_TimeTakenToTrapSoul{{{:.7f}}}";
+        if (YASTMConfig::getInstance().isDllLoaded(
+                DllDependencyKey::ScaleformTranslationPlusPlus)) {
+            return "$YASTM_Notification_TimeTakenToTrapSoul{{{:.7f}}}";
+        }
+
+        return "Time taken to trap soul: {:.7f} seconds";
     }
 
     return "";

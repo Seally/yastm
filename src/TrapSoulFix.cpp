@@ -889,12 +889,12 @@ bool _isTrapSoulPatchable(
     return true;
 }
 
-bool installTrapSoulFix()
+bool installTrapSoulFix(const SKSE::LoadInterface* loadInterface)
 {
-    using namespace std::literals;
-
     try {
-        YASTMConfig::getInstance().loadConfig();
+        auto& config = YASTMConfig::getInstance();
+        config.loadDllDependencies(loadInterface);
+        config.loadConfig();
     } catch (const std::exception& error) {
         printError(error);
         LOG_ERROR("Not installing trapSoul patch.");
