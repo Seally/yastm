@@ -105,7 +105,7 @@ set(SOURCES
     src/config/ActorBase.hpp
     src/config/ActorRef.hpp
     src/config/ConfigKey.hpp
-    "src/config/DLLDependencyKey.hpp"
+    src/config/DLLDependencyKey.hpp
     src/config/Form.hpp
     src/config/FormError.hpp
     src/config/FormError.cpp

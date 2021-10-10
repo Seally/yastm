@@ -11,5 +11,6 @@ inline void forEachDLLDependencyKey(
 {
     fn(DLLDependencyKey::ScaleformTranslationPlusPlus,
        "ScaleformTranslationPP",
-       "Scaleform Translation Plus Plus not active. Some strings may not be translated correctly and will use the English fallback.");
+       "Scaleform Translation Plus Plus not active. Some strings may not be "
+       "translated correctly and will use the English fallback.");
 }

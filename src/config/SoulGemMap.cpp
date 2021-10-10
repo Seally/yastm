@@ -58,13 +58,38 @@ std::vector<RE::TESSoulGem*> _validateAndGetForms(
                     group.id()));
             }
 
+            const bool isReusableSoulGem =
+                soulGemForm->HasKeyword(reusableSoulGemKeyword);
+
+            // These errors aren't critical so we won't bail, but log a warning
+            // about it anyway.
+            if (group.isReusable()) {
+                if (!isReusableSoulGem) {
+                    LOG_WARN_FMT(
+                        "Non-reusable soul gem {} \"{}\" is listed in reusable "
+                        "soul gem group \"{}\".",
+                        soulGemForm,
+                        soulGemForm->GetName(),
+                        group.id());
+                }
+            } else {
+                if (isReusableSoulGem) {
+                    LOG_WARN_FMT(
+                        "Reusable soul gem {} \"{}\" is listed in non-reusable "
+                        "soul gem group \"{}\"",
+                        soulGemForm,
+                        soulGemForm->GetName(),
+                        group.id());
+                }
+            }
+
             // Checks reusable soul gems for the appropriate fields.
             //
             // We use the linked soul gem field to fix a crash that occurs when
             // trying to use reusable soul gems whose base form does not have an
             // empty soul gem (the entire point of the ChargeItemFix and
             // EnchantItemFix) so it is absolutely important to get this right.
-            if (soulGemForm->HasKeyword(reusableSoulGemKeyword) &&
+            if (isReusableSoulGem &&
                 soulGemForm->GetContainedSoul() != RE::SOUL_LEVEL::kNone) {
                 if (soulGemForm->linkedSoulGem == nullptr) {
                     throw FormError(fmt::format(

@@ -18,8 +18,8 @@ namespace RE {
 
 class SoulGemGroup {
 public:
-    typedef std::string IdType;
-    typedef std::vector<std::unique_ptr<FormId>> MembersType;
+    using IdType = std::string;
+    using MembersType = std::vector<std::unique_ptr<FormId>>;
 
 private:
     IdType _id;
