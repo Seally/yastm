@@ -57,7 +57,7 @@ public:
             return isReusable() ? LoadPriority::High : LoadPriority::Normal;
         }
 
-        return LoadPriority::Low;
+        return rawPriority();
     }
 
     const MembersType& members() const { return _members; }

@@ -1,15 +1,15 @@
 #pragma once
 
-enum class DllDependencyKey { ScaleformTranslationPlusPlus };
+enum class DLLDependencyKey { ScaleformTranslationPlusPlus };
 
 /**
  * @brief Calls fn(dependencyKey, dependencyName, issueIfMissing) for each available configuration
  * key.
  */
-inline void forEachDllDependencyKey(
-    const std::function<void(DllDependencyKey, const char*, const char*)>& fn)
+inline void forEachDLLDependencyKey(
+    const std::function<void(DLLDependencyKey, const char*, const char*)>& fn)
 {
-    fn(DllDependencyKey::ScaleformTranslationPlusPlus,
+    fn(DLLDependencyKey::ScaleformTranslationPlusPlus,
        "ScaleformTranslationPP",
        "Scaleform Translation Plus Plus not active. Some strings may not be translated correctly and will use the English fallback.");
 }

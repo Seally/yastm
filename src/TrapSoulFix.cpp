@@ -114,7 +114,7 @@ class _SoulTrapData {
     }
 
 public:
-    RE::Actor* const caster;
+    RE::Actor* caster;
     VictimsQueue victims;
     const YASTMConfig::Snapshot config;
 
@@ -123,12 +123,46 @@ public:
         , config{YASTMConfig::getInstance().createSnapshot()}
         , _notifyCount{0}
         , _isStatIncremented{false}
-    {}
+    {
+#ifdef YASTM_SOULDIVERSION_ENABLED
+        if (config.allowSoulDiversion && caster->IsPlayerTeammate()) {
+            if (!YASTMConfig::getInstance().isInDiversionIgnoreList(caster)) {
+                // Player base form ID: 0x00000007
+                // Player ref form ID:  0x00000014
+                const auto playerActor = _SoulTrapData::player();
+
+                if (playerActor != nullptr) {
+                    this->caster = playerActor;
+
+                    LOG_TRACE("Soul trap diverted to player."sv);
+                } else {
+                    LOG_WARN(
+                        "Failed to find player reference for soul diversion.");
+                }
+            } else {
+                LOG_TRACE(
+                    "Soul trap not diverted due to actor being in the ignore list."sv);
+            }
+        }
+#endif // YASTM_SOULDIVERSION_ENABLED
+    }
 
     _SoulTrapData(const _SoulTrapData&) = delete;
     _SoulTrapData(_SoulTrapData&&) = delete;
     _SoulTrapData& operator=(const _SoulTrapData&) = delete;
     _SoulTrapData& operator=(_SoulTrapData&&) = delete;
+
+#ifdef YASTM_SOULDIVERSION_ENABLED
+    static RE::Actor* player()
+    {
+        // Player base form ID: 0x00000007
+        // Player ref form ID:  0x00000014
+        static const auto playerActor =
+            RE::TESForm::LookupByID<RE::Actor>(0x14);
+
+        return playerActor;
+    }
+#endif // YASTM_SOULDIVERSION_ENABLED
 
     void notifySoulTrapFailure(const SoulTrapFailureMessage message)
     {
@@ -658,7 +692,11 @@ public:
         if (YASTMConfig::getInstance().getGlobalBool(
                 ConfigKey::AllowProfiling)) {
             LOG_INFO_FMT("Time to trap soul: {:.7f} seconds", elapsedTime);
-            RE::DebugNotification(fmt::format(getMessage(MiscMessage::TimeTakenToTrapSoul), elapsedTime).c_str());
+            RE::DebugNotification(
+                fmt::format(
+                    getMessage(MiscMessage::TimeTakenToTrapSoul),
+                    elapsedTime)
+                    .c_str());
         }
 
         LOG_TRACE("Exiting YASTM trap soul function"sv);
@@ -831,7 +869,7 @@ void _handleMessage(SKSE::MessagingInterface::Message* message)
     using namespace std::literals;
 
     if (message->type == SKSE::MessagingInterface::kDataLoaded) {
-        YASTMConfig::getInstance().processGameForms(
+        YASTMConfig::getInstance().loadGameForms(
             RE::TESDataHandler::GetSingleton());
     }
 }
@@ -893,8 +931,8 @@ bool installTrapSoulFix(const SKSE::LoadInterface* loadInterface)
 {
     try {
         auto& config = YASTMConfig::getInstance();
-        config.loadDllDependencies(loadInterface);
-        config.loadConfig();
+        config.checkDllDependencies(loadInterface);
+        config.readConfigs();
     } catch (const std::exception& error) {
         printError(error);
         LOG_ERROR("Not installing trapSoul patch.");

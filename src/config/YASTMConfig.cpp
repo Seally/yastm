@@ -4,6 +4,7 @@
 
 #include <toml++/toml.h>
 
+#include <RE/A/Actor.h>
 #include <RE/B/BGSDefaultObjectManager.h>
 #include <RE/T/TESDataHandler.h>
 #include <RE/T/TESGlobal.h>
@@ -11,6 +12,7 @@
 #include <SKSE/SKSE.h>
 
 #include "../global.hpp"
+#include "FormError.hpp"
 #include "ParseError.hpp"
 #include "SoulGemGroup.hpp"
 #include "../formatters/TESSoulGem.hpp"
@@ -88,10 +90,8 @@ void YASTMConfig::_readYASTMConfig()
 #endif // NDEBUG
 }
 
-void YASTMConfig::_readSoulGemConfigs()
+void YASTMConfig::_readIndividualConfigs()
 {
-    using namespace std::literals;
-
     std::vector<std::filesystem::path> configPaths;
 
     for (const auto& entry : std::filesystem::directory_iterator("Data/"sv)) {
@@ -124,35 +124,16 @@ void YASTMConfig::_readSoulGemConfigs()
             table = toml::parse_file(configPathStr);
 
             LOG_INFO_FMT(
-                "Reading soul gem configuration file: {}"sv,
+                "Reading individual configuration file: {}"sv,
                 configPathStr);
 
-            if (const auto soulGems = table["soulGems"sv].as_array();
-                soulGems != nullptr) {
-                for (toml::node& elem : *soulGems) {
-                    try {
-                        elem.visit([&, this](auto&& el) {
-                            if constexpr (toml::is_table<decltype(el)>) {
-                                _soulGemGroups.emplace_back(
-                                    new SoulGemGroup(el));
-                                // We've found a valid soul gem group!
-                                ++validSoulGemGroupsCount;
-                            } else {
-                                throw InvalidEntryValueTypeError{
-                                    "soulGems",
-                                    ValueType::Table,
-                                    "Member of 'soulGems' array must be a "
-                                    "table."};
-                            }
-                        });
-                    } catch (const std::exception& error) {
-                        printError(error, 1);
-                    }
-                }
-            }
+            validSoulGemGroupsCount += _readAndCountSoulGemGroupConfigs(table);
+#ifdef YASTM_SOULDIVERSION_ENABLED
+            _readDiversionIgnoreConfigs(table);
+#endif // YASTM_SOULDIVERSION_ENABLED
         } catch (const toml::parse_error& error) {
             LOG_WARN_FMT(
-                "Error while parsing soul gem configuration file \"{}\": {}"sv,
+                "Error while parsing individual configuration file \"{}\": {}"sv,
                 configPathStr,
                 error.what());
         }
@@ -163,7 +144,7 @@ void YASTMConfig::_readSoulGemConfigs()
     // Game hasn't fully initialized.)
     LOG_TRACE("Loaded soul gem configuration from TOML:"sv);
 
-    for (const auto& soulGemGroup : _soulGemGroups) {
+    for (const auto& soulGemGroup : _soulGemGroupList) {
         LOG_TRACE_FMT(
             "    {} (isReusable={}, capacity={}, priority={})"sv,
             soulGemGroup->id(),
@@ -185,32 +166,156 @@ void YASTMConfig::_readSoulGemConfigs()
     }
 }
 
-void YASTMConfig::loadDllDependencies(const SKSE::LoadInterface* loadInterface) {
-    forEachDllDependencyKey(
-        [&, this](const DllDependencyKey key, const char* name, const char* issueIfMissing) {
-            const auto pluginInfo = loadInterface->GetPluginInfo(name);
-            _dependencies.emplace(key, pluginInfo);
+std::size_t
+    YASTMConfig::_readAndCountSoulGemGroupConfigs(const toml::table& table)
+{
+    std::size_t validSoulGemGroupsCount = 0;
 
-            if (pluginInfo == nullptr) {
-                // Bypass LOG_WARN(issueIfMissing) not compiling.
-                LOG_WARN_FMT("{}"sv, issueIfMissing);
+    if (const auto soulGems = table["soulGems"sv].as_array();
+        soulGems != nullptr) {
+        for (const toml::node& elem : *soulGems) {
+            try {
+                elem.visit([&, this](auto&& el) {
+                    if constexpr (toml::is_table<decltype(el)>) {
+                        _soulGemGroupList.emplace_back(new SoulGemGroup(el));
+                        // We've found a valid soul gem group!
+                        ++validSoulGemGroupsCount;
+                    } else {
+                        throw InvalidEntryValueTypeError{
+                            "soulGems",
+                            ValueType::Table,
+                            "Member of 'soulGems' array must be a "
+                            "table."};
+                    }
+                });
+            } catch (const std::exception& error) {
+                printError(error, 1);
             }
-        });
+        }
+    }
+
+    return validSoulGemGroupsCount;
 }
 
-void YASTMConfig::loadConfig()
+#ifdef YASTM_SOULDIVERSION_ENABLED
+template <typename T>
+void _readDiversionIgnoreConfig(
+    const DiversionConfigKey key,
+    const toml::table& diversionTable,
+    std::vector<T>& outputList)
+{
+    const auto keyString = toString(key);
+
+    try {
+        if (const auto ignoreConfigArray = diversionTable[keyString].as_array();
+            ignoreConfigArray != nullptr) {
+            std::size_t index = 0;
+
+            for (const toml::node& elem : *ignoreConfigArray) {
+                try {
+                    elem.visit([&](auto&& el) {
+                        if constexpr (toml::is_array<decltype(el)>) {
+                            auto& output = outputList.emplace_back();
+
+                            output.setFromToml(el);
+                        } else {
+                            throw EntryError(
+                                index,
+                                fmt::format(
+                                    FMT_STRING("{}[{}] is not an array"),
+                                    keyString,
+                                    index));
+                        }
+                    });
+                } catch (...) {
+                    std::throw_with_nested(EntryError(
+                        index,
+                        fmt::format(
+                            FMT_STRING("Invalid form ID entry at {}[{}]"sv),
+                            keyString,
+                            index)));
+                }
+                ++index;
+            }
+        }
+    } catch (const std::exception& error) {
+        LOG_ERROR_FMT("Error while reading the entry for \"{}\":"sv, keyString);
+        printError(error, 1);
+    }
+}
+
+void YASTMConfig::_readDiversionIgnoreConfigs(const toml::table& table)
+{
+    const auto yastmTable = table["YASTM"];
+
+    if (const auto diversionTable = yastmTable["diversion"].as_table();
+        diversionTable != nullptr) {
+        _readDiversionIgnoreConfig(
+            DiversionConfigKey::ActorBaseIgnoreList,
+            *diversionTable,
+            _actorBaseList);
+        _readDiversionIgnoreConfig(
+            DiversionConfigKey::ActorRefIgnoreList,
+            *diversionTable,
+            _actorRefList);
+    }
+
+#    ifndef NDEBUG
+    // Print the loaded configuration (we can't read the in-game forms yet.
+    // Game hasn't fully initialized.)
+    LOG_TRACE("Loaded soul diversion ignore list from TOML:");
+
+    LOG_TRACE("Base actors:"sv);
+
+    for (const auto& actorBase : _actorBaseList) {
+        if (actorBase.isConfigLoaded()) {
+            LOG_TRACE_FMT("- {}"sv, actorBase.formId());
+        }
+    }
+
+    LOG_TRACE("Actor references:"sv);
+
+    for (const auto& actorRef : _actorRefList) {
+        if (actorRef.isConfigLoaded()) {
+            LOG_TRACE_FMT("- {}"sv, actorRef.formId());
+        }
+    }
+#    endif // NDEBUG
+}
+#endif // YASTM_SOULDIVERSION_ENABLED
+
+void YASTMConfig::checkDllDependencies(const SKSE::LoadInterface* loadInterface)
+{
+    forEachDLLDependencyKey([&, this](
+                                const DLLDependencyKey key,
+                                const char* name,
+                                const char* issueIfMissing) {
+        const auto pluginInfo = loadInterface->GetPluginInfo(name);
+        _dependencies.emplace(key, pluginInfo);
+
+        if (pluginInfo == nullptr) {
+            // Bypass LOG_WARN(issueIfMissing) not compiling.
+            LOG_WARN_FMT("{}"sv, issueIfMissing);
+        }
+    });
+}
+
+void YASTMConfig::readConfigs()
 {
     _readYASTMConfig();
-    _readSoulGemConfigs();
+    _readIndividualConfigs();
 }
 
-void YASTMConfig::processGameForms(RE::TESDataHandler* const dataHandler)
+void YASTMConfig::loadGameForms(RE::TESDataHandler* const dataHandler)
 {
-    _getGlobalForms(dataHandler);
+    _loadGlobalForms(dataHandler);
+#ifdef YASTM_SOULDIVERSION_ENABLED
+    _loadDiversionActorIgnoreList(dataHandler);
+#endif // YASTM_SOULDIVERSION_ENABLED
     _createSoulGemMap(dataHandler);
 }
 
-void YASTMConfig::_getGlobalForms(RE::TESDataHandler* const dataHandler)
+void YASTMConfig::_loadGlobalForms(RE::TESDataHandler* const dataHandler)
 {
     using namespace std::literals;
 
@@ -242,11 +347,57 @@ void YASTMConfig::_getGlobalForms(RE::TESDataHandler* const dataHandler)
     }
 }
 
+#ifdef YASTM_SOULDIVERSION_ENABLED
+void YASTMConfig::_loadDiversionActorIgnoreList(
+    RE::TESDataHandler* const dataHandler)
+{
+    for (auto& actorBase : _actorBaseList) {
+        try {
+            actorBase.loadForm(dataHandler);
+
+            if (actorBase.isFormLoaded()) {
+                const auto form = actorBase.form();
+
+                _diversionActorIgnoreList.emplace(form->GetFormID());
+
+                LOG_INFO(
+                    "Actor base \"{}\" {} added to Soul Diversion ignore "
+                    "list.",
+                    form->GetName(),
+                    actorBase.formId());
+            }
+        } catch (const std::exception& error) {
+            printError(error);
+        }
+    }
+
+    for (auto& actorRef : _actorRefList) {
+        try {
+            actorRef.loadForm(dataHandler);
+
+            if (actorRef.isFormLoaded()) {
+                const auto form = actorRef.form();
+
+                _diversionActorIgnoreList.emplace(form->GetFormID());
+
+                LOG_INFO(
+                    "Actor reference \"{}\" {} added to Soul Diversion ignore "
+                    "list.",
+                    form->GetName(),
+                    actorRef.formId());
+            }
+        } catch (const std::exception& error) {
+            printError(error);
+        }
+    }
+}
+#endif // YASTM_SOULDIVERSION_ENABLED
+
 void YASTMConfig::_createSoulGemMap(RE::TESDataHandler* const dataHandler)
 {
     const auto addSoulGemGroupsForPriority =
         [=, this](const LoadPriority priority) {
-            for (const auto& soulGemGroup : _soulGemGroups) {
+            for (const auto& soulGemGroup : _soulGemGroupList) {
                 if (soulGemGroup->priority() == priority) {
                     try {
                         _soulGemMap.addSoulGemGroup(*soulGemGroup, dataHandler);

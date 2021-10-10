@@ -46,7 +46,7 @@ SoulGemGroup::SoulGemGroup(const toml::table& table)
         }
 
         MembersType members;
-        std::size_t index;
+        std::size_t index = 0;
 
         for (const toml::node& elem : *membersValue) {
             try {

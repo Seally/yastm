@@ -2,8 +2,16 @@
 
 #include <memory>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
+#include <RE/A/Actor.h>
+#include <RE/B/BSCoreTypes.h>
+
+#include <toml++/toml_table.h>
+
+#include "ActorBase.hpp"
+#include "ActorRef.hpp"
 #include "ConfigKey.hpp"
 #include "DllDependencyKey.hpp"
 #include "GlobalVariable.hpp"
@@ -15,28 +23,54 @@ namespace RE {
     class TESDataHandler;
     class TESGlobal;
     class TESSoulGem;
+    class Actor;
+    class TESNPC;
 }
 
 class YASTMConfig {
 public:
     struct Snapshot;
-    using SoulGemGroupsList = std::vector<std::unique_ptr<SoulGemGroup>>;
+    using SoulGemGroupList = std::vector<std::unique_ptr<SoulGemGroup>>;
+#ifdef YASTM_SOULDIVERSION_ENABLED
+    using ActorBaseList = std::vector<ActorBase>;
+    using ActorRefList = std::vector<ActorRef>;
+#endif // YASTM_SOULDIVERSION_ENABLED
 
 private:
-    SoulGemGroupsList _soulGemGroups;
     std::unordered_map<ConfigKey, GlobalVariable> _globals;
+
+#ifdef YASTM_SOULDIVERSION_ENABLED
+    ActorBaseList _actorBaseList;
+    ActorRefList _actorRefList;
+    std::unordered_set<RE::FormID> _diversionActorIgnoreList;
+#endif // YASTM_SOULDIVERSION_ENABLED
+
+    SoulGemGroupList _soulGemGroupList;
     SoulGemMap _soulGemMap;
-    std::unordered_map<DllDependencyKey, const SKSE::PluginInfo*> _dependencies;
+
+    std::unordered_map<DLLDependencyKey, const SKSE::PluginInfo*> _dependencies;
 
     explicit YASTMConfig();
 
     void _readYASTMConfig();
-    void _readSoulGemConfigs();
+    void _readIndividualConfigs();
+#ifdef YASTM_SOULDIVERSION_ENABLED
+    void _readDiversionIgnoreConfigs(const toml::table& table);
+#endif // YASTM_SOULDIVERSION_ENABLED
+    std::size_t _readAndCountSoulGemGroupConfigs(const toml::table& table);
 
-    void _getGlobalForms(RE::TESDataHandler* dataHandler);
+    void _loadGlobalForms(RE::TESDataHandler* dataHandler);
+#ifdef YASTM_SOULDIVERSION_ENABLED
+    void _loadDiversionActorIgnoreList(RE::TESDataHandler* dataHandler);
+#endif // YASTM_SOULDIVERSION_ENABLED
     void _createSoulGemMap(RE::TESDataHandler* dataHandler);
 
 public:
+    YASTMConfig(const YASTMConfig&) = delete;
+    YASTMConfig(YASTMConfig&&) = delete;
+    YASTMConfig& operator=(const YASTMConfig&) = delete;
+    YASTMConfig& operator=(YASTMConfig&&) = delete;
+
     static YASTMConfig& getInstance()
     {
         static YASTMConfig instance;
@@ -44,11 +78,14 @@ public:
         return instance;
     }
 
-    void loadDllDependencies(const SKSE::LoadInterface* loadInterface);
-    void loadConfig();
-    void processGameForms(RE::TESDataHandler* dataHandler);
+    // These three functions needs to be called manually at different times.
+    // loadGameForms() must be run only after readConfig finishes.
+    void checkDllDependencies(const SKSE::LoadInterface* loadInterface);
+    void readConfigs();
+    void loadGameForms(RE::TESDataHandler* dataHandler);
 
-    bool isDllLoaded(const DllDependencyKey key) const {
+    bool isDllLoaded(const DLLDependencyKey key) const
+    {
         return _dependencies.contains(key) && _dependencies.at(key) != nullptr;
     }
 
@@ -62,7 +99,10 @@ public:
         return getGlobalValue(key) != 0;
     }
 
-    const SoulGemGroupsList& getSoulGemGroups() const { return _soulGemGroups; }
+    const SoulGemGroupList& getSoulGemGroups() const
+    {
+        return _soulGemGroupList;
+    }
 
     constexpr const std::vector<RE::TESSoulGem*>& getSoulGemsWith(
         const SoulSize capacity,
@@ -70,6 +110,15 @@ public:
     {
         return _soulGemMap.getSoulGemsWith(capacity, containedSoulSize);
     }
+
+#ifdef YASTM_SOULDIVERSION_ENABLED
+    bool isInDiversionIgnoreList(RE::Actor* const actor) const
+    {
+        return _diversionActorIgnoreList.contains(actor->GetFormID()) ||
+               _diversionActorIgnoreList.contains(
+                   actor->GetActorBase()->GetFormID());
+    }
+#endif // YASTM_SOULDIVERSION_ENABLED
 
     /**
      * @brief Represents a snapshot of the configuration at a certain point in
@@ -82,6 +131,9 @@ public:
         const bool allowShrinking;
         const bool allowSplitting;
         const bool allowExtraSoulRelocation;
+#ifdef YASTM_SOULDIVERSION_ENABLED
+        const bool allowSoulDiversion;
+#endif // YASTM_SOULDIVERSION_ENABLED
         const bool preserveOwnership;
         const bool allowNotifications;
     };
@@ -95,6 +147,9 @@ public:
             getGlobalBool(ConfigKey::AllowSoulShrinking),
             getGlobalBool(ConfigKey::AllowSoulSplitting),
             getGlobalBool(ConfigKey::AllowExtraSoulRelocation),
+#ifdef YASTM_SOULDIVERSION_ENABLED
+            getGlobalBool(ConfigKey::AllowSoulDiversion),
+#endif // YASTM_SOULDIVERSION_ENABLED
             getGlobalBool(ConfigKey::PreserveOwnership),
             getGlobalBool(ConfigKey::AllowNotifications)};
     }

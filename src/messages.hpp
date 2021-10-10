@@ -62,7 +62,7 @@ inline constexpr const char* getMessage(const MiscMessage key)
     switch (key) {
     case MiscMessage::TimeTakenToTrapSoul:
         if (YASTMConfig::getInstance().isDllLoaded(
-                DllDependencyKey::ScaleformTranslationPlusPlus)) {
+                DLLDependencyKey::ScaleformTranslationPlusPlus)) {
             return "$YASTM_Notification_TimeTakenToTrapSoul{{{:.7f}}}";
         }
 
