@@ -124,23 +124,15 @@ public:
         , _notifyCount{0}
         , _isStatIncremented{false}
     {
-        if (config.allowSoulDiversion && caster->IsPlayerTeammate()) {
-            if (!YASTMConfig::getInstance().isInDiversionIgnoreList(caster)) {
-                // Player base form ID: 0x00000007
-                // Player ref form ID:  0x00000014
-                const auto playerActor = _SoulTrapData::player();
+        if (config.allowSoulDiversion && !caster->IsPlayerRef() && caster->IsPlayerTeammate()) {
+            const auto playerActor = _SoulTrapData::player();
 
-                if (playerActor != nullptr) {
-                    this->caster = playerActor;
+            if (playerActor != nullptr) {
+                this->caster = playerActor;
 
-                    LOG_TRACE("Soul trap diverted to player."sv);
-                } else {
-                    LOG_WARN(
-                        "Failed to find player reference for soul diversion.");
-                }
+                LOG_TRACE("Soul trap diverted to player."sv);
             } else {
-                LOG_TRACE(
-                    "Soul trap not diverted due to actor being in ignore list."sv);
+                LOG_WARN("Failed to find player reference for soul diversion.");
             }
         }
     }
@@ -154,10 +146,7 @@ public:
     {
         // Player base form ID: 0x00000007
         // Player ref form ID:  0x00000014
-        static const auto playerActor =
-            RE::TESForm::LookupByID<RE::Actor>(0x14);
-
-        return playerActor;
+        return RE::TESForm::LookupByID<RE::Actor>(0x14);
     }
 
     void notifySoulTrapFailure(const SoulTrapFailureMessage message)

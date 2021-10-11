@@ -10,8 +10,6 @@
 
 #include <toml++/toml_table.h>
 
-#include "ActorBase.hpp"
-#include "ActorRef.hpp"
 #include "ConfigKey.hpp"
 #include "DllDependencyKey.hpp"
 #include "GlobalVariable.hpp"
@@ -23,23 +21,15 @@ namespace RE {
     class TESDataHandler;
     class TESGlobal;
     class TESSoulGem;
-    class Actor;
-    class TESNPC;
 }
 
 class YASTMConfig {
 public:
     struct Snapshot;
     using SoulGemGroupList = std::vector<std::unique_ptr<SoulGemGroup>>;
-    using ActorBaseList = std::vector<ActorBase>;
-    using ActorRefList = std::vector<ActorRef>;
 
 private:
     std::unordered_map<ConfigKey, GlobalVariable> _globals;
-
-    ActorBaseList _actorBaseList;
-    ActorRefList _actorRefList;
-    std::unordered_set<RE::FormID> _diversionActorIgnoreList;
 
     SoulGemGroupList _soulGemGroupList;
     SoulGemMap _soulGemMap;
@@ -50,11 +40,9 @@ private:
 
     void _readYASTMConfig();
     void _readIndividualConfigs();
-    void _readDiversionIgnoreConfigs(const toml::table& table);
     std::size_t _readAndCountSoulGemGroupConfigs(const toml::table& table);
 
     void _loadGlobalForms(RE::TESDataHandler* dataHandler);
-    void _loadDiversionActorIgnoreList(RE::TESDataHandler* dataHandler);
     void _createSoulGemMap(RE::TESDataHandler* dataHandler);
 
 public:
@@ -103,13 +91,6 @@ public:
         return _soulGemMap.getSoulGemsWith(capacity, containedSoulSize);
     }
 
-    bool isInDiversionIgnoreList(RE::Actor* const actor) const
-    {
-        return _diversionActorIgnoreList.contains(actor->GetFormID()) ||
-               _diversionActorIgnoreList.contains(
-                   actor->GetActorBase()->GetFormID());
-    }
-
     /**
      * @brief Represents a snapshot of the configuration at a certain point in
      * time.
@@ -135,6 +116,7 @@ public:
             getGlobalBool(ConfigKey::AllowSoulShrinking),
             getGlobalBool(ConfigKey::AllowSoulSplitting),
             getGlobalBool(ConfigKey::AllowExtraSoulRelocation),
+            // We abstract this detail here for convenience.
             getGlobalBool(ConfigKey::AllowSoulDiversion) &&
                 getGlobalBool(ConfigKey::PerformSoulDiversionInDLL),
             getGlobalBool(ConfigKey::PreserveOwnership),

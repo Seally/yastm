@@ -128,7 +128,6 @@ void YASTMConfig::_readIndividualConfigs()
                 configPathStr);
 
             validSoulGemGroupsCount += _readAndCountSoulGemGroupConfigs(table);
-            _readDiversionIgnoreConfigs(table);
         } catch (const toml::parse_error& error) {
             LOG_WARN_FMT(
                 "Error while parsing individual configuration file \"{}\": {}"sv,
@@ -195,91 +194,6 @@ std::size_t
     return validSoulGemGroupsCount;
 }
 
-template <typename T>
-void _readDiversionIgnoreConfig(
-    const DiversionConfigKey key,
-    const toml::table& diversionTable,
-    std::vector<T>& outputList)
-{
-    const auto keyString = toString(key);
-
-    try {
-        if (const auto ignoreConfigArray = diversionTable[keyString].as_array();
-            ignoreConfigArray != nullptr) {
-            std::size_t index = 0;
-
-            for (const toml::node& elem : *ignoreConfigArray) {
-                try {
-                    elem.visit([&](auto&& el) {
-                        if constexpr (toml::is_array<decltype(el)>) {
-                            auto& output = outputList.emplace_back();
-
-                            output.setFromToml(el);
-                        } else {
-                            throw EntryError(
-                                index,
-                                fmt::format(
-                                    FMT_STRING("{}[{}] is not an array"),
-                                    keyString,
-                                    index));
-                        }
-                    });
-                } catch (...) {
-                    std::throw_with_nested(EntryError(
-                        index,
-                        fmt::format(
-                            FMT_STRING("Invalid form ID entry at {}[{}]"sv),
-                            keyString,
-                            index)));
-                }
-                ++index;
-            }
-        }
-    } catch (const std::exception& error) {
-        LOG_ERROR_FMT("Error while reading the entry for \"{}\":"sv, keyString);
-        printError(error, 1);
-    }
-}
-
-void YASTMConfig::_readDiversionIgnoreConfigs(const toml::table& table)
-{
-    const auto yastmTable = table["YASTM"];
-
-    if (const auto diversionTable = yastmTable["diversion"].as_table();
-        diversionTable != nullptr) {
-        _readDiversionIgnoreConfig(
-            DiversionConfigKey::ActorBaseIgnoreList,
-            *diversionTable,
-            _actorBaseList);
-        _readDiversionIgnoreConfig(
-            DiversionConfigKey::ActorRefIgnoreList,
-            *diversionTable,
-            _actorRefList);
-    }
-
-#    ifndef NDEBUG
-    // Print the loaded configuration (we can't read the in-game forms yet.
-    // Game hasn't fully initialized.)
-    LOG_TRACE("Loaded soul diversion ignore list from TOML:");
-
-    LOG_TRACE("Base actors:"sv);
-
-    for (const auto& actorBase : _actorBaseList) {
-        if (actorBase.isConfigLoaded()) {
-            LOG_TRACE_FMT("- {}"sv, actorBase.formId());
-        }
-    }
-
-    LOG_TRACE("Actor references:"sv);
-
-    for (const auto& actorRef : _actorRefList) {
-        if (actorRef.isConfigLoaded()) {
-            LOG_TRACE_FMT("- {}"sv, actorRef.formId());
-        }
-    }
-#    endif // NDEBUG
-}
-
 void YASTMConfig::checkDllDependencies(const SKSE::LoadInterface* loadInterface)
 {
     forEachDLLDependencyKey([&, this](
@@ -305,7 +219,6 @@ void YASTMConfig::readConfigs()
 void YASTMConfig::loadGameForms(RE::TESDataHandler* const dataHandler)
 {
     _loadGlobalForms(dataHandler);
-    _loadDiversionActorIgnoreList(dataHandler);
     _createSoulGemMap(dataHandler);
 }
 
@@ -337,50 +250,6 @@ void YASTMConfig::_loadGlobalForms(RE::TESDataHandler* const dataHandler)
             LOG_INFO_FMT("- {}: {}"sv, key, globalVar.formId());
         } else {
             LOG_INFO_FMT("- {}: Not loaded."sv, key);
-        }
-    }
-}
-
-void YASTMConfig::_loadDiversionActorIgnoreList(
-    RE::TESDataHandler* const dataHandler)
-{
-    for (auto& actorBase : _actorBaseList) {
-        try {
-            actorBase.loadForm(dataHandler);
-
-            if (actorBase.isFormLoaded()) {
-                const auto form = actorBase.form();
-
-                _diversionActorIgnoreList.emplace(form->GetFormID());
-
-                LOG_INFO(
-                    "Actor base \"{}\" {} added to Soul Diversion ignore "
-                    "list.",
-                    form->GetName(),
-                    actorBase.formId());
-            }
-        } catch (const std::exception& error) {
-            printError(error);
-        }
-    }
-
-    for (auto& actorRef : _actorRefList) {
-        try {
-            actorRef.loadForm(dataHandler);
-
-            if (actorRef.isFormLoaded()) {
-                const auto form = actorRef.form();
-
-                _diversionActorIgnoreList.emplace(form->GetFormID());
-
-                LOG_INFO(
-                    "Actor reference \"{}\" {} added to Soul Diversion ignore "
-                    "list.",
-                    form->GetName(),
-                    actorRef.formId());
-            }
-        } catch (const std::exception& error) {
-            printError(error);
         }
     }
 }

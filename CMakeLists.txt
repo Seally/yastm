@@ -101,8 +101,8 @@ set(SOURCES
     src/versiondb.hpp
     src/Victim.hpp
     src/Victim.cpp
-    src/config/ActorBase.hpp
-    src/config/ActorRef.hpp
+    
+    
     src/config/ConfigKey.hpp
     src/config/DLLDependencyKey.hpp
     src/config/Form.hpp
@@ -131,7 +131,7 @@ set(SOURCES
     src/utilities/TESSoulGem.hpp
     src/utilities/TESSoulGem.cpp
     src/utilities/Timer.hpp
- )
+  )
 
 source_group(
     TREE
