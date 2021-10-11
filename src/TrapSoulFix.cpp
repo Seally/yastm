@@ -124,7 +124,6 @@ public:
         , _notifyCount{0}
         , _isStatIncremented{false}
     {
-#ifdef YASTM_SOULDIVERSION_ENABLED
         if (config.allowSoulDiversion && caster->IsPlayerTeammate()) {
             if (!YASTMConfig::getInstance().isInDiversionIgnoreList(caster)) {
                 // Player base form ID: 0x00000007
@@ -141,10 +140,9 @@ public:
                 }
             } else {
                 LOG_TRACE(
-                    "Soul trap not diverted due to actor being in the ignore list."sv);
+                    "Soul trap not diverted due to actor being in ignore list."sv);
             }
         }
-#endif // YASTM_SOULDIVERSION_ENABLED
     }
 
     _SoulTrapData(const _SoulTrapData&) = delete;
@@ -152,7 +150,6 @@ public:
     _SoulTrapData& operator=(const _SoulTrapData&) = delete;
     _SoulTrapData& operator=(_SoulTrapData&&) = delete;
 
-#ifdef YASTM_SOULDIVERSION_ENABLED
     static RE::Actor* player()
     {
         // Player base form ID: 0x00000007
@@ -162,7 +159,6 @@ public:
 
         return playerActor;
     }
-#endif // YASTM_SOULDIVERSION_ENABLED
 
     void notifySoulTrapFailure(const SoulTrapFailureMessage message)
     {
@@ -762,9 +758,11 @@ bool trapSoul(RE::Actor* const caster, RE::Actor* const victim)
         LOG_TRACE_FMT("- Allow displacement: {}"sv, d.config.allowDisplacement);
         LOG_TRACE_FMT("- Allow relocation: {}"sv, d.config.allowRelocation);
         LOG_TRACE_FMT("- Allow shrinking: {}"sv, d.config.allowShrinking);
+        LOG_TRACE_FMT("- Allow splitting: {}"sv, d.config.allowSplitting);
         LOG_TRACE_FMT(
             "- Allow extra soul relocation: {}"sv,
             d.config.allowExtraSoulRelocation);
+        LOG_TRACE_FMT("- Allow diversion: {}"sv, d.config.allowSoulDiversion);
         LOG_TRACE_FMT("- Preserve ownership: {}"sv, d.config.preserveOwnership);
         LOG_TRACE_FMT(
             "- Allow notifications: {}"sv,

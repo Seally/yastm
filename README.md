@@ -78,19 +78,3 @@ specs. We use certain constructs that are only valid in v1.0+.
 
   _Tip:_ You can also set this to the mod folder you're working on if you're
   using something like Mod Organizer 2.
-* `YASTM_ENABLE_SOULDIVERSION` - Add DLL-level support for soul diversion. This 
-  simply just defines the `YASTM_SOULDIVERSION_ENABLED` macro in the build.
-
-### Macros
-
-* `YASTM_SOULDIVERSION_ENABLED` - Define this to enable DLL level support for 
-  soul diversion. This feature works, but it's not included in the public build
-  because the soul trap visual effects are not redirected to the player
-  accordingly due to being managed by the Papyrus script.
-
-  We currently have no easy way of informing the Papyrus code that a soul trap
-  has been diverted, so we will keep the redirection logic in Papyrus version.
-
-  It's perfectly good code though, and it has led to some very nice refactors so
-  it'll be a shame to just remove it. Thus. we'll put this behind a preprocessor
-  macro.

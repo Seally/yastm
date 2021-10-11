@@ -28,7 +28,6 @@ endif()
 
 set(Boost_USE_STATIC_RUNTIME OFF CACHE BOOL "")
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>" CACHE STRING "")
-option(YASTM_ENABLE_SOULDIVERSION "Enables soul diversion in the build." OFF)
 
 # ---- Project ----
 
@@ -132,7 +131,7 @@ set(SOURCES
     src/utilities/TESSoulGem.hpp
     src/utilities/TESSoulGem.cpp
     src/utilities/Timer.hpp
-)
+ )
 
 source_group(
     TREE
@@ -181,10 +180,6 @@ target_link_libraries(
         fmt::fmt
         tomlplusplus::tomlplusplus
 )
-
-if(YASTM_ENABLE_SOULDIVERSION)
-    target_compile_definitions(${PROJECT_NAME} PUBLIC YASTM_SOULDIVERSION_ENABLED)
-endIf()
 
 if(MSVC)
     target_compile_options(

@@ -110,7 +110,7 @@ void YASTMConfig::_readIndividualConfigs()
     }
 
     if (configPaths.empty()) {
-        throw std::runtime_error("No YASTM configuration files found.");
+        throw YASTMConfigLoadError("No YASTM configuration files found.");
     }
 
     std::size_t validSoulGemGroupsCount = 0;
@@ -128,9 +128,7 @@ void YASTMConfig::_readIndividualConfigs()
                 configPathStr);
 
             validSoulGemGroupsCount += _readAndCountSoulGemGroupConfigs(table);
-#ifdef YASTM_SOULDIVERSION_ENABLED
             _readDiversionIgnoreConfigs(table);
-#endif // YASTM_SOULDIVERSION_ENABLED
         } catch (const toml::parse_error& error) {
             LOG_WARN_FMT(
                 "Error while parsing individual configuration file \"{}\": {}"sv,
@@ -197,7 +195,6 @@ std::size_t
     return validSoulGemGroupsCount;
 }
 
-#ifdef YASTM_SOULDIVERSION_ENABLED
 template <typename T>
 void _readDiversionIgnoreConfig(
     const DiversionConfigKey key,
@@ -282,7 +279,6 @@ void YASTMConfig::_readDiversionIgnoreConfigs(const toml::table& table)
     }
 #    endif // NDEBUG
 }
-#endif // YASTM_SOULDIVERSION_ENABLED
 
 void YASTMConfig::checkDllDependencies(const SKSE::LoadInterface* loadInterface)
 {
@@ -309,9 +305,7 @@ void YASTMConfig::readConfigs()
 void YASTMConfig::loadGameForms(RE::TESDataHandler* const dataHandler)
 {
     _loadGlobalForms(dataHandler);
-#ifdef YASTM_SOULDIVERSION_ENABLED
     _loadDiversionActorIgnoreList(dataHandler);
-#endif // YASTM_SOULDIVERSION_ENABLED
     _createSoulGemMap(dataHandler);
 }
 
@@ -347,7 +341,6 @@ void YASTMConfig::_loadGlobalForms(RE::TESDataHandler* const dataHandler)
     }
 }
 
-#ifdef YASTM_SOULDIVERSION_ENABLED
 void YASTMConfig::_loadDiversionActorIgnoreList(
     RE::TESDataHandler* const dataHandler)
 {
@@ -391,7 +384,6 @@ void YASTMConfig::_loadDiversionActorIgnoreList(
         }
     }
 }
-#endif // YASTM_SOULDIVERSION_ENABLED
 
 void YASTMConfig::_createSoulGemMap(RE::TESDataHandler* const dataHandler)
 {

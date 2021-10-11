@@ -31,19 +31,15 @@ class YASTMConfig {
 public:
     struct Snapshot;
     using SoulGemGroupList = std::vector<std::unique_ptr<SoulGemGroup>>;
-#ifdef YASTM_SOULDIVERSION_ENABLED
     using ActorBaseList = std::vector<ActorBase>;
     using ActorRefList = std::vector<ActorRef>;
-#endif // YASTM_SOULDIVERSION_ENABLED
 
 private:
     std::unordered_map<ConfigKey, GlobalVariable> _globals;
 
-#ifdef YASTM_SOULDIVERSION_ENABLED
     ActorBaseList _actorBaseList;
     ActorRefList _actorRefList;
     std::unordered_set<RE::FormID> _diversionActorIgnoreList;
-#endif // YASTM_SOULDIVERSION_ENABLED
 
     SoulGemGroupList _soulGemGroupList;
     SoulGemMap _soulGemMap;
@@ -54,15 +50,11 @@ private:
 
     void _readYASTMConfig();
     void _readIndividualConfigs();
-#ifdef YASTM_SOULDIVERSION_ENABLED
     void _readDiversionIgnoreConfigs(const toml::table& table);
-#endif // YASTM_SOULDIVERSION_ENABLED
     std::size_t _readAndCountSoulGemGroupConfigs(const toml::table& table);
 
     void _loadGlobalForms(RE::TESDataHandler* dataHandler);
-#ifdef YASTM_SOULDIVERSION_ENABLED
     void _loadDiversionActorIgnoreList(RE::TESDataHandler* dataHandler);
-#endif // YASTM_SOULDIVERSION_ENABLED
     void _createSoulGemMap(RE::TESDataHandler* dataHandler);
 
 public:
@@ -111,14 +103,12 @@ public:
         return _soulGemMap.getSoulGemsWith(capacity, containedSoulSize);
     }
 
-#ifdef YASTM_SOULDIVERSION_ENABLED
     bool isInDiversionIgnoreList(RE::Actor* const actor) const
     {
         return _diversionActorIgnoreList.contains(actor->GetFormID()) ||
                _diversionActorIgnoreList.contains(
                    actor->GetActorBase()->GetFormID());
     }
-#endif // YASTM_SOULDIVERSION_ENABLED
 
     /**
      * @brief Represents a snapshot of the configuration at a certain point in
@@ -131,9 +121,7 @@ public:
         const bool allowShrinking;
         const bool allowSplitting;
         const bool allowExtraSoulRelocation;
-#ifdef YASTM_SOULDIVERSION_ENABLED
         const bool allowSoulDiversion;
-#endif // YASTM_SOULDIVERSION_ENABLED
         const bool preserveOwnership;
         const bool allowNotifications;
     };
@@ -147,9 +135,8 @@ public:
             getGlobalBool(ConfigKey::AllowSoulShrinking),
             getGlobalBool(ConfigKey::AllowSoulSplitting),
             getGlobalBool(ConfigKey::AllowExtraSoulRelocation),
-#ifdef YASTM_SOULDIVERSION_ENABLED
-            getGlobalBool(ConfigKey::AllowSoulDiversion),
-#endif // YASTM_SOULDIVERSION_ENABLED
+            getGlobalBool(ConfigKey::AllowSoulDiversion) &&
+                getGlobalBool(ConfigKey::PerformSoulDiversionInDLL),
             getGlobalBool(ConfigKey::PreserveOwnership),
             getGlobalBool(ConfigKey::AllowNotifications)};
     }

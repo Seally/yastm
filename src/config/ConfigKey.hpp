@@ -12,20 +12,17 @@ enum class ConfigKey {
     AllowSoulShrinking,
     AllowSoulSplitting,
     AllowExtraSoulRelocation,
-#ifdef YASTM_SOULDIVERSION_ENABLED
     AllowSoulDiversion,
-#endif // YASTM_SOULDIVERSION_ENABLED
+    PerformSoulDiversionInDLL,
     PreserveOwnership,
     AllowNotifications,
     AllowProfiling,
 };
 
-#ifdef YASTM_SOULDIVERSION_ENABLED
 enum class DiversionConfigKey {
     ActorBaseIgnoreList,
     ActorRefIgnoreList,
 };
-#endif // YASTM_SOULDIVERSION_ENABLED
 
 inline constexpr std::string_view toString(const ConfigKey key)
 {
@@ -44,10 +41,10 @@ inline constexpr std::string_view toString(const ConfigKey key)
         return "allowSoulSplitting"sv;
     case ConfigKey::AllowExtraSoulRelocation:
         return "allowExtraSoulRelocation"sv;
-#ifdef YASTM_SOULDIVERSION_ENABLED
     case ConfigKey::AllowSoulDiversion:
         return "allowSoulDiversion"sv;
-#endif // YASTM_SOULDIVERSION_ENABLED
+    case ConfigKey::PerformSoulDiversionInDLL:
+        return "performSoulDiversionInDLL";
     case ConfigKey::PreserveOwnership:
         return "preserveOwnership"sv;
     case ConfigKey::AllowNotifications:
@@ -59,7 +56,6 @@ inline constexpr std::string_view toString(const ConfigKey key)
     return ""sv;
 }
 
-#ifdef YASTM_SOULDIVERSION_ENABLED
 inline constexpr std::string_view toString(const DiversionConfigKey key)
 {
     using namespace std::literals;
@@ -73,7 +69,6 @@ inline constexpr std::string_view toString(const DiversionConfigKey key)
 
     return ""sv;
 }
-#endif // YASTM_SOULDIVERSION_ENABLED
 
 /**
  * @brief Calls fn(configKey, defaultValue) for each available configuration
@@ -87,9 +82,8 @@ inline void forEachConfigKey(const std::function<void(ConfigKey, bool)>& fn)
     fn(ConfigKey::AllowSoulShrinking, 1);
     fn(ConfigKey::AllowSoulSplitting, 0);
     fn(ConfigKey::AllowExtraSoulRelocation, 1);
-#ifdef YASTM_SOULDIVERSION_ENABLED
     fn(ConfigKey::AllowSoulDiversion, 0);
-#endif // YASTM_SOULDIVERSION_ENABLED
+    fn(ConfigKey::PerformSoulDiversionInDLL, 0);
     fn(ConfigKey::PreserveOwnership, 1);
     fn(ConfigKey::AllowNotifications, 1);
     fn(ConfigKey::AllowProfiling, 0);
@@ -106,22 +100,19 @@ inline void forEachConfigKey(const std::function<void(ConfigKey)>& fn)
     fn(ConfigKey::AllowSoulShrinking);
     fn(ConfigKey::AllowSoulSplitting);
     fn(ConfigKey::AllowExtraSoulRelocation);
-#ifdef YASTM_SOULDIVERSION_ENABLED
     fn(ConfigKey::AllowSoulDiversion);
-#endif // YASTM_SOULDIVERSION_ENABLED
+    fn(ConfigKey::PerformSoulDiversionInDLL);
     fn(ConfigKey::PreserveOwnership);
     fn(ConfigKey::AllowNotifications);
     fn(ConfigKey::AllowProfiling);
 }
 
-#ifdef YASTM_SOULDIVERSION_ENABLED
 inline void
     forEachDiversionConfigKey(const std::function<void(DiversionConfigKey)>& fn)
 {
     fn(DiversionConfigKey::ActorBaseIgnoreList);
     fn(DiversionConfigKey::ActorRefIgnoreList);
 }
-#endif // YASTM_SOULDIVERSION_ENABLED
 
 template <>
 struct fmt::formatter<ConfigKey> {
@@ -155,7 +146,6 @@ struct fmt::formatter<ConfigKey> {
     }
 };
 
-#ifdef YASTM_SOULDIVERSION_ENABLED
 template <>
 struct fmt::formatter<DiversionConfigKey> {
     constexpr auto parse(format_parse_context& ctx) -> decltype(ctx.begin())
@@ -188,4 +178,3 @@ struct fmt::formatter<DiversionConfigKey> {
         return format_to(ctx.out(), toString(key));
     }
 };
-#endif // YASTM_SOULDIVERSION_ENABLED
