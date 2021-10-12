@@ -89,6 +89,18 @@ namespace native {
     }
 }
 
+enum class _InventoryStatus {
+    HasSoulGemsToFill,
+    /**
+     * @brief Caster does not own any soul gems.
+     */
+    NoSoulGemsOwned,
+    /**
+     * @brief Caster has soul gems, but all are fully-filled. 
+    */
+    AllSoulGemsFilled,
+};
+
 /**
  * @brief Stores and bookkeeps the data for various soul trap variables so we
  * don't end up with functions needing half a dozen arguments.
@@ -98,12 +110,14 @@ class _SoulTrapData {
     std::size_t _notifyCount = 0;
     bool _isStatIncremented = false;
     bool _isInventoryMapDirty = true;
-    std::size_t _maxFilledSoulGemCount;
 
     RE::Actor* _caster;
+    _InventoryStatus _casterInventoryStatus;
     RE::TESObjectREFR::InventoryItemMap _inventoryMap;
+
     VictimsQueue _victims;
     std::optional<Victim> _victim;
+
 
     template <typename MessageKey>
     void _notify(const MessageKey message)
@@ -166,30 +180,56 @@ public:
         _victims.pop();
 
         if (_isInventoryMapDirty) {
-            _maxFilledSoulGemCount = 0;
+            std::size_t maxFilledSoulGemsCount = 0;
 
             // This should be a move.
             _inventoryMap =
-                _caster->GetInventory([this](const RE::TESBoundObject& obj) {
+                _caster->GetInventory([&](const RE::TESBoundObject& obj) {
                     return obj.IsSoulGem();
                 });
+
+            // Counts the number of fully-filled soul gems.
+            for (const auto& [obj, entryData] : _inventoryMap) {
+                const auto soulGem = obj->As<RE::TESSoulGem>();
+
+                if (soulGem->GetMaximumCapacity() ==
+                    soulGem->GetContainedSoul()) {
+                    ++maxFilledSoulGemsCount;
+                }
+            }
+
+            if (_inventoryMap.size() <= 0) {
+                _casterInventoryStatus = _InventoryStatus::NoSoulGemsOwned;
+            } else if (_inventoryMap.size() == maxFilledSoulGemsCount) {
+                _casterInventoryStatus = _InventoryStatus::AllSoulGemsFilled;
+            } else {
+                _casterInventoryStatus = _InventoryStatus::HasSoulGemsToFill;
+            }
+
             _isInventoryMapDirty = false;
         }
     }
 
     RE::Actor* caster() const { return _caster; }
+    _InventoryStatus casterInventoryStatus() const
+    {
+        // This should not happen if the class is used correctly (the class does
+        // not manage these resources on its own for performance).
+        assert(!_isInventoryMapDirty);
+        return _casterInventoryStatus;
+    }
     const RE::TESObjectREFR::InventoryItemMap& inventoryMap() const
     {
+        // This should not happen if the class is used correctly (the class does
+        // not manage these resources on its own for performance).
+        assert(!_isInventoryMapDirty);
         return _inventoryMap;
     }
+
     VictimsQueue& victims() { return _victims; }
     const VictimsQueue& victims() const { return _victims; }
-    const Victim& victim() const { return _victim.value(); }
 
-    bool hasSoulGemsToFill() const
-    {
-        return _inventoryMap.size() != _maxFilledSoulGemCount;
-    }
+    const Victim& victim() const { return _victim.value(); }
 
     void notifySoulTrapFailure(const SoulTrapFailureMessage message)
     {
@@ -778,18 +818,15 @@ bool trapSoul(RE::Actor* const caster, RE::Actor* const victim)
         });
 #endif // NDEBUG
 
-        bool casterHasAvailableSoulGems = true;
-
         while (!d.victims().empty()) {
             d.updateLoopVariables();
 
             LOG_TRACE_FMT("Processing soul trap victim: {}", d.victim());
 
-            if (d.inventoryMap().size() <= 0) {
+            if (d.casterInventoryStatus() !=
+                _InventoryStatus::HasSoulGemsToFill) {
                 // Caster doesn't have any soul gems. Stop looking.
-                LOG_TRACE("Caster has no soul gems. Stop looking."sv);
-                casterHasAvailableSoulGems = false;
-                break;
+                LOG_TRACE("Caster has no soul gems to fill. Stop looking."sv);
             }
 
             if (d.victim().soulSize() == SoulSize::Black) {
@@ -844,17 +881,24 @@ bool trapSoul(RE::Actor* const caster, RE::Actor* const victim)
                 }
             }
         } else {
-            if (casterHasAvailableSoulGems) {
-                if (d.config[BC::AllowSoulShrinking]) {
-                    d.notifySoulTrapFailure(
-                        SoulTrapFailureMessage::NoSuitableSoulGem);
+            // Shorten it so we can keep it in one line after formatting for
+            // readability.
+            using Message = SoulTrapFailureMessage;
+
+            switch (d.casterInventoryStatus()) {
+            case _InventoryStatus::AllSoulGemsFilled:
+                d.notifySoulTrapFailure(Message::AllSoulGemsFilled);
+                break;
+            case _InventoryStatus::NoSoulGemsOwned:
+                d.notifySoulTrapFailure(Message::NoSoulGemsOwned);
+                break;
+            default:
+                if (d.config[BC::AllowSoulShrinking] ||
+                    d.config[BC::AllowSoulSplitting]) {
+                    d.notifySoulTrapFailure(Message::NoSuitableSoulGem);
                 } else {
-                    d.notifySoulTrapFailure(
-                        SoulTrapFailureMessage::NoSoulGemLargeEnough);
+                    d.notifySoulTrapFailure(Message::NoSoulGemLargeEnough);
                 }
-            } else {
-                d.notifySoulTrapFailure(
-                    SoulTrapFailureMessage::NoSoulGemsAvailable);
             }
         }
 

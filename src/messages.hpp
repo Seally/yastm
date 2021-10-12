@@ -11,8 +11,24 @@ enum class SoulTrapSuccessMessage {
 };
 
 enum class SoulTrapFailureMessage {
-    NoSoulGemsAvailable,
+    /**
+     * @brief Caster doesn't own any soul gems.
+    */
+    NoSoulGemsOwned,
+    /**
+     * @brief All of the caster's soul gems have been max-filled.
+     */
+    AllSoulGemsFilled,
+    /**
+     * @brief Caster has soul gems, but soul doesn't fit into any of them
+     * (splitting/shrinking disabled).
+     */
     NoSoulGemLargeEnough,
+    /**
+     * @brief Caster has soul gems, but none of them are suitable for
+     * capturing the soul (splitting/shrinking enabled). This is a catch-all
+     * when no other condition is satisfied.
+     */
     NoSuitableSoulGem,
 };
 
@@ -30,12 +46,14 @@ enum class MiscMessage {
 inline constexpr const char* getMessage(const SoulTrapFailureMessage key)
 {
     switch (key) {
-    case SoulTrapFailureMessage::NoSoulGemsAvailable:
-        return "$YASTM_Notification_NoSoulGemsAvailable";
-    case SoulTrapFailureMessage::NoSuitableSoulGem:
-        return "$YASTM_Notification_NoSuitableSoulGem";
+    case SoulTrapFailureMessage::NoSoulGemsOwned:
+        return "$YASTM_Notification_NoSoulGemsOwned";
+    case SoulTrapFailureMessage::AllSoulGemsFilled:
+        return "$YASTM_Notification_AllSoulGemsFilled";
     case SoulTrapFailureMessage::NoSoulGemLargeEnough:
         return "$YASTM_Notification_NoSoulGemLargeEnough";
+    case SoulTrapFailureMessage::NoSuitableSoulGem:
+        return "$YASTM_Notification_NoSuitableSoulGem";
     }
 
     return "";
