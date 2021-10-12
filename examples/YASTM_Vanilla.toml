@@ -1,3 +1,7 @@
+# Example of the configuration for vanilla soul gems.
+#
+# Soul gems are added as groups. Each group represents soul gems of a certain
+# capacity
 [[soulGems]]
 id = "Petty Soul Gem"
 isReusable = false

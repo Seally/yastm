@@ -5,7 +5,7 @@
 
 #include <fmt/format.h>
 
-enum class ConfigKey {
+enum class BoolConfigKey {
     AllowPartiallyFillingSoulGems,
     AllowSoulDisplacement,
     AllowSoulRelocation,
@@ -17,35 +17,38 @@ enum class ConfigKey {
     PreserveOwnership,
     AllowNotifications,
     AllowProfiling,
+    Count,
 };
 
-inline constexpr std::string_view toString(const ConfigKey key)
+inline constexpr std::string_view toString(const BoolConfigKey key)
 {
     using namespace std::literals;
 
     switch (key) {
-    case ConfigKey::AllowPartiallyFillingSoulGems:
+    case BoolConfigKey::AllowPartiallyFillingSoulGems:
         return "allowPartiallyFillingSoulGems"sv;
-    case ConfigKey::AllowSoulDisplacement:
+    case BoolConfigKey::AllowSoulDisplacement:
         return "allowSoulDisplacement"sv;
-    case ConfigKey::AllowSoulRelocation:
+    case BoolConfigKey::AllowSoulRelocation:
         return "allowSoulRelocation"sv;
-    case ConfigKey::AllowSoulShrinking:
+    case BoolConfigKey::AllowSoulShrinking:
         return "allowSoulShrinking"sv;
-    case ConfigKey::AllowSoulSplitting:
+    case BoolConfigKey::AllowSoulSplitting:
         return "allowSoulSplitting"sv;
-    case ConfigKey::AllowExtraSoulRelocation:
+    case BoolConfigKey::AllowExtraSoulRelocation:
         return "allowExtraSoulRelocation"sv;
-    case ConfigKey::AllowSoulDiversion:
+    case BoolConfigKey::AllowSoulDiversion:
         return "allowSoulDiversion"sv;
-    case ConfigKey::PerformSoulDiversionInDLL:
+    case BoolConfigKey::PerformSoulDiversionInDLL:
         return "performSoulDiversionInDLL";
-    case ConfigKey::PreserveOwnership:
+    case BoolConfigKey::PreserveOwnership:
         return "preserveOwnership"sv;
-    case ConfigKey::AllowNotifications:
+    case BoolConfigKey::AllowNotifications:
         return "allowNotifications"sv;
-    case ConfigKey::AllowProfiling:
+    case BoolConfigKey::AllowProfiling:
         return "allowProfiling"sv;
+    case BoolConfigKey::Count:
+        return "<count>"sv;
     }
 
     return ""sv;
@@ -55,41 +58,41 @@ inline constexpr std::string_view toString(const ConfigKey key)
  * @brief Calls fn(configKey, defaultValue) for each available configuration
  * key.
  */
-inline void forEachConfigKey(const std::function<void(ConfigKey, bool)>& fn)
+inline void forEachBoolConfigKey(const std::function<void(BoolConfigKey, bool)>& fn)
 {
-    fn(ConfigKey::AllowPartiallyFillingSoulGems, 1);
-    fn(ConfigKey::AllowSoulDisplacement, 1);
-    fn(ConfigKey::AllowSoulRelocation, 1);
-    fn(ConfigKey::AllowSoulShrinking, 1);
-    fn(ConfigKey::AllowSoulSplitting, 0);
-    fn(ConfigKey::AllowExtraSoulRelocation, 1);
-    fn(ConfigKey::AllowSoulDiversion, 0);
-    fn(ConfigKey::PerformSoulDiversionInDLL, 0);
-    fn(ConfigKey::PreserveOwnership, 1);
-    fn(ConfigKey::AllowNotifications, 1);
-    fn(ConfigKey::AllowProfiling, 0);
+    fn(BoolConfigKey::AllowPartiallyFillingSoulGems, 1);
+    fn(BoolConfigKey::AllowSoulDisplacement, 1);
+    fn(BoolConfigKey::AllowSoulRelocation, 1);
+    fn(BoolConfigKey::AllowSoulShrinking, 1);
+    fn(BoolConfigKey::AllowSoulSplitting, 0);
+    fn(BoolConfigKey::AllowExtraSoulRelocation, 1);
+    fn(BoolConfigKey::AllowSoulDiversion, 0);
+    fn(BoolConfigKey::PerformSoulDiversionInDLL, 1);
+    fn(BoolConfigKey::PreserveOwnership, 1);
+    fn(BoolConfigKey::AllowNotifications, 1);
+    fn(BoolConfigKey::AllowProfiling, 0);
 }
 
 /**
  * @brief Calls fn(configKey) for each available configuration key.
  */
-inline void forEachConfigKey(const std::function<void(ConfigKey)>& fn)
+inline void forEachBoolConfigKey(const std::function<void(BoolConfigKey)>& fn)
 {
-    fn(ConfigKey::AllowPartiallyFillingSoulGems);
-    fn(ConfigKey::AllowSoulDisplacement);
-    fn(ConfigKey::AllowSoulRelocation);
-    fn(ConfigKey::AllowSoulShrinking);
-    fn(ConfigKey::AllowSoulSplitting);
-    fn(ConfigKey::AllowExtraSoulRelocation);
-    fn(ConfigKey::AllowSoulDiversion);
-    fn(ConfigKey::PerformSoulDiversionInDLL);
-    fn(ConfigKey::PreserveOwnership);
-    fn(ConfigKey::AllowNotifications);
-    fn(ConfigKey::AllowProfiling);
+    fn(BoolConfigKey::AllowPartiallyFillingSoulGems);
+    fn(BoolConfigKey::AllowSoulDisplacement);
+    fn(BoolConfigKey::AllowSoulRelocation);
+    fn(BoolConfigKey::AllowSoulShrinking);
+    fn(BoolConfigKey::AllowSoulSplitting);
+    fn(BoolConfigKey::AllowExtraSoulRelocation);
+    fn(BoolConfigKey::AllowSoulDiversion);
+    fn(BoolConfigKey::PerformSoulDiversionInDLL);
+    fn(BoolConfigKey::PreserveOwnership);
+    fn(BoolConfigKey::AllowNotifications);
+    fn(BoolConfigKey::AllowProfiling);
 }
 
 template <>
-struct fmt::formatter<ConfigKey> {
+struct fmt::formatter<BoolConfigKey> {
     constexpr auto parse(format_parse_context& ctx) -> decltype(ctx.begin())
     {
         // [ctx.begin(), ctx.end()) is a character range that contains a part of
@@ -114,7 +117,7 @@ struct fmt::formatter<ConfigKey> {
     }
 
     template <typename FormatContext>
-    auto format(const ConfigKey key, FormatContext& ctx) -> decltype(ctx.out())
+    auto format(const BoolConfigKey key, FormatContext& ctx) -> decltype(ctx.out())
     {
         return format_to(ctx.out(), toString(key));
     }

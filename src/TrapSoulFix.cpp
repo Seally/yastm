@@ -31,6 +31,10 @@
 using namespace std::literals;
 
 using VictimsQueue = std::priority_queue<Victim, std::deque<Victim>>;
+/**
+ * @brief Boolean Config Key
+ */
+using BC = BoolConfigKey;
 
 namespace native {
     /**
@@ -98,7 +102,7 @@ class _SoulTrapData {
     void _notify(const MessageKey message)
     {
         if (_notifyCount < MAX_NOTIFICATION_COUNT &&
-            config.allowNotifications) {
+            config[BC::AllowNotifications]) {
             RE::DebugNotification(getMessage(message));
             ++_notifyCount;
         }
@@ -120,11 +124,13 @@ public:
 
     _SoulTrapData(RE::Actor* const caster)
         : caster{caster}
-        , config{YASTMConfig::getInstance().createSnapshot()}
+        , config{YASTMConfig::getInstance()}
         , _notifyCount{0}
         , _isStatIncremented{false}
     {
-        if (config.allowSoulDiversion && !caster->IsPlayerRef() && caster->IsPlayerTeammate()) {
+        if (config[BC::AllowSoulDiversion] &&
+            config[BC::PerformSoulDiversionInDLL] && !caster->IsPlayerRef() &&
+            caster->IsPlayerTeammate()) {
             const auto playerActor = _SoulTrapData::player();
 
             if (playerActor != nullptr) {
@@ -251,11 +257,12 @@ void _replaceSoulGem(
     RE::ExtraDataList* oldExtraList = nullptr;
     RE::ExtraDataList* newExtraList = nullptr;
 
-    if (d.config.allowExtraSoulRelocation || d.config.preserveOwnership) {
+    if (d.config[BC::AllowExtraSoulRelocation] ||
+        d.config[BC::PreserveOwnership]) {
         oldExtraList = _getFirstExtraDataList(soulGemToRemoveEntryData);
     }
 
-    if (d.config.allowExtraSoulRelocation && oldExtraList != nullptr) {
+    if (d.config[BC::AllowExtraSoulRelocation] && oldExtraList != nullptr) {
         const RE::SOUL_LEVEL soulLevel = oldExtraList->GetSoulLevel();
 
         if (soulLevel != RE::SOUL_LEVEL::kNone) {
@@ -277,7 +284,7 @@ void _replaceSoulGem(
         }
     }
 
-    if (d.config.preserveOwnership) {
+    if (d.config[BC::PreserveOwnership]) {
         newExtraList = _createExtraDataListFromOriginal(oldExtraList);
     }
 
@@ -372,7 +379,8 @@ bool _trapFullSoul(_SoulTrapData& d, _SoulTrapLoopData& dl)
     //
     // Note: Loop range is end-INclusive.
     const SoulSize maxSoulCapacityToSearch =
-        d.config.allowPartial ? SoulSize::Grand : dl.victim.soulSize();
+        d.config[BC::AllowPartiallyFillingSoulGems] ? SoulSize::Grand
+                                                    : dl.victim.soulSize();
 
     // When displacement is allowed, we search soul gems with contained soul
     // sizes up to one size lower than the incoming soul. If it's not
@@ -381,9 +389,10 @@ bool _trapFullSoul(_SoulTrapData& d, _SoulTrapLoopData& dl)
     // Note: Loop range is end-EXclusive, so we set this to SoulSize::Petty
     // as the next lowest soul size after SoulSize::None.
     const SoulSize maxContainedSoulSizeToSearch =
-        d.config.allowDisplacement ? dl.victim.soulSize() : SoulSize::Petty;
+        d.config[BC::AllowSoulDisplacement] ? dl.victim.soulSize()
+                                            : SoulSize::Petty;
 
-    if (d.config.allowRelocation) {
+    if (d.config[BC::AllowSoulRelocation]) {
         // With soul relocation, we try to fit the soul into the soul gem by
         // utilizing the "best-fit" principle:
         //
@@ -434,7 +443,7 @@ bool _trapFullSoul(_SoulTrapData& d, _SoulTrapLoopData& dl)
                     _fillSoulGem(sourceSoulGems, targetSoulGems, d, dl);
 
                 if (result) {
-                    if (d.config.allowRelocation &&
+                    if (d.config[BC::AllowSoulRelocation] &&
                         containedSoulSize > SoulSize::None) {
                         d.notifySoulTrapSuccess(
                             SoulTrapSuccessMessage::SoulDisplaced,
@@ -486,7 +495,7 @@ bool _trapFullSoul(_SoulTrapData& d, _SoulTrapLoopData& dl)
                     dl);
 
                 if (result) {
-                    if (d.config.allowRelocation &&
+                    if (d.config[BC::AllowSoulRelocation] &&
                         containedSoulSize > SoulSize::None) {
                         d.notifySoulTrapSuccess(
                             SoulTrapSuccessMessage::SoulDisplaced,
@@ -544,8 +553,9 @@ bool _trapShrunkSoul(_SoulTrapData& d, _SoulTrapLoopData& dl)
         // Note: Loop range is end-EXclusive, so we set this to SoulSize::Petty
         // as the next lowest soul size after SoulSize::None.
         const SoulSize maxContainedSoulSizeToSearch =
-            d.config.allowDisplacement ? static_cast<SoulSize>(soulCapacity)
-                                       : SoulSize::Petty;
+            d.config[BC::AllowSoulDisplacement]
+                ? static_cast<SoulSize>(soulCapacity)
+                : SoulSize::Petty;
 
         for (int containedSoulSize = static_cast<int>(SoulSize::None);
              containedSoulSize < maxContainedSoulSizeToSearch;
@@ -567,7 +577,7 @@ bool _trapShrunkSoul(_SoulTrapData& d, _SoulTrapLoopData& dl)
                     SoulTrapSuccessMessage::SoulShrunk,
                     dl.victim);
 
-                if (d.config.allowRelocation &&
+                if (d.config[BC::AllowSoulRelocation] &&
                     containedSoulSize > SoulSize::None) {
                     d.victims.emplace(static_cast<SoulSize>(containedSoulSize));
                 }
@@ -587,8 +597,9 @@ bool _trapSplitSoul(_SoulTrapData& d, _SoulTrapLoopData& dl)
     const YASTMConfig& config = YASTMConfig::getInstance();
 
     const SoulSize maxContainedSoulSizeToSearch =
-        d.config.allowDisplacement ? static_cast<SoulSize>(dl.victim.soulSize())
-                                   : SoulSize::Petty;
+        d.config[BC::AllowSoulDisplacement]
+            ? static_cast<SoulSize>(dl.victim.soulSize())
+            : SoulSize::Petty;
 
     const auto& targetSoulGems = config.getSoulGemsWith(
         static_cast<SoulSize>(dl.victim.soulSize()),
@@ -614,7 +625,7 @@ bool _trapSplitSoul(_SoulTrapData& d, _SoulTrapLoopData& dl)
                 SoulTrapSuccessMessage::SoulSplit,
                 dl.victim);
 
-            if (d.config.allowRelocation &&
+            if (d.config[BC::AllowSoulRelocation] &&
                 containedSoulSize > SoulSize::None) {
                 d.victims.emplace(static_cast<SoulSize>(containedSoulSize));
             }
@@ -675,7 +686,7 @@ public:
         const auto elapsedTime = elapsed();
 
         if (YASTMConfig::getInstance().getGlobalBool(
-                ConfigKey::AllowProfiling)) {
+                BoolConfigKey::AllowProfiling)) {
             LOG_INFO_FMT("Time to trap soul: {:.7f} seconds", elapsedTime);
             RE::DebugNotification(
                 fmt::format(
@@ -742,20 +753,13 @@ bool trapSoul(RE::Actor* const caster, RE::Actor* const victim)
 
         d.victims.emplace(victim);
 
+#ifndef NDEBUG
         LOG_TRACE("Found configuration:"sv);
-        LOG_TRACE_FMT("- Allow partial: {}"sv, d.config.allowPartial);
-        LOG_TRACE_FMT("- Allow displacement: {}"sv, d.config.allowDisplacement);
-        LOG_TRACE_FMT("- Allow relocation: {}"sv, d.config.allowRelocation);
-        LOG_TRACE_FMT("- Allow shrinking: {}"sv, d.config.allowShrinking);
-        LOG_TRACE_FMT("- Allow splitting: {}"sv, d.config.allowSplitting);
-        LOG_TRACE_FMT(
-            "- Allow extra soul relocation: {}"sv,
-            d.config.allowExtraSoulRelocation);
-        LOG_TRACE_FMT("- Allow diversion: {}"sv, d.config.allowSoulDiversion);
-        LOG_TRACE_FMT("- Preserve ownership: {}"sv, d.config.preserveOwnership);
-        LOG_TRACE_FMT(
-            "- Allow notifications: {}"sv,
-            d.config.allowNotifications);
+
+        forEachBoolConfigKey([&](const BoolConfigKey key) {
+            LOG_TRACE_FMT("- {}: {}", key, d.config[key]);
+        });
+#endif // NDEBUG
 
         bool casterHasAvailableSoulGems = true;
 
@@ -783,8 +787,8 @@ bool trapSoul(RE::Actor* const caster, RE::Actor* const victim)
                     continue; // Process next soul.
                 }
             } else if (dl.victim.isSplitSoul()) {
-                assert(d.config.allowSplitting);
-                assert(!d.config.allowShrinking);
+                assert(d.config[BC::AllowSoulSplitting]);
+                assert(!d.config[BC::AllowSoulShrinking]);
 
                 if (_trapSplitSoul(d, dl)) {
                     isSoulTrapSuccessful = true;
@@ -804,13 +808,13 @@ bool trapSoul(RE::Actor* const caster, RE::Actor* const victim)
                 //
                 // Standard soul shrinking is prioritized over soul splitting.
                 // Enabling both will implicitly turn off soul splitting.
-                if (d.config.allowShrinking) {
+                if (d.config[BC::AllowSoulShrinking]) {
                     if (_trapShrunkSoul(d, dl)) {
                         isSoulTrapSuccessful = true;
 
                         continue; // Process next soul.
                     }
-                } else if (d.config.allowSplitting) {
+                } else if (d.config[BC::AllowSoulSplitting]) {
                     _splitSoul(dl.victim, d.victims);
 
                     continue; // Process next soul.
@@ -830,7 +834,7 @@ bool trapSoul(RE::Actor* const caster, RE::Actor* const victim)
             }
         } else {
             if (casterHasAvailableSoulGems) {
-                if (d.config.allowShrinking) {
+                if (d.config[BC::AllowSoulShrinking]) {
                     d.notifySoulTrapFailure(
                         SoulTrapFailureMessage::NoSuitableSoulGem);
                 } else {

@@ -23,7 +23,7 @@ using namespace std::literals;
 YASTMConfig::YASTMConfig()
 {
     // Defaults used when no associated configuration key has been set up.
-    forEachConfigKey([this](const ConfigKey key, const float defaultValue) {
+    forEachBoolConfigKey([this](const BoolConfigKey key, const float defaultValue) {
         _globals.emplace(key, GlobalVariable{key, defaultValue});
     });
 }
@@ -44,7 +44,7 @@ void YASTMConfig::_readYASTMConfig()
 
         const auto yastmTable = table["YASTM"];
 
-        forEachConfigKey([&](const ConfigKey key) {
+        forEachBoolConfigKey([&](const BoolConfigKey key) {
             const auto keyName = toString(key);
             const auto tomlKeyName = std::string{keyName} + "Global";
 
@@ -150,10 +150,7 @@ void YASTMConfig::_readIndividualConfigs()
             toLoadPriorityString(soulGemGroup->rawPriority()));
 
         for (const auto& soulGemId : soulGemGroup->members()) {
-            LOG_TRACE_FMT(
-                "        [{:#08x}, {}]"sv,
-                soulGemId->id(),
-                soulGemId->pluginName());
+            LOG_TRACE_FMT("        {}"sv, *soulGemId);
         }
     }
 #endif // NDEBUG

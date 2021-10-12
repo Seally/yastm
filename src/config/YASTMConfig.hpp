@@ -25,11 +25,11 @@ namespace RE {
 
 class YASTMConfig {
 public:
-    struct Snapshot;
+    class Snapshot;
     using SoulGemGroupList = std::vector<std::unique_ptr<SoulGemGroup>>;
 
 private:
-    std::unordered_map<ConfigKey, GlobalVariable> _globals;
+    std::unordered_map<BoolConfigKey, GlobalVariable> _globals;
 
     SoulGemGroupList _soulGemGroupList;
     SoulGemMap _soulGemMap;
@@ -69,12 +69,12 @@ public:
         return _dependencies.contains(key) && _dependencies.at(key) != nullptr;
     }
 
-    float getGlobalValue(const ConfigKey key) const
+    float getGlobalValue(const BoolConfigKey key) const
     {
         return _globals.at(key).value();
     }
 
-    bool getGlobalBool(const ConfigKey key) const
+    bool getGlobalBool(const BoolConfigKey key) const
     {
         return getGlobalValue(key) != 0;
     }
@@ -95,34 +95,28 @@ public:
      * @brief Represents a snapshot of the configuration at a certain point in
      * time.
      */
-    struct Snapshot {
-        const bool allowPartial;
-        const bool allowDisplacement;
-        const bool allowRelocation;
-        const bool allowShrinking;
-        const bool allowSplitting;
-        const bool allowExtraSoulRelocation;
-        const bool allowSoulDiversion;
-        const bool preserveOwnership;
-        const bool allowNotifications;
-    };
+    class Snapshot {
+        std::bitset<static_cast<std::size_t>(BoolConfigKey::Count)>
+            _configBools;
 
-    Snapshot createSnapshot() const
-    {
-        return Snapshot{
-            getGlobalBool(ConfigKey::AllowPartiallyFillingSoulGems),
-            getGlobalBool(ConfigKey::AllowSoulDisplacement),
-            getGlobalBool(ConfigKey::AllowSoulRelocation),
-            getGlobalBool(ConfigKey::AllowSoulShrinking),
-            getGlobalBool(ConfigKey::AllowSoulSplitting),
-            getGlobalBool(ConfigKey::AllowExtraSoulRelocation),
-            // We abstract this detail here for convenience.
-            getGlobalBool(ConfigKey::AllowSoulDiversion) &&
-                getGlobalBool(ConfigKey::PerformSoulDiversionInDLL),
-            getGlobalBool(ConfigKey::PreserveOwnership),
-            getGlobalBool(ConfigKey::AllowNotifications)};
-    }
+    public:
+        explicit Snapshot(const YASTMConfig& config);
+
+        bool operator[](BoolConfigKey key) const;
+    };
 };
+
+inline YASTMConfig::Snapshot::Snapshot(const YASTMConfig& config)
+{
+    forEachBoolConfigKey([&, this](const BoolConfigKey key) {
+        _configBools[static_cast<std::size_t>(key)] = config.getGlobalBool(key);
+    });
+}
+
+inline bool YASTMConfig::Snapshot::operator[](const BoolConfigKey key) const
+{
+    return _configBools[static_cast<std::size_t>(key)];
+}
 
 class YASTMConfigLoadError : public std::runtime_error {
 public:

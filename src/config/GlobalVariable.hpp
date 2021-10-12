@@ -15,16 +15,16 @@ namespace RE {
 }
 
 class GlobalVariable : public Form<RE::TESGlobal> {
-    const ConfigKey _key;
+    const BoolConfigKey _key;
     const float _defaultValue;
 
 public:
-    explicit GlobalVariable(const ConfigKey key, const float defaultValue)
+    explicit GlobalVariable(const BoolConfigKey key, const float defaultValue)
         : _key{key}
         , _defaultValue{defaultValue}
     {}
 
-    ConfigKey key() const { return _key; }
+    BoolConfigKey key() const { return _key; }
     float value() const;
     bool valueAsBool() const { return value() != 0; }
     float defaultValue() const { return _defaultValue; }

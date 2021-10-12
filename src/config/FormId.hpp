@@ -112,7 +112,7 @@ struct fmt::formatter<FormId> {
 
         return format_to(
             ctx.out(),
-            "[{:08x}, {}]"sv,
+            "[{:#08x}, {}]"sv,
             formId.id(),
             formId.pluginName());
     }
