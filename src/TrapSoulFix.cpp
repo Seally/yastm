@@ -103,6 +103,7 @@ class _SoulTrapData {
     RE::Actor* _caster;
     RE::TESObjectREFR::InventoryItemMap _inventoryMap;
     VictimsQueue _victims;
+    std::optional<Victim> _victim;
 
     template <typename MessageKey>
     void _notify(const MessageKey message)
@@ -161,6 +162,9 @@ public:
 
     void updateLoopVariables()
     {
+        _victim.emplace(_victims.top());
+        _victims.pop();
+
         if (_isInventoryMapDirty) {
             _maxFilledSoulGemCount = 0;
 
@@ -180,6 +184,7 @@ public:
     }
     VictimsQueue& victims() { return _victims; }
     const VictimsQueue& victims() const { return _victims; }
+    const Victim& victim() const { return _victim.value(); }
 
     bool hasSoulGemsToFill() const
     {
@@ -202,19 +207,6 @@ public:
             _incrementSoulsTrappedStat(victim.actor());
         }
     }
-};
-
-struct _SoulTrapLoopData {
-    const Victim victim;
-
-    explicit _SoulTrapLoopData(const Victim& victim)
-        : victim{victim}
-    {}
-
-    _SoulTrapLoopData(const _SoulTrapLoopData&) = delete;
-    _SoulTrapLoopData(_SoulTrapLoopData&&) = delete;
-    _SoulTrapLoopData& operator=(const _SoulTrapLoopData&) = delete;
-    _SoulTrapLoopData& operator=(_SoulTrapLoopData&&) = delete;
 };
 
 struct _SearchResult {
@@ -369,22 +361,22 @@ bool _fillSoulGem(
     return _fillSoulGem(sourceSoulGems, targetSoulGems, d);
 }
 
-bool _trapBlackSoul(_SoulTrapData& d, _SoulTrapLoopData& dl)
+bool _trapBlackSoul(_SoulTrapData& d)
 {
     // Black souls are simple since they're all or none. Either you have a
     // black soul gem or you don't. Nothing fancy to account for.
     LOG_TRACE("Trapping black soul..."sv);
 
     const bool isSoulTrapped = _fillSoulGem(
-        dl.victim.soulSize(),
+        d.victim().soulSize(),
         SoulSize::None,
-        dl.victim.soulSize(),
+        d.victim().soulSize(),
         d);
 
     if (isSoulTrapped) {
         d.notifySoulTrapSuccess(
             SoulTrapSuccessMessage::SoulCaptured,
-            dl.victim);
+            d.victim());
 
         return true;
     }
@@ -392,7 +384,7 @@ bool _trapBlackSoul(_SoulTrapData& d, _SoulTrapLoopData& dl)
     return false;
 }
 
-bool _trapFullSoul(_SoulTrapData& d, _SoulTrapLoopData& dl)
+bool _trapFullSoul(_SoulTrapData& d)
 {
     LOG_TRACE("Trapping full white soul..."sv);
 
@@ -405,7 +397,7 @@ bool _trapFullSoul(_SoulTrapData& d, _SoulTrapLoopData& dl)
     // Note: Loop range is end-INclusive.
     const SoulSize maxSoulCapacityToSearch =
         d.config[BC::AllowPartiallyFillingSoulGems] ? SoulSize::Grand
-                                                    : dl.victim.soulSize();
+                                                    : d.victim().soulSize();
 
     // When displacement is allowed, we search soul gems with contained soul
     // sizes up to one size lower than the incoming soul. If it's not
@@ -414,7 +406,7 @@ bool _trapFullSoul(_SoulTrapData& d, _SoulTrapLoopData& dl)
     // Note: Loop range is end-EXclusive, so we set this to SoulSize::Petty
     // as the next lowest soul size after SoulSize::None.
     const SoulSize maxContainedSoulSizeToSearch =
-        d.config[BC::AllowSoulDisplacement] ? dl.victim.soulSize()
+        d.config[BC::AllowSoulDisplacement] ? d.victim().soulSize()
                                             : SoulSize::Petty;
 
     if (d.config[BC::AllowSoulRelocation]) {
@@ -445,12 +437,12 @@ bool _trapFullSoul(_SoulTrapData& d, _SoulTrapLoopData& dl)
         //             Return
         //         Else
         //             Continue searching
-        for (int soulCapacity = static_cast<int>(dl.victim.soulSize());
+        for (int soulCapacity = static_cast<int>(d.victim().soulSize());
              soulCapacity <= maxSoulCapacityToSearch;
              ++soulCapacity) {
             const auto& targetSoulGems = config.getSoulGemsWith(
                 static_cast<SoulSize>(soulCapacity),
-                dl.victim.soulSize());
+                d.victim().soulSize());
 
             for (int containedSoulSize = static_cast<int>(SoulSize::None);
                  containedSoulSize < maxContainedSoulSizeToSearch;
@@ -472,13 +464,13 @@ bool _trapFullSoul(_SoulTrapData& d, _SoulTrapLoopData& dl)
                         containedSoulSize > SoulSize::None) {
                         d.notifySoulTrapSuccess(
                             SoulTrapSuccessMessage::SoulDisplaced,
-                            dl.victim);
+                            d.victim());
                         d.victims().emplace(
                             static_cast<SoulSize>(containedSoulSize));
                     } else {
                         d.notifySoulTrapSuccess(
                             SoulTrapSuccessMessage::SoulCaptured,
-                            dl.victim);
+                            d.victim());
                     }
 
                     return true;
@@ -504,7 +496,7 @@ bool _trapFullSoul(_SoulTrapData& d, _SoulTrapLoopData& dl)
         for (int containedSoulSize = static_cast<int>(SoulSize::None);
              containedSoulSize < maxContainedSoulSizeToSearch;
              ++containedSoulSize) {
-            for (int soulCapacity = static_cast<int>(dl.victim.soulSize());
+            for (int soulCapacity = static_cast<int>(d.victim().soulSize());
                  soulCapacity <= maxSoulCapacityToSearch;
                  ++soulCapacity) {
                 LOG_TRACE_FMT(
@@ -515,7 +507,7 @@ bool _trapFullSoul(_SoulTrapData& d, _SoulTrapLoopData& dl)
                 const bool result = _fillSoulGem(
                     static_cast<SoulSize>(soulCapacity),
                     static_cast<SoulSize>(containedSoulSize),
-                    dl.victim.soulSize(),
+                    d.victim().soulSize(),
                     d);
 
                 if (result) {
@@ -523,13 +515,13 @@ bool _trapFullSoul(_SoulTrapData& d, _SoulTrapLoopData& dl)
                         containedSoulSize > SoulSize::None) {
                         d.notifySoulTrapSuccess(
                             SoulTrapSuccessMessage::SoulDisplaced,
-                            dl.victim);
+                            d.victim());
                         d.victims().emplace(
                             static_cast<SoulSize>(containedSoulSize));
                     } else {
                         d.notifySoulTrapSuccess(
                             SoulTrapSuccessMessage::SoulCaptured,
-                            dl.victim);
+                            d.victim());
                     }
 
                     return true;
@@ -541,7 +533,7 @@ bool _trapFullSoul(_SoulTrapData& d, _SoulTrapLoopData& dl)
     return false;
 }
 
-bool _trapShrunkSoul(_SoulTrapData& d, _SoulTrapLoopData& dl)
+bool _trapShrunkSoul(_SoulTrapData& d)
 {
     LOG_TRACE("Trapping shrunk white soul..."sv);
 
@@ -560,7 +552,7 @@ bool _trapShrunkSoul(_SoulTrapData& d, _SoulTrapLoopData& dl)
     // capacity in descending order.
 
     // Use a signed int instead of size_t to prevent a possible underflow issue.
-    for (int soulCapacity = dl.victim.soulSize() - 1;
+    for (int soulCapacity = d.victim().soulSize() - 1;
          soulCapacity > SoulSize::None;
          --soulCapacity) {
         const auto& targetSoulGems = config.getSoulGemsWith(
@@ -599,7 +591,7 @@ bool _trapShrunkSoul(_SoulTrapData& d, _SoulTrapLoopData& dl)
             if (isFillSuccessful) {
                 d.notifySoulTrapSuccess(
                     SoulTrapSuccessMessage::SoulShrunk,
-                    dl.victim);
+                    d.victim());
 
                 if (d.config[BC::AllowSoulRelocation] &&
                     containedSoulSize > SoulSize::None) {
@@ -615,7 +607,7 @@ bool _trapShrunkSoul(_SoulTrapData& d, _SoulTrapLoopData& dl)
     return false;
 }
 
-bool _trapSplitSoul(_SoulTrapData& d, _SoulTrapLoopData& dl)
+bool _trapSplitSoul(_SoulTrapData& d)
 {
     LOG_TRACE("Trapping split white soul..."sv);
 
@@ -623,23 +615,23 @@ bool _trapSplitSoul(_SoulTrapData& d, _SoulTrapLoopData& dl)
 
     const SoulSize maxContainedSoulSizeToSearch =
         d.config[BC::AllowSoulDisplacement]
-            ? static_cast<SoulSize>(dl.victim.soulSize())
+            ? static_cast<SoulSize>(d.victim().soulSize())
             : SoulSize::Petty;
 
     const auto& targetSoulGems = config.getSoulGemsWith(
-        static_cast<SoulSize>(dl.victim.soulSize()),
-        static_cast<SoulSize>(dl.victim.soulSize()));
+        static_cast<SoulSize>(d.victim().soulSize()),
+        static_cast<SoulSize>(d.victim().soulSize()));
 
     for (int containedSoulSize = static_cast<int>(SoulSize::None);
          containedSoulSize < maxContainedSoulSizeToSearch;
          ++containedSoulSize) {
         LOG_TRACE_FMT(
             "Looking up soul gems with capacity = {}, containedSoulSize = {}"sv,
-            dl.victim.soulSize(),
+            d.victim().soulSize(),
             containedSoulSize);
 
         const auto& sourceSoulGems = config.getSoulGemsWith(
-            static_cast<SoulSize>(dl.victim.soulSize()),
+            static_cast<SoulSize>(d.victim().soulSize()),
             static_cast<SoulSize>(containedSoulSize));
 
         const bool isFillSuccessful =
@@ -648,7 +640,7 @@ bool _trapSplitSoul(_SoulTrapData& d, _SoulTrapLoopData& dl)
         if (isFillSuccessful) {
             d.notifySoulTrapSuccess(
                 SoulTrapSuccessMessage::SoulSplit,
-                dl.victim);
+                d.victim());
 
             if (d.config[BC::AllowSoulRelocation] &&
                 containedSoulSize > SoulSize::None) {
@@ -790,11 +782,8 @@ bool trapSoul(RE::Actor* const caster, RE::Actor* const victim)
 
         while (!d.victims().empty()) {
             d.updateLoopVariables();
-            _SoulTrapLoopData dl{d.victims().top()};
 
-            d.victims().pop();
-
-            LOG_TRACE_FMT("Processing soul trap victim: {}", dl.victim);
+            LOG_TRACE_FMT("Processing soul trap victim: {}", d.victim());
 
             if (d.inventoryMap().size() <= 0) {
                 // Caster doesn't have any soul gems. Stop looking.
@@ -803,24 +792,24 @@ bool trapSoul(RE::Actor* const caster, RE::Actor* const victim)
                 break;
             }
 
-            if (dl.victim.soulSize() == SoulSize::Black) {
-                if (_trapBlackSoul(d, dl)) {
+            if (d.victim().soulSize() == SoulSize::Black) {
+                if (_trapBlackSoul(d)) {
                     isSoulTrapSuccessful = true;
                     continue; // Process next soul.
                 }
-            } else if (dl.victim.isSplitSoul()) {
+            } else if (d.victim().isSplitSoul()) {
                 assert(d.config[BC::AllowSoulSplitting]);
                 assert(!d.config[BC::AllowSoulShrinking]);
 
-                if (_trapSplitSoul(d, dl)) {
+                if (_trapSplitSoul(d)) {
                     isSoulTrapSuccessful = true;
                     continue; // Process next soul.
                 }
 
-                _splitSoul(dl.victim, d.victims());
+                _splitSoul(d.victim(), d.victims());
                 continue; // Process next soul.
             } else {
-                if (_trapFullSoul(d, dl)) {
+                if (_trapFullSoul(d)) {
                     isSoulTrapSuccessful = true;
                     continue; // Process next soul.
                 }
@@ -831,13 +820,13 @@ bool trapSoul(RE::Actor* const caster, RE::Actor* const victim)
                 // Standard soul shrinking is prioritized over soul splitting.
                 // Enabling both will implicitly turn off soul splitting.
                 if (d.config[BC::AllowSoulShrinking]) {
-                    if (_trapShrunkSoul(d, dl)) {
+                    if (_trapShrunkSoul(d)) {
                         isSoulTrapSuccessful = true;
 
                         continue; // Process next soul.
                     }
                 } else if (d.config[BC::AllowSoulSplitting]) {
-                    _splitSoul(dl.victim, d.victims());
+                    _splitSoul(d.victim(), d.victims());
 
                     continue; // Process next soul.
                 }
