@@ -27,9 +27,13 @@ class YASTMConfig {
 public:
     class Snapshot;
     using SoulGemGroupList = std::vector<std::unique_ptr<SoulGemGroup>>;
+    template <typename KeyType>
+    using GlobalVariableMap =
+        std::unordered_map<KeyType, GlobalVariable<KeyType>>;
 
 private:
-    std::unordered_map<BoolConfigKey, GlobalVariable> _globals;
+    GlobalVariableMap<BoolConfigKey> _globalBools;
+    GlobalVariableMap<EnumConfigKey> _globalEnums;
 
     SoulGemGroupList _soulGemGroupList;
     SoulGemMap _soulGemMap;
@@ -69,9 +73,13 @@ public:
         return _dependencies.contains(key) && _dependencies.at(key) != nullptr;
     }
 
+    float getGlobalValue(const EnumConfigKey key) const
+    {
+        return _globalEnums.at(key).value();
+    }
     float getGlobalValue(const BoolConfigKey key) const
     {
-        return _globals.at(key).value();
+        return _globalBools.at(key).value();
     }
 
     bool getGlobalBool(const BoolConfigKey key) const
@@ -79,16 +87,28 @@ public:
         return getGlobalValue(key) != 0;
     }
 
+    template <EnumConfigKey key>
+    auto getGlobalEnum() const
+    {
+        return EnumConfigKeyTypeMap<key>()(getGlobalValue(key));
+    }
+
     const SoulGemGroupList& getSoulGemGroups() const
     {
         return _soulGemGroupList;
     }
 
-    constexpr const std::vector<RE::TESSoulGem*>& getSoulGemsWith(
+    constexpr const std::vector<RE::TESSoulGem*>&
+        getBlackSoulGemsWith(const SoulSize containedSoulSize) const
+    {
+        return _soulGemMap.getBlackSoulGemsWith(containedSoulSize);
+    }
+
+    constexpr const std::vector<RE::TESSoulGem*>& getWhiteSoulGemsWith(
         const SoulSize capacity,
         const SoulSize containedSoulSize) const
     {
-        return _soulGemMap.getSoulGemsWith(capacity, containedSoulSize);
+        return _soulGemMap.getWhiteSoulGemsWith(capacity, containedSoulSize);
     }
 
     /**
@@ -98,15 +118,25 @@ public:
     class Snapshot {
         std::bitset<static_cast<std::size_t>(BoolConfigKey::Count)>
             _configBools;
+        std::unordered_map<EnumConfigKey, EnumConfigUnderlyingType>
+            _configEnums;
 
     public:
+        const EnumConfigKeyTypeMap<EnumConfigKey::SoulShrinkingTechnique>::type
+            soulShrinkingTechnique;
+
         explicit Snapshot(const YASTMConfig& config);
+
+        template <EnumConfigKey K>
+        auto get() const;
 
         bool operator[](BoolConfigKey key) const;
     };
 };
 
 inline YASTMConfig::Snapshot::Snapshot(const YASTMConfig& config)
+    : soulShrinkingTechnique{
+          config.getGlobalEnum<EnumConfigKey::SoulShrinkingTechnique>()}
 {
     forEachBoolConfigKey([&, this](const BoolConfigKey key) {
         _configBools[static_cast<std::size_t>(key)] = config.getGlobalBool(key);
@@ -116,6 +146,12 @@ inline YASTMConfig::Snapshot::Snapshot(const YASTMConfig& config)
 inline bool YASTMConfig::Snapshot::operator[](const BoolConfigKey key) const
 {
     return _configBools[static_cast<std::size_t>(key)];
+}
+
+template <EnumConfigKey K>
+inline auto YASTMConfig::Snapshot::get() const
+{
+    return static_cast<EnumConfigKeyTypeMap<K>::type>(_configEnums.at(K));
 }
 
 class YASTMConfigLoadError : public std::runtime_error {

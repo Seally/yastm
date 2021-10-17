@@ -23,9 +23,52 @@ using namespace std::literals;
 YASTMConfig::YASTMConfig()
 {
     // Defaults used when no associated configuration key has been set up.
-    forEachBoolConfigKey([this](const BoolConfigKey key, const float defaultValue) {
-        _globals.emplace(key, GlobalVariable{key, defaultValue});
-    });
+    forEachBoolConfigKey(
+        [this](const BoolConfigKey key, const float defaultValue) {
+            _globalBools.emplace(
+                std::piecewise_construct,
+                std::forward_as_tuple(key),
+                std::forward_as_tuple(key, defaultValue));
+        });
+
+    forEachEnumConfigKey(
+        [this](const EnumConfigKey key, const float defaultValue) {
+            _globalEnums.emplace(
+                std::piecewise_construct,
+                std::forward_as_tuple(key),
+                std::forward_as_tuple(key, defaultValue));
+        });
+}
+
+template <typename KeyType>
+void _readGlobalVariableConfigs(
+    const KeyType key,
+    const toml::node_view<toml::node>& table,
+    YASTMConfig::GlobalVariableMap<KeyType>& map)
+{
+    const auto keyName = toString(key);
+    const auto tomlKeyName = std::string{keyName} + "Global";
+
+    if (const auto idArray = table[tomlKeyName].as_array(); idArray) {
+        if (map.contains(key)) {
+            try {
+                map.at(key).setFromToml(*idArray);
+            } catch (const ParseError& error) {
+                LOG_ERROR_FMT(
+                    "Error while reading configuration for key \"{}\":"sv,
+                    keyName);
+                printError(error, 1);
+            }
+        } else {
+            LOG_ERROR_FMT(
+                "Initialized global map does not contain configuration for key \"{}\"."sv,
+                keyName);
+        }
+    } else {
+        LOG_WARN_FMT(
+            "Form data for configuration key \"{}\" not found."sv,
+            keyName);
+    }
 }
 
 void YASTMConfig::_readYASTMConfig()
@@ -44,31 +87,12 @@ void YASTMConfig::_readYASTMConfig()
 
         const auto yastmTable = table["YASTM"];
 
-        forEachBoolConfigKey([&](const BoolConfigKey key) {
-            const auto keyName = toString(key);
-            const auto tomlKeyName = std::string{keyName} + "Global";
+        forEachBoolConfigKey([&, this](const BoolConfigKey key) {
+            _readGlobalVariableConfigs(key, yastmTable, _globalBools);
+        });
 
-            if (const auto idArray = yastmTable[tomlKeyName].as_array();
-                idArray) {
-                if (_globals.contains(key)) {
-                    try {
-                        _globals.at(key).setFromToml(*idArray);
-                    } catch (const ParseError& error) {
-                        LOG_ERROR_FMT(
-                            "Error while reading configuration for key \"{}\":"sv,
-                            keyName);
-                        printError(error, 1);
-                    }
-                } else {
-                    LOG_ERROR_FMT(
-                        "Initialized global map does not contain configuration for key \"{}\"."sv,
-                        keyName);
-                }
-            } else {
-                LOG_WARN_FMT(
-                    "Form data for configuration key \"{}\" not found."sv,
-                    keyName);
-            }
+        forEachEnumConfigKey([&, this](const EnumConfigKey key) {
+            _readGlobalVariableConfigs(key, yastmTable, _globalEnums);
         });
     } catch (const toml::parse_error& error) {
         LOG_WARN_FMT(
@@ -82,7 +106,7 @@ void YASTMConfig::_readYASTMConfig()
     // Game hasn't fully initialized.)
     LOG_TRACE("Loaded configuration from TOML:"sv);
 
-    for (const auto& [key, globalVar] : _globals) {
+    for (const auto& [key, globalVar] : _globalBools) {
         if (globalVar.isConfigLoaded()) {
             LOG_TRACE_FMT("- {} = {}"sv, key, globalVar.formId());
         }
@@ -219,13 +243,12 @@ void YASTMConfig::loadGameForms(RE::TESDataHandler* const dataHandler)
     _createSoulGemMap(dataHandler);
 }
 
-void YASTMConfig::_loadGlobalForms(RE::TESDataHandler* const dataHandler)
+template <typename KeyType>
+void _loadGlobalFormsIn(
+    YASTMConfig::GlobalVariableMap<KeyType>& map,
+    RE::TESDataHandler* const dataHandler)
 {
-    using namespace std::literals;
-
-    LOG_INFO("Loading global variable forms..."sv);
-
-    for (auto& [key, globalVar] : _globals) {
+    for (auto& [key, globalVar] : map) {
         if (globalVar.isConfigLoaded()) {
             LOG_TRACE_FMT("Loading form for \"{}\"..."sv, key);
             try {
@@ -239,16 +262,31 @@ void YASTMConfig::_loadGlobalForms(RE::TESDataHandler* const dataHandler)
                 globalVar.defaultValue());
         }
     }
+}
 
-    LOG_INFO("Listing loaded global variable forms:"sv);
-
-    for (auto& [key, globalVar] : _globals) {
+template <typename KeyType>
+void _printLoadedGlobalForms(const YASTMConfig::GlobalVariableMap<KeyType>& map)
+{
+    for (auto& [key, globalVar] : map) {
         if (globalVar.isFormLoaded()) {
             LOG_INFO_FMT("- {}: {}"sv, key, globalVar.formId());
         } else {
             LOG_INFO_FMT("- {}: Not loaded."sv, key);
         }
     }
+}
+
+void YASTMConfig::_loadGlobalForms(RE::TESDataHandler* const dataHandler)
+{
+    using namespace std::literals;
+
+    LOG_INFO("Loading global variable forms..."sv);
+    _loadGlobalFormsIn(_globalBools, dataHandler);
+    _loadGlobalFormsIn(_globalEnums, dataHandler);
+
+    LOG_INFO("Listing loaded global variable forms:"sv);
+    _printLoadedGlobalForms(_globalBools);
+    _printLoadedGlobalForms(_globalEnums);
 }
 
 void YASTMConfig::_createSoulGemMap(RE::TESDataHandler* const dataHandler)

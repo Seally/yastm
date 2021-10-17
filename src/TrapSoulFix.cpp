@@ -35,6 +35,10 @@ using VictimsQueue = std::priority_queue<Victim, std::deque<Victim>>;
  * @brief Boolean Config Key
  */
 using BC = BoolConfigKey;
+/**
+ * @brief Boolean Config Key
+ */
+using EC = EnumConfigKey;
 
 namespace native {
     /**
@@ -118,7 +122,6 @@ class _SoulTrapData {
     VictimsQueue _victims;
     std::optional<Victim> _victim;
 
-
     template <typename MessageKey>
     void _notify(const MessageKey message)
     {
@@ -183,10 +186,8 @@ public:
             std::size_t maxFilledSoulGemsCount = 0;
 
             // This should be a move.
-            _inventoryMap =
-                _caster->GetInventory([&](const RE::TESBoundObject& obj) {
-                    return obj.IsSoulGem();
-                });
+            _inventoryMap = _caster->GetInventory(
+                [&](const RE::TESBoundObject& obj) { return obj.IsSoulGem(); });
 
             // Counts the number of fully-filled soul gems.
             for (const auto& [obj, entryData] : _inventoryMap) {
@@ -385,7 +386,7 @@ bool _fillSoulGem(
     return false;
 }
 
-bool _fillSoulGem(
+bool _fillWhiteSoulGem(
     const SoulSize capacity,
     const SoulSize sourceContainedSoulSize,
     const SoulSize targetContainedSoulSize,
@@ -394,9 +395,19 @@ bool _fillSoulGem(
     const YASTMConfig& config = YASTMConfig::getInstance();
 
     const auto& sourceSoulGems =
-        config.getSoulGemsWith(capacity, sourceContainedSoulSize);
+        config.getWhiteSoulGemsWith(capacity, sourceContainedSoulSize);
     const auto& targetSoulGems =
-        config.getSoulGemsWith(capacity, targetContainedSoulSize);
+        config.getWhiteSoulGemsWith(capacity, targetContainedSoulSize);
+
+    return _fillSoulGem(sourceSoulGems, targetSoulGems, d);
+}
+
+bool _fillBlackSoulGem(_SoulTrapData& d)
+{
+    const YASTMConfig& config = YASTMConfig::getInstance();
+
+    const auto& sourceSoulGems = config.getBlackSoulGemsWith(SoulSize::None);
+    const auto& targetSoulGems = config.getBlackSoulGemsWith(SoulSize::Black);
 
     return _fillSoulGem(sourceSoulGems, targetSoulGems, d);
 }
@@ -407,11 +418,7 @@ bool _trapBlackSoul(_SoulTrapData& d)
     // black soul gem or you don't. Nothing fancy to account for.
     LOG_TRACE("Trapping black soul..."sv);
 
-    const bool isSoulTrapped = _fillSoulGem(
-        d.victim().soulSize(),
-        SoulSize::None,
-        d.victim().soulSize(),
-        d);
+    const bool isSoulTrapped = _fillBlackSoulGem(d);
 
     if (isSoulTrapped) {
         d.notifySoulTrapSuccess(
@@ -480,7 +487,7 @@ bool _trapFullSoul(_SoulTrapData& d)
         for (int soulCapacity = static_cast<int>(d.victim().soulSize());
              soulCapacity <= maxSoulCapacityToSearch;
              ++soulCapacity) {
-            const auto& targetSoulGems = config.getSoulGemsWith(
+            const auto& targetSoulGems = config.getWhiteSoulGemsWith(
                 static_cast<SoulSize>(soulCapacity),
                 d.victim().soulSize());
 
@@ -492,7 +499,7 @@ bool _trapFullSoul(_SoulTrapData& d)
                     soulCapacity,
                     containedSoulSize);
 
-                const auto& sourceSoulGems = config.getSoulGemsWith(
+                const auto& sourceSoulGems = config.getWhiteSoulGemsWith(
                     static_cast<SoulSize>(soulCapacity),
                     static_cast<SoulSize>(containedSoulSize));
 
@@ -544,7 +551,7 @@ bool _trapFullSoul(_SoulTrapData& d)
                     soulCapacity,
                     containedSoulSize);
 
-                const bool result = _fillSoulGem(
+                const bool result = _fillWhiteSoulGem(
                     static_cast<SoulSize>(soulCapacity),
                     static_cast<SoulSize>(containedSoulSize),
                     d.victim().soulSize(),
@@ -595,7 +602,7 @@ bool _trapShrunkSoul(_SoulTrapData& d)
     for (int soulCapacity = d.victim().soulSize() - 1;
          soulCapacity > SoulSize::None;
          --soulCapacity) {
-        const auto& targetSoulGems = config.getSoulGemsWith(
+        const auto& targetSoulGems = config.getWhiteSoulGemsWith(
             static_cast<SoulSize>(soulCapacity),
             static_cast<SoulSize>(soulCapacity));
 
@@ -621,7 +628,7 @@ bool _trapShrunkSoul(_SoulTrapData& d)
                 soulCapacity,
                 containedSoulSize);
 
-            const auto& sourceSoulGems = config.getSoulGemsWith(
+            const auto& sourceSoulGems = config.getWhiteSoulGemsWith(
                 static_cast<SoulSize>(soulCapacity),
                 static_cast<SoulSize>(containedSoulSize));
 
@@ -658,7 +665,7 @@ bool _trapSplitSoul(_SoulTrapData& d)
             ? static_cast<SoulSize>(d.victim().soulSize())
             : SoulSize::Petty;
 
-    const auto& targetSoulGems = config.getSoulGemsWith(
+    const auto& targetSoulGems = config.getWhiteSoulGemsWith(
         static_cast<SoulSize>(d.victim().soulSize()),
         static_cast<SoulSize>(d.victim().soulSize()));
 
@@ -670,7 +677,7 @@ bool _trapSplitSoul(_SoulTrapData& d)
             d.victim().soulSize(),
             containedSoulSize);
 
-        const auto& sourceSoulGems = config.getSoulGemsWith(
+        const auto& sourceSoulGems = config.getWhiteSoulGemsWith(
             static_cast<SoulSize>(d.victim().soulSize()),
             static_cast<SoulSize>(containedSoulSize));
 
@@ -835,8 +842,9 @@ bool trapSoul(RE::Actor* const caster, RE::Actor* const victim)
                     continue; // Process next soul.
                 }
             } else if (d.victim().isSplitSoul()) {
-                assert(d.config[BC::AllowSoulSplitting]);
-                assert(!d.config[BC::AllowSoulShrinking]);
+                assert(
+                    d.config.get<EC::SoulShrinkingTechnique>() ==
+                    SoulShrinkingTechnique::Split);
 
                 if (_trapSplitSoul(d)) {
                     isSoulTrapSuccessful = true;
@@ -856,13 +864,15 @@ bool trapSoul(RE::Actor* const caster, RE::Actor* const victim)
                 //
                 // Standard soul shrinking is prioritized over soul splitting.
                 // Enabling both will implicitly turn off soul splitting.
-                if (d.config[BC::AllowSoulShrinking]) {
+                switch (d.config.get<EC::SoulShrinkingTechnique>()) {
+                case SoulShrinkingTechnique::Shrink:
                     if (_trapShrunkSoul(d)) {
                         isSoulTrapSuccessful = true;
 
                         continue; // Process next soul.
                     }
-                } else if (d.config[BC::AllowSoulSplitting]) {
+                    break; // Break out of switch.
+                case SoulShrinkingTechnique::Split:
                     _splitSoul(d.victim(), d.victims());
 
                     continue; // Process next soul.
@@ -893,8 +903,8 @@ bool trapSoul(RE::Actor* const caster, RE::Actor* const victim)
                 d.notifySoulTrapFailure(Message::NoSoulGemsOwned);
                 break;
             default:
-                if (d.config[BC::AllowSoulShrinking] ||
-                    d.config[BC::AllowSoulSplitting]) {
+                if (d.config.get<EC::SoulShrinkingTechnique>() !=
+                    SoulShrinkingTechnique::None) {
                     d.notifySoulTrapFailure(Message::NoSuitableSoulGem);
                 } else {
                     d.notifySoulTrapFailure(Message::NoSoulGemLargeEnough);

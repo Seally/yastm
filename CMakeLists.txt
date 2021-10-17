@@ -109,7 +109,6 @@ set(SOURCES
     src/config/FormId.hpp
     src/config/FormId.cpp
     src/config/GlobalVariable.hpp
-    src/config/GlobalVariable.cpp
     src/config/LoadPriority.hpp
     src/config/ParseError.hpp
     src/config/ParseError.cpp
@@ -129,7 +128,7 @@ set(SOURCES
     src/utilities/TESSoulGem.hpp
     src/utilities/TESSoulGem.cpp
     src/utilities/Timer.hpp
-  )
+)
 
 source_group(
     TREE

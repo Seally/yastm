@@ -9,8 +9,6 @@ enum class BoolConfigKey {
     AllowPartiallyFillingSoulGems,
     AllowSoulDisplacement,
     AllowSoulRelocation,
-    AllowSoulShrinking,
-    AllowSoulSplitting,
     AllowExtraSoulRelocation,
     AllowSoulDiversion,
     PerformSoulDiversionInDLL,
@@ -31,10 +29,6 @@ inline constexpr std::string_view toString(const BoolConfigKey key)
         return "allowSoulDisplacement"sv;
     case BoolConfigKey::AllowSoulRelocation:
         return "allowSoulRelocation"sv;
-    case BoolConfigKey::AllowSoulShrinking:
-        return "allowSoulShrinking"sv;
-    case BoolConfigKey::AllowSoulSplitting:
-        return "allowSoulSplitting"sv;
     case BoolConfigKey::AllowExtraSoulRelocation:
         return "allowExtraSoulRelocation"sv;
     case BoolConfigKey::AllowSoulDiversion:
@@ -58,13 +52,12 @@ inline constexpr std::string_view toString(const BoolConfigKey key)
  * @brief Calls fn(configKey, defaultValue) for each available configuration
  * key.
  */
-inline void forEachBoolConfigKey(const std::function<void(BoolConfigKey, bool)>& fn)
+inline void
+    forEachBoolConfigKey(const std::function<void(BoolConfigKey, bool)>& fn)
 {
     fn(BoolConfigKey::AllowPartiallyFillingSoulGems, 1);
     fn(BoolConfigKey::AllowSoulDisplacement, 1);
     fn(BoolConfigKey::AllowSoulRelocation, 1);
-    fn(BoolConfigKey::AllowSoulShrinking, 1);
-    fn(BoolConfigKey::AllowSoulSplitting, 0);
     fn(BoolConfigKey::AllowExtraSoulRelocation, 1);
     fn(BoolConfigKey::AllowSoulDiversion, 0);
     fn(BoolConfigKey::PerformSoulDiversionInDLL, 1);
@@ -81,8 +74,6 @@ inline void forEachBoolConfigKey(const std::function<void(BoolConfigKey)>& fn)
     fn(BoolConfigKey::AllowPartiallyFillingSoulGems);
     fn(BoolConfigKey::AllowSoulDisplacement);
     fn(BoolConfigKey::AllowSoulRelocation);
-    fn(BoolConfigKey::AllowSoulShrinking);
-    fn(BoolConfigKey::AllowSoulSplitting);
     fn(BoolConfigKey::AllowExtraSoulRelocation);
     fn(BoolConfigKey::AllowSoulDiversion);
     fn(BoolConfigKey::PerformSoulDiversionInDLL);
@@ -90,6 +81,68 @@ inline void forEachBoolConfigKey(const std::function<void(BoolConfigKey)>& fn)
     fn(BoolConfigKey::AllowNotifications);
     fn(BoolConfigKey::AllowProfiling);
 }
+
+enum class EnumConfigKey { SoulShrinkingTechnique, Count };
+
+/**
+ * @brief All enum config value enums should use this as the underlying type so
+ * they can be stored without needing variants.
+ */
+using EnumConfigUnderlyingType = int;
+
+enum class SoulShrinkingTechnique : EnumConfigUnderlyingType {
+    None,
+    Shrink,
+    Split,
+};
+
+inline constexpr std::string_view toString(const EnumConfigKey key)
+{
+    using namespace std::literals;
+
+    switch (key) {
+    case EnumConfigKey::SoulShrinkingTechnique:
+        return "soulShrinkingTechnique"sv;
+    case EnumConfigKey::Count:
+        return "<count>"sv;
+    }
+
+    return ""sv;
+}
+
+inline void
+    forEachEnumConfigKey(const std::function<void(EnumConfigKey, float)>& fn)
+{
+    fn(EnumConfigKey::SoulShrinkingTechnique,
+       static_cast<float>(SoulShrinkingTechnique::Shrink));
+}
+
+inline void
+    forEachEnumConfigKey(const std::function<void(EnumConfigKey)>& fn)
+{
+    fn(EnumConfigKey::SoulShrinkingTechnique);
+}
+
+template <EnumConfigKey>
+struct EnumConfigKeyTypeMap;
+
+template <>
+struct EnumConfigKeyTypeMap<EnumConfigKey::SoulShrinkingTechnique> {
+    using type = SoulShrinkingTechnique;
+
+    type operator()(const float value)
+    {
+        if (value == static_cast<float>(type::Shrink)) {
+            return type::Shrink;
+        }
+
+        if (value == static_cast<float>(type::Split)) {
+            return type::Split;
+        }
+
+        return type::None;
+    }
+};
 
 template <>
 struct fmt::formatter<BoolConfigKey> {
@@ -117,9 +170,9 @@ struct fmt::formatter<BoolConfigKey> {
     }
 
     template <typename FormatContext>
-    auto format(const BoolConfigKey key, FormatContext& ctx) -> decltype(ctx.out())
+    auto format(const BoolConfigKey key, FormatContext& ctx)
+        -> decltype(ctx.out())
     {
         return format_to(ctx.out(), toString(key));
     }
 };
-

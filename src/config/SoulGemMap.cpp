@@ -174,13 +174,18 @@ void SoulGemMap::addSoulGemGroup(
     const auto soulGemForms = _validateAndGetForms(group, dataHandler);
 
     if (group.capacity() == SoulSize::Black) {
-        _blackSoulGemsEmpty.push_back(soulGemForms.at(0));
-        _blackSoulGemsFilled.push_back(soulGemForms.at(1));
+        const auto emptySoulGem = soulGemForms.at(0);
+        const auto filledSoulGem = soulGemForms.at(1);
+
+        _blackSoulGemsEmpty.push_back(emptySoulGem);
+        _blackSoulGemsFilled.push_back(filledSoulGem);
     } else {
         for (std::size_t i = 0; i < soulGemForms.size(); ++i) {
             const auto soulGemForm = soulGemForms.at(i);
 
-            _whiteSoulGems[group.capacity() - 1][i].push_back(soulGemForm);
+            auto& soulGems = _whiteSoulGems[group.capacity() - 1][i];
+
+            soulGems.push_back(soulGemForm);
         }
     }
 }

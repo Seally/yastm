@@ -29,29 +29,36 @@ public:
         const SoulGemGroup& group,
         RE::TESDataHandler* dataHandler);
 
-    constexpr const std::vector<RE::TESSoulGem*>& getSoulGemsWith(
+    constexpr const std::vector<RE::TESSoulGem*>& getWhiteSoulGemsWith(
         const SoulSize capacity,
         const SoulSize containedSoulSize) const
     {
-        using namespace std::literals;
-
 #ifndef NDEBUG
         if (!isValidSoulCapacity(capacity) ||
             !isValidContainedSoulSize(capacity, containedSoulSize)) {
-            throw InvalidSoulSpecificationError(capacity, containedSoulSize);
+            throw InvalidWhiteSoulSpecificationError(
+                capacity,
+                containedSoulSize);
         }
 #endif // NDEBUG
 
-        if (capacity == SoulSize::Black) {
-            if (containedSoulSize == SoulSize::None) {
-                return _blackSoulGemsEmpty;
-            } else if (containedSoulSize == SoulSize::Black) {
-                return _blackSoulGemsFilled;
-            }
-        }
-
         return _whiteSoulGems[capacity - 1]
                              [static_cast<std::size_t>(containedSoulSize)];
+    }
+
+    constexpr const std::vector<RE::TESSoulGem*>&
+        getBlackSoulGemsWith(const SoulSize containedSoulSize) const
+    {
+        switch (containedSoulSize) {
+        case SoulSize::None:
+                return _blackSoulGemsEmpty;
+        case SoulSize::Black:
+                return _blackSoulGemsFilled;
+            }
+
+        throw InvalidBlackSoulSpecificationError(
+            SoulSize::Black,
+            containedSoulSize);
     }
 
     void printContents() const;
