@@ -111,6 +111,12 @@ void YASTMConfig::_readYASTMConfig()
             LOG_TRACE_FMT("- {} = {}"sv, key, globalVar.formId());
         }
     }
+
+    for (const auto& [key, globalVar] : _globalEnums) {
+        if (globalVar.isConfigLoaded()) {
+            LOG_TRACE_FMT("- {} = {}"sv, key, globalVar.formId());
+        }
+    }
 #endif // NDEBUG
 }
 
@@ -168,13 +174,13 @@ void YASTMConfig::_readIndividualConfigs()
     for (const auto& soulGemGroup : _soulGemGroupList) {
         LOG_TRACE_FMT(
             "    {} (isReusable={}, capacity={}, priority={})"sv,
-            soulGemGroup->id(),
-            soulGemGroup->isReusable(),
-            soulGemGroup->capacity(),
-            toLoadPriorityString(soulGemGroup->rawPriority()));
+            soulGemGroup.id(),
+            soulGemGroup.isReusable(),
+            soulGemGroup.capacity(),
+            toString(soulGemGroup.rawPriority()));
 
-        for (const auto& soulGemId : soulGemGroup->members()) {
-            LOG_TRACE_FMT("        {}"sv, *soulGemId);
+        for (const auto& soulGemId : soulGemGroup.members()) {
+            LOG_TRACE_FMT("        {}"sv, soulGemId);
         }
     }
 #endif // NDEBUG
@@ -195,7 +201,7 @@ std::size_t
             try {
                 elem.visit([&, this](auto&& el) {
                     if constexpr (toml::is_table<decltype(el)>) {
-                        _soulGemGroupList.emplace_back(new SoulGemGroup(el));
+                        _soulGemGroupList.emplace_back(el);
                         // We've found a valid soul gem group!
                         ++validSoulGemGroupsCount;
                     } else {
@@ -291,22 +297,11 @@ void YASTMConfig::_loadGlobalForms(RE::TESDataHandler* const dataHandler)
 
 void YASTMConfig::_createSoulGemMap(RE::TESDataHandler* const dataHandler)
 {
-    const auto addSoulGemGroupsForPriority =
-        [=, this](const LoadPriority priority) {
-            for (const auto& soulGemGroup : _soulGemGroupList) {
-                if (soulGemGroup->priority() == priority) {
-                    try {
-                        _soulGemMap.addSoulGemGroup(*soulGemGroup, dataHandler);
-                    } catch (const std::exception& error) {
-                        printError(error);
-                    }
-                }
-            }
-        };
-
-    addSoulGemGroupsForPriority(LoadPriority::High);
-    addSoulGemGroupsForPriority(LoadPriority::Normal);
-    addSoulGemGroupsForPriority(LoadPriority::Low);
+    _soulGemMap.initializeWith(dataHandler, [this](SoulGemMap::Transaction& t) {
+        for (const auto& group : _soulGemGroupList) {
+            t.addSoulGemGroup(group);
+        }
+    });
 
     _soulGemMap.printContents();
 }

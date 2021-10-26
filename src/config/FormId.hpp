@@ -18,13 +18,11 @@ class FormId {
 public:
     explicit FormId(const toml::array& arr);
     explicit FormId(std::uint32_t id, std::string_view pluginName);
-    FormId(const FormId& other) = default;
+    FormId(const FormId&) = default;
+    FormId(FormId&&) = default;
 
     std::uint32_t id() const { return _id; }
     const std::string& pluginName() const { return _pluginName; }
-
-    template<typename iterator>
-    static bool areAllUnique(iterator begin, iterator end);
 };
 
 inline bool operator==(const FormId& lhs, const FormId& rhs) {
@@ -44,41 +42,6 @@ namespace std {
             return seed;
         }
     };
-}
-
-template <typename iterator>
-bool FormId::areAllUnique(iterator begin, iterator end) {
-    static_assert(std::is_same_v<
-        typename std::iterator_traits<iterator>::value_type,
-        std::unique_ptr<FormId>>);
-
-    // Hashing function that calculates the hash from the dereferenced value,
-    // not the pointer value itself.
-    struct Hash {
-        std::size_t operator()(const FormId* const a) const noexcept {
-            return std::hash<FormId>{}(*a);
-        }
-    };
-
-    // Equality function that compares the dereferenced value, not the
-    // pointer value itself.
-    auto equals = [](const FormId* const a, const FormId* const b) {
-        return *a == *b;
-    };
-
-    // Use an unordered set to disambiguate between FormIds. We override the
-    // pointer's hashing function and equality comparator to compare the
-    // dereferenced values, not the pointers themselves.
-    std::unordered_set<const FormId*, Hash, decltype(equals)> uniques;
-
-    std::size_t count = 0;
-
-    for (auto it = begin; it != end; ++it) {
-        uniques.insert(it->get());
-        ++count;
-    }
-
-    return uniques.size() == count;
 }
 
 template <>

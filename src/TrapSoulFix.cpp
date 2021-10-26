@@ -25,6 +25,7 @@
 #include "config/YASTMConfig.hpp"
 #include "formatters/TESSoulGem.hpp"
 #include "utilities/printerror.hpp"
+#include "utilities/TESObjectREFR.hpp"
 #include "utilities/TESSoulGem.hpp"
 #include "utilities/Timer.hpp"
 
@@ -36,7 +37,7 @@ using VictimsQueue = std::priority_queue<Victim, std::deque<Victim>>;
  */
 using BC = BoolConfigKey;
 /**
- * @brief Boolean Config Key
+ * @brief Enum Config Key
  */
 using EC = EnumConfigKey;
 
@@ -117,7 +118,7 @@ class _SoulTrapData {
 
     RE::Actor* _caster;
     _InventoryStatus _casterInventoryStatus;
-    RE::TESObjectREFR::InventoryItemMap _inventoryMap;
+    UnorderedInventoryItemMap _inventoryMap;
 
     VictimsQueue _victims;
     std::optional<Victim> _victim;
@@ -142,6 +143,8 @@ class _SoulTrapData {
     }
 
 public:
+    using InventoryItemMap = UnorderedInventoryItemMap;
+
     const YASTMConfig::Snapshot config;
 
     _SoulTrapData(RE::Actor* const caster)
@@ -186,10 +189,19 @@ public:
             std::size_t maxFilledSoulGemsCount = 0;
 
             // This should be a move.
-            _inventoryMap = _caster->GetInventory(
-                [&](const RE::TESBoundObject& obj) { return obj.IsSoulGem(); });
+            _inventoryMap =
+                getInventoryFor(_caster, [&](const RE::TESBoundObject& obj) {
+                    return obj.IsSoulGem();
+                });
 
             // Counts the number of fully-filled soul gems.
+            //
+            // Note: This ignores the fact that we can still displace white
+            // grand souls from black soul gems and vice versa.
+            //
+            // However, displacing white grand souls from black soul gems only
+            // adds value when there exists a soul gem it can be displaced to,
+            // thus it's preferable that we exit the soul processing anyway.
             for (const auto& [obj, entryData] : _inventoryMap) {
                 const auto soulGem = obj->As<RE::TESSoulGem>();
 
@@ -219,7 +231,7 @@ public:
         assert(!_isInventoryMapDirty);
         return _casterInventoryStatus;
     }
-    const RE::TESObjectREFR::InventoryItemMap& inventoryMap() const
+    const InventoryItemMap& inventoryMap() const
     {
         // This should not happen if the class is used correctly (the class does
         // not manage these resources on its own for performance).
@@ -257,7 +269,7 @@ struct _SearchResult {
 };
 
 std::optional<_SearchResult> _findFirstOwnedObjectInList(
-    const RE::TESObjectREFR::InventoryItemMap& inventoryMap,
+    const _SoulTrapData::InventoryItemMap& inventoryMap,
     const std::vector<RE::TESSoulGem*>& objectsToSearch)
 {
     for (std::size_t i = 0; i < objectsToSearch.size(); ++i) {
@@ -392,32 +404,59 @@ bool _fillWhiteSoulGem(
     const SoulSize targetContainedSoulSize,
     _SoulTrapData& d)
 {
-    const YASTMConfig& config = YASTMConfig::getInstance();
+    const auto& soulGemMap = YASTMConfig::getInstance().soulGemMap();
 
     const auto& sourceSoulGems =
-        config.getWhiteSoulGemsWith(capacity, sourceContainedSoulSize);
+        soulGemMap.getWhiteSoulGemsWith(capacity, sourceContainedSoulSize);
     const auto& targetSoulGems =
-        config.getWhiteSoulGemsWith(capacity, targetContainedSoulSize);
+        soulGemMap.getWhiteSoulGemsWith(capacity, targetContainedSoulSize);
 
     return _fillSoulGem(sourceSoulGems, targetSoulGems, d);
 }
 
 bool _fillBlackSoulGem(_SoulTrapData& d)
 {
-    const YASTMConfig& config = YASTMConfig::getInstance();
+    const auto& soulGemMap = YASTMConfig::getInstance().soulGemMap();
 
-    const auto& sourceSoulGems = config.getBlackSoulGemsWith(SoulSize::None);
-    const auto& targetSoulGems = config.getBlackSoulGemsWith(SoulSize::Black);
+    const auto& sourceSoulGems =
+        soulGemMap.getPureBlackSoulGemsWith(SoulSize::None);
+    const auto& targetSoulGems =
+        soulGemMap.getPureBlackSoulGemsWith(SoulSize::Black);
 
     return _fillSoulGem(sourceSoulGems, targetSoulGems, d);
 }
 
+bool _fillBlackFilledDualSoulGemWithWhiteGrandSoul(_SoulTrapData& d)
+{
+    const auto& soulGemMap = YASTMConfig::getInstance().soulGemMap();
+
+    const auto& sourceSoulGems =
+        soulGemMap.getWhiteSoulGemsWith(SoulSize::Black, SoulSize::Black);
+    const auto maybeFirstOwned =
+        _findFirstOwnedObjectInList(d.inventoryMap(), sourceSoulGems);
+
+    if (maybeFirstOwned.has_value() && _fillBlackSoulGem(d)) {
+        const auto& targetSoulGems =
+            soulGemMap.getWhiteSoulGemsWith(SoulSize::Black, SoulSize::Grand);
+
+        const auto& firstOwned = maybeFirstOwned.value();
+
+        const auto soulGemToAdd = targetSoulGems[firstOwned.index];
+        const auto soulGemToRemove = sourceSoulGems[firstOwned.index];
+
+        _replaceSoulGem(soulGemToAdd, soulGemToRemove, firstOwned.entryData, d);
+
+        return true;
+    }
+
+    return false;
+}
+
 bool _trapBlackSoul(_SoulTrapData& d)
 {
-    // Black souls are simple since they're all or none. Either you have a
-    // black soul gem or you don't. Nothing fancy to account for.
     LOG_TRACE("Trapping black soul..."sv);
 
+    LOG_TRACE("Looking up pure empty black soul gems"sv);
     const bool isSoulTrapped = _fillBlackSoulGem(d);
 
     if (isSoulTrapped) {
@@ -428,6 +467,48 @@ bool _trapBlackSoul(_SoulTrapData& d)
         return true;
     }
 
+    const auto& soulGemMap = YASTMConfig::getInstance().soulGemMap();
+
+    // When displacement is allowed, we search dual soul gems with up to
+    // SoulSize::Grand to allow displacing white grand souls.
+    //
+    // Note: Loop range is end-EXclusive.
+    const SoulSize maxContainedSoulSizeToSearch =
+        d.config[BC::AllowSoulDisplacement] ? SoulSize::Black : SoulSize::Petty;
+
+    const auto& targetSoulGems =
+        soulGemMap.getWhiteSoulGemsWith(SoulSize::Black, SoulSize::Black);
+
+    for (std::size_t containedSoulSize = 0;
+         containedSoulSize < maxContainedSoulSizeToSearch;
+         ++containedSoulSize) {
+        LOG_TRACE_FMT(
+            "Looking up dual soul gems with containedSoulSize = {}"sv,
+            containedSoulSize);
+
+        const auto& sourceSoulGems = soulGemMap.getWhiteSoulGemsWith(
+            SoulSize::Black,
+            static_cast<SoulSize>(containedSoulSize));
+
+        const bool result = _fillSoulGem(sourceSoulGems, targetSoulGems, d);
+
+        if (result) {
+            if (d.config[BC::AllowSoulRelocation] &&
+                containedSoulSize > SoulSize::None) {
+                d.notifySoulTrapSuccess(
+                    SoulTrapSuccessMessage::SoulDisplaced,
+                    d.victim());
+                d.victims().emplace(static_cast<SoulSize>(containedSoulSize));
+            } else {
+                d.notifySoulTrapSuccess(
+                    SoulTrapSuccessMessage::SoulCaptured,
+                    d.victim());
+            }
+
+            return true;
+        }
+    }
+
     return false;
 }
 
@@ -435,7 +516,7 @@ bool _trapFullSoul(_SoulTrapData& d)
 {
     LOG_TRACE("Trapping full white soul..."sv);
 
-    const YASTMConfig& config = YASTMConfig::getInstance();
+    const auto& soulGemMap = YASTMConfig::getInstance().soulGemMap();
 
     // When partial trapping is allowed, we search all soul sizes up to
     // Grand. If it's not allowed, we only look at soul gems with the same
@@ -443,7 +524,7 @@ bool _trapFullSoul(_SoulTrapData& d)
     //
     // Note: Loop range is end-INclusive.
     const SoulSize maxSoulCapacityToSearch =
-        d.config[BC::AllowPartiallyFillingSoulGems] ? SoulSize::Grand
+        d.config[BC::AllowPartiallyFillingSoulGems] ? SoulSize::Black
                                                     : d.victim().soulSize();
 
     // When displacement is allowed, we search soul gems with contained soul
@@ -484,22 +565,24 @@ bool _trapFullSoul(_SoulTrapData& d)
         //             Return
         //         Else
         //             Continue searching
-        for (int soulCapacity = static_cast<int>(d.victim().soulSize());
+        for (std::size_t soulCapacity =
+                 static_cast<std::size_t>(d.victim().soulSize());
              soulCapacity <= maxSoulCapacityToSearch;
              ++soulCapacity) {
-            const auto& targetSoulGems = config.getWhiteSoulGemsWith(
+            const auto& targetSoulGems = soulGemMap.getWhiteSoulGemsWith(
                 static_cast<SoulSize>(soulCapacity),
                 d.victim().soulSize());
 
-            for (int containedSoulSize = static_cast<int>(SoulSize::None);
+            for (std::size_t containedSoulSize =
+                     static_cast<std::size_t>(SoulSize::None);
                  containedSoulSize < maxContainedSoulSizeToSearch;
                  ++containedSoulSize) {
                 LOG_TRACE_FMT(
-                    "Looking up soul gems with capacity = {}, containedSoulSize = {}"sv,
+                    "Looking up white soul gems with capacity = {}, containedSoulSize = {}"sv,
                     soulCapacity,
                     containedSoulSize);
 
-                const auto& sourceSoulGems = config.getWhiteSoulGemsWith(
+                const auto& sourceSoulGems = soulGemMap.getWhiteSoulGemsWith(
                     static_cast<SoulSize>(soulCapacity),
                     static_cast<SoulSize>(containedSoulSize));
 
@@ -507,8 +590,9 @@ bool _trapFullSoul(_SoulTrapData& d)
                     _fillSoulGem(sourceSoulGems, targetSoulGems, d);
 
                 if (result) {
-                    if (d.config[BC::AllowSoulRelocation] &&
-                        containedSoulSize > SoulSize::None) {
+                    // We've checked for soul relocation already. No need to do
+                    // that again here.
+                    if (containedSoulSize > SoulSize::None) {
                         d.notifySoulTrapSuccess(
                             SoulTrapSuccessMessage::SoulDisplaced,
                             d.victim());
@@ -522,6 +606,28 @@ bool _trapFullSoul(_SoulTrapData& d)
 
                     return true;
                 }
+            }
+        }
+
+        // Look up dual black soul gems and displace them if there exists an
+        // empty black soul gem for it to fill.
+        //
+        // This needs to be handled without using the victims queue, otherwise
+        // it can lead to an infinite loop from black souls displacing
+        // white grand souls and white grand souls displacing black souls.
+        if (d.config[BC::AllowSoulDisplacement] &&
+            d.victim().soulSize() == SoulSize::Grand) {
+            LOG_TRACE("Looking up dual soul gems filled with a black soul");
+
+            const bool result =
+                _fillBlackFilledDualSoulGemWithWhiteGrandSoul(d);
+
+            if (result) {
+                d.notifySoulTrapSuccess(
+                    SoulTrapSuccessMessage::SoulDisplaced,
+                    d.victim());
+
+                return true;
             }
         }
     } else {
@@ -540,14 +646,16 @@ bool _trapFullSoul(_SoulTrapData& d)
         //             Return
         //         Else
         //             Continue searching
-        for (int containedSoulSize = static_cast<int>(SoulSize::None);
+        for (std::size_t containedSoulSize =
+                 static_cast<std::size_t>(SoulSize::None);
              containedSoulSize < maxContainedSoulSizeToSearch;
              ++containedSoulSize) {
-            for (int soulCapacity = static_cast<int>(d.victim().soulSize());
+            for (std::size_t soulCapacity =
+                     static_cast<std::size_t>(d.victim().soulSize());
                  soulCapacity <= maxSoulCapacityToSearch;
                  ++soulCapacity) {
                 LOG_TRACE_FMT(
-                    "Looking up soul gems with capacity = {}, containedSoulSize = {}"sv,
+                    "Looking up white soul gems with capacity = {}, containedSoulSize = {}"sv,
                     soulCapacity,
                     containedSoulSize);
 
@@ -558,13 +666,12 @@ bool _trapFullSoul(_SoulTrapData& d)
                     d);
 
                 if (result) {
-                    if (d.config[BC::AllowSoulRelocation] &&
-                        containedSoulSize > SoulSize::None) {
+                    // We've checked for soul relocation already. No need to do
+                    // that again here.
+                    if (containedSoulSize > SoulSize::None) {
                         d.notifySoulTrapSuccess(
                             SoulTrapSuccessMessage::SoulDisplaced,
                             d.victim());
-                        d.victims().emplace(
-                            static_cast<SoulSize>(containedSoulSize));
                     } else {
                         d.notifySoulTrapSuccess(
                             SoulTrapSuccessMessage::SoulCaptured,
@@ -584,7 +691,7 @@ bool _trapShrunkSoul(_SoulTrapData& d)
 {
     LOG_TRACE("Trapping shrunk white soul..."sv);
 
-    const YASTMConfig& config = YASTMConfig::getInstance();
+    const auto& soulGemMap = YASTMConfig::getInstance().soulGemMap();
 
     // Avoid shrinking a soul more than necessary. Any soul we displace must be
     // smaller than the soul gem capacity itself, and shrunk souls always fully
@@ -602,7 +709,7 @@ bool _trapShrunkSoul(_SoulTrapData& d)
     for (int soulCapacity = d.victim().soulSize() - 1;
          soulCapacity > SoulSize::None;
          --soulCapacity) {
-        const auto& targetSoulGems = config.getWhiteSoulGemsWith(
+        const auto& targetSoulGems = soulGemMap.getWhiteSoulGemsWith(
             static_cast<SoulSize>(soulCapacity),
             static_cast<SoulSize>(soulCapacity));
 
@@ -620,15 +727,16 @@ bool _trapShrunkSoul(_SoulTrapData& d)
                 ? static_cast<SoulSize>(soulCapacity)
                 : SoulSize::Petty;
 
-        for (int containedSoulSize = static_cast<int>(SoulSize::None);
+        for (std::size_t containedSoulSize =
+                 static_cast<std::size_t>(SoulSize::None);
              containedSoulSize < maxContainedSoulSizeToSearch;
              ++containedSoulSize) {
             LOG_TRACE_FMT(
-                "Looking up soul gems with capacity = {}, containedSoulSize = {}"sv,
+                "Looking up white soul gems with capacity = {}, containedSoulSize = {}"sv,
                 soulCapacity,
                 containedSoulSize);
 
-            const auto& sourceSoulGems = config.getWhiteSoulGemsWith(
+            const auto& sourceSoulGems = soulGemMap.getWhiteSoulGemsWith(
                 static_cast<SoulSize>(soulCapacity),
                 static_cast<SoulSize>(containedSoulSize));
 
@@ -658,26 +766,27 @@ bool _trapSplitSoul(_SoulTrapData& d)
 {
     LOG_TRACE("Trapping split white soul..."sv);
 
-    const YASTMConfig& config = YASTMConfig::getInstance();
+    const auto& soulGemMap = YASTMConfig::getInstance().soulGemMap();
 
     const SoulSize maxContainedSoulSizeToSearch =
         d.config[BC::AllowSoulDisplacement]
             ? static_cast<SoulSize>(d.victim().soulSize())
             : SoulSize::Petty;
 
-    const auto& targetSoulGems = config.getWhiteSoulGemsWith(
+    const auto& targetSoulGems = soulGemMap.getWhiteSoulGemsWith(
         static_cast<SoulSize>(d.victim().soulSize()),
         static_cast<SoulSize>(d.victim().soulSize()));
 
-    for (int containedSoulSize = static_cast<int>(SoulSize::None);
+    for (std::size_t containedSoulSize =
+             static_cast<std::size_t>(SoulSize::None);
          containedSoulSize < maxContainedSoulSizeToSearch;
          ++containedSoulSize) {
         LOG_TRACE_FMT(
-            "Looking up soul gems with capacity = {}, containedSoulSize = {}"sv,
+            "Looking up white soul gems with capacity = {}, containedSoulSize = {}"sv,
             d.victim().soulSize(),
             containedSoulSize);
 
-        const auto& sourceSoulGems = config.getWhiteSoulGemsWith(
+        const auto& sourceSoulGems = soulGemMap.getWhiteSoulGemsWith(
             static_cast<SoulSize>(d.victim().soulSize()),
             static_cast<SoulSize>(containedSoulSize));
 
@@ -710,8 +819,8 @@ void _splitSoul(const Victim& victim, VictimsQueue& victimQueue)
     // - Lesser  = 500  = Petty + Petty
     // - Petty   = 250
     switch (victim.soulSize()) {
-    case SoulSize::Black:
-        [[fallthrough]];
+    // Do not split black souls.
+    // case SoulSize::Black:
     case SoulSize::Grand:
         victimQueue.emplace(victim.actor(), SoulSize::Greater);
         victimQueue.emplace(victim.actor(), SoulSize::Common);
@@ -821,8 +930,13 @@ bool trapSoul(RE::Actor* const caster, RE::Actor* const victim)
         LOG_TRACE("Found configuration:"sv);
 
         forEachBoolConfigKey([&](const BoolConfigKey key) {
-            LOG_TRACE_FMT("- {}: {}", key, d.config[key]);
+            LOG_TRACE_FMT("- {}: {}"sv, key, d.config[key]);
         });
+
+        LOG_TRACE_FMT(
+            "- {}: {}"sv,
+            EC::SoulShrinkingTechnique,
+            d.config.get<EC::SoulShrinkingTechnique>());
 #endif // NDEBUG
 
         while (!d.victims().empty()) {

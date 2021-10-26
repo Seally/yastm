@@ -1,8 +1,11 @@
 #include "Victim.hpp"
 
+#include <cassert>
+
 namespace native {
     RE::SOUL_LEVEL GetSoulSize(RE::Actor* const actor)
     {
+
         using func_t = decltype(GetSoulSize);
         // SkyrimSE.exe + 0x6348A0 (v1.5.97.0)
         REL::Relocation<func_t> func{REL::ID{37862}};
@@ -20,6 +23,8 @@ namespace native {
 
 SoulSize _getActorSoulSize(RE::Actor* const actor)
 {
+    assert(actor != nullptr);
+
     if (native::IsActorNPC(actor)) {
         return SoulSize::Black;
     }

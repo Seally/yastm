@@ -26,7 +26,7 @@ namespace RE {
 class YASTMConfig {
 public:
     class Snapshot;
-    using SoulGemGroupList = std::vector<std::unique_ptr<SoulGemGroup>>;
+    using SoulGemGroupList = std::vector<SoulGemGroup>;
     template <typename KeyType>
     using GlobalVariableMap =
         std::unordered_map<KeyType, GlobalVariable<KeyType>>;
@@ -98,18 +98,7 @@ public:
         return _soulGemGroupList;
     }
 
-    constexpr const std::vector<RE::TESSoulGem*>&
-        getBlackSoulGemsWith(const SoulSize containedSoulSize) const
-    {
-        return _soulGemMap.getBlackSoulGemsWith(containedSoulSize);
-    }
-
-    constexpr const std::vector<RE::TESSoulGem*>& getWhiteSoulGemsWith(
-        const SoulSize capacity,
-        const SoulSize containedSoulSize) const
-    {
-        return _soulGemMap.getWhiteSoulGemsWith(capacity, containedSoulSize);
-    }
+    const SoulGemMap& soulGemMap() const { return _soulGemMap; }
 
     /**
      * @brief Represents a snapshot of the configuration at a certain point in
@@ -122,9 +111,6 @@ public:
             _configEnums;
 
     public:
-        const EnumConfigKeyTypeMap<EnumConfigKey::SoulShrinkingTechnique>::type
-            soulShrinkingTechnique;
-
         explicit Snapshot(const YASTMConfig& config);
 
         template <EnumConfigKey K>
@@ -135,11 +121,15 @@ public:
 };
 
 inline YASTMConfig::Snapshot::Snapshot(const YASTMConfig& config)
-    : soulShrinkingTechnique{
-          config.getGlobalEnum<EnumConfigKey::SoulShrinkingTechnique>()}
 {
     forEachBoolConfigKey([&, this](const BoolConfigKey key) {
         _configBools[static_cast<std::size_t>(key)] = config.getGlobalBool(key);
+    });
+
+    forEachEnumConfigKey([&, this](const EnumConfigKey key) {
+        _configEnums.emplace(
+            key,
+            static_cast<EnumConfigUnderlyingType>(config.getGlobalValue(key)));
     });
 }
 

@@ -2,7 +2,7 @@
 
 #include "../global.hpp"
 
-void printError(const std::exception& error, std::size_t depth)
+void printError(const std::exception& error, const std::size_t depth)
 {
     const constexpr std::size_t INDENT_SIZE = 4;
     LOG_ERROR_FMT(

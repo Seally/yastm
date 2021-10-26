@@ -33,7 +33,7 @@ set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>" CACHE STR
 
 project(
     YASTM
-    VERSION 1.5.0
+    VERSION 1.6.0
     LANGUAGES CXX
 )
 
@@ -122,9 +122,12 @@ set(SOURCES
     src/config/YASTMConfig.hpp
     src/config/YASTMConfig.cpp
     src/formatters/TESSoulGem.hpp
+    src/utilities/algorithms.hpp
     src/utilities/FormType.hpp
     src/utilities/printerror.hpp
     src/utilities/printerror.cpp
+    src/utilities/TESObjectREFR.hpp
+    src/utilities/TESObjectREFR.cpp
     src/utilities/TESSoulGem.hpp
     src/utilities/TESSoulGem.cpp
     src/utilities/Timer.hpp

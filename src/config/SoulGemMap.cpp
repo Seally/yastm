@@ -1,5 +1,7 @@
 #include "SoulGemMap.hpp"
 
+#include <unordered_map>
+
 #include <RE/F/FormTypes.h>
 #include <RE/T/TESDataHandler.h>
 #include <RE/T/TESForm.h>
@@ -11,6 +13,7 @@
 #include "../global.hpp"
 #include "FormError.hpp"
 #include "SoulGemGroup.hpp"
+#include "../utilities/printerror.hpp"
 #include "../utilities/TESSoulGem.hpp"
 #include "../formatters/TESSoulGem.hpp"
 
@@ -29,10 +32,10 @@ std::vector<RE::TESSoulGem*> _validateAndGetForms(
             const auto& formId = group.members().at(i);
 
             const auto form =
-                dataHandler->LookupForm(formId->id(), formId->pluginName());
+                dataHandler->LookupForm(formId.id(), formId.pluginName());
 
             if (form == nullptr) {
-                throw MissingFormError(*formId);
+                throw MissingFormError(formId);
             }
 
             if (!form->IsSoulGem()) {
@@ -49,11 +52,11 @@ std::vector<RE::TESSoulGem*> _validateAndGetForms(
             // We use effective capacity since black souls are grand souls
             // in-game.
             if (group.effectiveCapacity() !=
-                static_cast<SoulSize>(soulGemForm->GetMaximumCapacity())) {
+                soulGemForm->GetMaximumCapacity()) {
                 throw SpecificationError(fmt::format(
                     FMT_STRING(
                         "Soul gem form {} \"{}\" in group \"{}\" does not have a capacity matching configuration."sv),
-                    *formId,
+                    formId,
                     form->GetName(),
                     group.id()));
             }
@@ -66,8 +69,7 @@ std::vector<RE::TESSoulGem*> _validateAndGetForms(
             if (group.isReusable()) {
                 if (!isReusableSoulGem) {
                     LOG_WARN_FMT(
-                        "Non-reusable soul gem {} \"{}\" is listed in reusable "
-                        "soul gem group \"{}\".",
+                        "Non-reusable soul gem {} \"{}\" is listed in reusable soul gem group \"{}\"."sv,
                         soulGemForm,
                         soulGemForm->GetName(),
                         group.id());
@@ -75,8 +77,7 @@ std::vector<RE::TESSoulGem*> _validateAndGetForms(
             } else {
                 if (isReusableSoulGem) {
                     LOG_WARN_FMT(
-                        "Reusable soul gem {} \"{}\" is listed in non-reusable "
-                        "soul gem group \"{}\"",
+                        "Reusable soul gem {} \"{}\" is listed in non-reusable soul gem group \"{}\""sv,
                         soulGemForm,
                         soulGemForm->GetName(),
                         group.id());
@@ -95,7 +96,7 @@ std::vector<RE::TESSoulGem*> _validateAndGetForms(
                     throw FormError(fmt::format(
                         FMT_STRING(
                             "Reusable soul gem form {} \"{}\" in group \"{}\" contains a soul but has no linked soul gem specified in the form."sv),
-                        *formId,
+                        formId,
                         form->GetName(),
                         group.id()));
                 }
@@ -105,7 +106,7 @@ std::vector<RE::TESSoulGem*> _validateAndGetForms(
                     throw FormError(fmt::format(
                         FMT_STRING(
                             "Linked soul gem for reusable soul gem {} \"{}\" in group \"{}\" is not an empty soul gem."sv),
-                        *formId,
+                        formId,
                         form->GetName(),
                         group.id()));
                 }
@@ -154,80 +155,199 @@ std::vector<RE::TESSoulGem*> _validateAndGetForms(
 
         return soulGemForms;
     } catch (...) {
-        std::throw_with_nested(SoulGemGroupError(
-            group.id(),
-            fmt::format(
-                FMT_STRING(
-                    "Error while adding soul gem group \"{}\" to the map:"sv),
-                group.id())));
+        std::throw_with_nested(SoulGemGroupError(fmt::format(
+            FMT_STRING(
+                "Error while adding soul gem group \"{}\" to the map:"sv),
+            group.id())));
     }
 }
 
-void SoulGemMap::addSoulGemGroup(
-    const SoulGemGroup& group,
-    RE::TESDataHandler* dataHandler)
-{
-    if (!_areListsInitialized) {
-        initializeLists();
-    }
-
-    const auto soulGemForms = _validateAndGetForms(group, dataHandler);
-
-    if (group.capacity() == SoulSize::Black) {
-        const auto emptySoulGem = soulGemForms.at(0);
-        const auto filledSoulGem = soulGemForms.at(1);
-
-        _blackSoulGemsEmpty.push_back(emptySoulGem);
-        _blackSoulGemsFilled.push_back(filledSoulGem);
-    } else {
-        for (std::size_t i = 0; i < soulGemForms.size(); ++i) {
-            const auto soulGemForm = soulGemForms.at(i);
-
-            auto& soulGems = _whiteSoulGems[group.capacity() - 1][i];
-
-            soulGems.push_back(soulGemForm);
-        }
-    }
-}
-
-void SoulGemMap::initializeLists()
+void SoulGemMap::initializeWith(
+    RE::TESDataHandler* dataHandler,
+    const std::function<void(Transaction&)>& fn)
 {
     for (std::size_t i = 0; i < _whiteSoulGems.size(); ++i) {
-        _whiteSoulGems[i].resize(
-            getVariantCountForCapacity(static_cast<SoulSize>(i + 1)));
+        _whiteSoulGems[i].clear();
+        _whiteSoulGems[i].resize(i + 2);
     }
 
-    _areListsInitialized = true;
+    Transaction t;
+
+    fn(t);
+
+    /**
+     * @brief Stores a map of the empty soul gem FormId to its soul gem group. 
+    */
+    std::unordered_map<
+        std::reference_wrapper<const FormId>,
+        std::reference_wrapper<const SoulGemGroup>,
+        std::hash<FormId>>
+        blackSoulGemGroupMap;
+
+    /**
+     * @brief Maps black soul gem groups to the pointer to its filled soul gem
+     * form. 
+     */
+    std::unordered_map<const SoulGemGroup*, RE::TESSoulGem*>
+        blackSoulGemFilledMap;
+
+    for (const auto& group : t._groupsToAdd) {
+        // Add black soul gems to the map.
+        if (group.get().capacity() == SoulSize::Black) {
+            blackSoulGemGroupMap.emplace(group.get().emptyMember(), group);
+        }
+    }
+
+    const auto isDualSoulGemGroup = [&](const SoulGemGroup& group) {
+        return group.capacity() == SoulSize::Grand &&
+               blackSoulGemGroupMap.contains(group.emptyMember());
+    };
+
+    const auto addSoulGemGroup = [&, this](const SoulGemGroup& group) {
+        try {
+            const auto capacity = group.capacity();
+
+            if (capacity == SoulSize::Black) {
+                std::vector forms = _validateAndGetForms(group, dataHandler);
+
+                const auto emptySoulGem = forms.at(0);
+                const auto filledSoulGem = forms.at(1);
+
+                _pureBlackSoulGemsEmpty.push_back(emptySoulGem);
+                _pureBlackSoulGemsFilled.push_back(filledSoulGem);
+
+                // Add the max-filled black soul gem form to the map for
+                // reference when adding dual soul gems.
+                blackSoulGemFilledMap.emplace(&group, filledSoulGem);
+            } else if (!isDualSoulGemGroup(group)) {
+                std::vector forms = _validateAndGetForms(group, dataHandler);
+
+                for (std::size_t i = 0; i < forms.size(); ++i) {
+                    const auto form = forms.at(i);
+
+                    _whiteSoulGems[group.capacity() - 1][i].push_back(form);
+                }
+            }
+        } catch (const std::exception& error) {
+            printError(error);
+        }
+    };
+
+    const auto addDualSoulGemGroup = [&, this](const SoulGemGroup& group) {
+        try {
+            if (isDualSoulGemGroup(group)) {
+                std::vector forms = _validateAndGetForms(group, dataHandler);
+
+                const auto& blackSoulGemGroup =
+                    blackSoulGemGroupMap.at(group.emptyMember()).get();
+
+                // If the max-filled member refers to the same soul gem form,
+                // throw an error.
+                if (group.filledMember() == blackSoulGemGroup.filledMember()) {
+                    throw std::runtime_error(fmt::format(
+                        FMT_STRING(
+                            "Dual soul gem group \"{}\" max-filled member matches that of \"{}\" and cannot be disambiguated."sv),
+                        group.id(),
+                        blackSoulGemGroup.id()));
+                }
+
+                // If we can't find the black soul gem group in the map for the
+                // max-filled black soul gem, throw an error.
+                //
+                // Since we should have processed all the black soul gem groups
+                // already, each of which should have added an entry to this
+                // map, this suggests that there's a bug.
+                if (!blackSoulGemFilledMap.contains(&blackSoulGemGroup)) {
+                    throw std::runtime_error(fmt::format(
+                        FMT_STRING(
+                            "Failed to find filled black soul gem for dual soul gem group \"{}\"."sv),
+                        group.id()));
+                }
+
+                forms.push_back(blackSoulGemFilledMap.at(&blackSoulGemGroup));
+
+                auto& dualSoulGems = _whiteSoulGems[SoulSize::Black - 1];
+
+                for (std::size_t i = 0; i < forms.size(); ++i) {
+                    const auto form = forms.at(i);
+
+                    dualSoulGems[i].push_back(form);
+                }
+            }
+        } catch (const std::exception& error) {
+            printError(error);
+        }
+    };
+
+    const auto addSoulGemGroupsForPriority =
+        [&, this](
+            const LoadPriority priority,
+            std::function<void(const SoulGemGroup&)> addSoulGemGroup) {
+            for (const auto& groupRef : t._groupsToAdd) {
+                const auto& group = groupRef.get();
+
+                if (group.priority() == priority) {
+                    LOG_TRACE_FMT(
+                        "Adding group \"{}\" (priority={}, rawPriority={})"sv,
+                        group.id(),
+                        group.priority(),
+                        group.rawPriority());
+                    addSoulGemGroup(group);
+                }
+            }
+        };
+
+    // Dual soul gems, compared to standard white grand soul gems, have an extra
+    // max-filled black soul gem form. This form is used by the trap soul
+    // algorithm when it looks for dual soul gems when trapping a black soul.
+    //
+    // In order to add this, we need the RE::TESSoulGem* loaded by the original
+    // black soul gem, so we add all the non-dual soul gem groups first before
+    // going over the dual soul gems.
+    addSoulGemGroupsForPriority(LoadPriority::High, addSoulGemGroup);
+    addSoulGemGroupsForPriority(LoadPriority::Normal, addSoulGemGroup);
+    addSoulGemGroupsForPriority(LoadPriority::Low, addSoulGemGroup);
+
+    addSoulGemGroupsForPriority(LoadPriority::High, addDualSoulGemGroup);
+    addSoulGemGroupsForPriority(LoadPriority::Normal, addDualSoulGemGroup);
+    addSoulGemGroupsForPriority(LoadPriority::Low, addDualSoulGemGroup);
 }
 
 void SoulGemMap::printContents() const
 {
-    for (int i = 0; i < _whiteSoulGems.size(); ++i) {
-        const int soulCapacity = i + 1;
+    for (std::size_t capacityIndex = 0; capacityIndex < _whiteSoulGems.size();
+         ++capacityIndex) {
+        const std::size_t soulCapacity = capacityIndex + 1;
 
-        for (int containedSoulSize = 0;
-             containedSoulSize < _whiteSoulGems[i].size();
+        for (std::size_t containedSoulSize = 0;
+             containedSoulSize < _whiteSoulGems[capacityIndex].size();
              ++containedSoulSize) {
-            LOG_INFO_FMT(
-                "Listing mapped soul gems with capacity={} "
-                "containedSoulSize={}",
-                soulCapacity,
-                containedSoulSize);
+            if (soulCapacity == SoulSize::Black) {
+                LOG_INFO_FMT(
+                    "Listing mapped dual soul gems with containedSoulSize={}"sv,
+                    containedSoulSize);
+            } else {
+                LOG_INFO_FMT(
+                    "Listing mapped soul gems with capacity={} "
+                    "containedSoulSize={}",
+                    soulCapacity,
+                    containedSoulSize);
+            }
 
             for (const auto soulGemForm :
-                 _whiteSoulGems[i][containedSoulSize]) {
+                 _whiteSoulGems[capacityIndex][containedSoulSize]) {
                 LOG_INFO_FMT("- {}"sv, soulGemForm);
             }
         }
     }
 
     LOG_INFO("Listing mapped empty black soul gems."sv);
-    for (const auto soulGemForm : _blackSoulGemsEmpty) {
+    for (const auto soulGemForm : _pureBlackSoulGemsEmpty) {
         LOG_INFO_FMT("- {}"sv, soulGemForm);
     }
 
     LOG_INFO("Listing mapped filled black soul gems."sv);
-    for (const auto soulGemForm : _blackSoulGemsEmpty) {
+    for (const auto soulGemForm : _pureBlackSoulGemsFilled) {
         LOG_INFO_FMT("- {}"sv, soulGemForm);
     }
 }

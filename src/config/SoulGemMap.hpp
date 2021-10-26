@@ -1,8 +1,10 @@
 #pragma once
 
 #include <array>
+#include <functional>
 #include <vector>
 
+#include "../global.hpp"
 #include "SoulSize.hpp"
 #include "SpecificationError.hpp"
 
@@ -16,45 +18,58 @@ class SoulGemGroup;
 class SoulGemMap {
     std::array<
         std::vector<std::vector<RE::TESSoulGem*>>,
-        static_cast<std::size_t>(SoulSize::Grand)>
+        static_cast<std::size_t>(SoulSize::Black)>
         _whiteSoulGems;
-    std::vector<RE::TESSoulGem*> _blackSoulGemsEmpty;
-    std::vector<RE::TESSoulGem*> _blackSoulGemsFilled;
-
-    bool _areListsInitialized = false;
-    void initializeLists();
+    std::vector<RE::TESSoulGem*> _pureBlackSoulGemsEmpty;
+    std::vector<RE::TESSoulGem*> _pureBlackSoulGemsFilled;
 
 public:
-    void addSoulGemGroup(
-        const SoulGemGroup& group,
-        RE::TESDataHandler* dataHandler);
+    class Transaction {
+        std::vector<std::reference_wrapper<const SoulGemGroup>> _groupsToAdd;
 
-    constexpr const std::vector<RE::TESSoulGem*>& getWhiteSoulGemsWith(
+        friend class SoulGemMap;
+
+        explicit Transaction() = default;
+        Transaction(const Transaction&) = delete;
+        Transaction(Transaction&&) = delete;
+        Transaction& operator=(const Transaction&) = delete;
+        Transaction& operator=(Transaction&&) = delete;
+
+    public:
+        void addSoulGemGroup(const SoulGemGroup& group)
+        {
+            _groupsToAdd.emplace_back(group);
+        }
+    };
+
+    void initializeWith(
+        RE::TESDataHandler* dataHandler,
+        const std::function<void(Transaction&)>& transaction);
+
+    const std::vector<RE::TESSoulGem*>& getWhiteSoulGemsWith(
         const SoulSize capacity,
         const SoulSize containedSoulSize) const
     {
-#ifndef NDEBUG
-        if (!isValidSoulCapacity(capacity) ||
-            !isValidContainedSoulSize(capacity, containedSoulSize)) {
-            throw InvalidWhiteSoulSpecificationError(
+        try {
+            return _whiteSoulGems.at(capacity - 1)
+                .at(static_cast<std::size_t>(containedSoulSize));
+        } catch (...) {
+            std::throw_with_nested(InvalidWhiteSoulSpecificationError(
                 capacity,
-                containedSoulSize);
+                containedSoulSize));
         }
-#endif // NDEBUG
-
-        return _whiteSoulGems[capacity - 1]
-                             [static_cast<std::size_t>(containedSoulSize)];
     }
 
     constexpr const std::vector<RE::TESSoulGem*>&
-        getBlackSoulGemsWith(const SoulSize containedSoulSize) const
+        getPureBlackSoulGemsWith(const SoulSize containedSoulSize) const
     {
-        switch (containedSoulSize) {
-        case SoulSize::None:
-                return _blackSoulGemsEmpty;
-        case SoulSize::Black:
-                return _blackSoulGemsFilled;
-            }
+        if (containedSoulSize == SoulSize::None) {
+            return _pureBlackSoulGemsEmpty;
+        }
+
+        if (containedSoulSize == SoulSize::Black) {
+            return _pureBlackSoulGemsFilled;
+        }
 
         throw InvalidBlackSoulSpecificationError(
             SoulSize::Black,

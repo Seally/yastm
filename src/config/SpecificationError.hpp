@@ -16,8 +16,8 @@ public:
     const SoulSize givenContainedSoul;
 
     explicit InvalidSoulSpecificationError(
-        const SoulSize givenCapacity,
-        const SoulSize givenContainedSoul,
+        SoulSize givenCapacity,
+        SoulSize givenContainedSoul,
         const std::string& message = std::string());
 };
 
@@ -25,14 +25,14 @@ class InvalidWhiteSoulSpecificationError :
     public InvalidSoulSpecificationError {
 public:
     explicit InvalidWhiteSoulSpecificationError(
-        const SoulSize givenCapacity,
-        const SoulSize givenContainedSoul);
+        SoulSize givenCapacity,
+        SoulSize givenContainedSoul);
 };
 
 class InvalidBlackSoulSpecificationError :
     public InvalidSoulSpecificationError {
 public:
     explicit InvalidBlackSoulSpecificationError(
-        const SoulSize givenCapacity,
-        const SoulSize givenContainedSoul);
+        SoulSize givenCapacity,
+        SoulSize givenContainedSoul);
 };

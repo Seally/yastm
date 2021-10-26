@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 
+#include <RE/S/SoulLevels.h>
 #include <toml++/toml_table.h>
 
 #include "FormId.hpp"
@@ -19,7 +20,7 @@ namespace RE {
 class SoulGemGroup {
 public:
     using IdType = std::string;
-    using MembersType = std::vector<std::unique_ptr<FormId>>;
+    using MembersType = std::vector<FormId>;
 
 private:
     IdType _id;
@@ -31,24 +32,15 @@ private:
 public:
     explicit SoulGemGroup(const toml::table& table);
 
-    const std::string& id() const { return _id; }
+    const IdType& id() const { return _id; }
     bool isReusable() const { return _isReusable; }
 
     SoulSize capacity() const { return _capacity; }
     /**
-     * @brief Returns the effective soul gem capacity.
-     *
-     * This function exists because the game does not distinguish black souls
-     * and white grand souls except by checking a record flag for soul trap
-     * eligibility.
-     *
-     * This function will return SoulSize::Grand for gems that can hold black
-     * souls.
+     * @brief Returns the "effective" soul gem capacity, used to match against
+     * the values reported by the game soul gem forms.
      */
-    SoulSize effectiveCapacity() const
-    {
-        return capacity() == SoulSize::Black ? SoulSize::Grand : capacity();
-    }
+    RE::SOUL_LEVEL effectiveCapacity() const { return toSoulLevel(capacity()); }
 
     LoadPriority rawPriority() const { return _priority; }
     LoadPriority priority() const
@@ -61,11 +53,11 @@ public:
     }
 
     const MembersType& members() const { return _members; }
+    const FormId& emptyMember() const { return members().front(); }
+    const FormId& filledMember() const { return members().back(); }
 };
 
 class SoulGemGroupError : public std::runtime_error {
 public:
-    const std::string id;
-
-    explicit SoulGemGroupError(std::string_view id, const std::string& message);
+    explicit SoulGemGroupError(const std::string& message);
 };

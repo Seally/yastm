@@ -13,27 +13,36 @@ class Victim {
 
 public:
     /**
-     * @brief Constructs a victim object with the soul size automatically
-     * calculated from the actor's properties. This constructor is used for the
-     * initial victim. 
+     * @brief Constructs a primary victim. The soul size automatically
+     * calculated from the actor's properties.
      */
     explicit Victim(RE::Actor* actor);
     /**
-     * @brief Constructs a victim object with only the soul size. This
-     * constructor is used for displaced souls.
+     * @brief Constructs a victim with no associated actor. This constructor is
+     * used for displaced souls.
      */
     explicit Victim(SoulSize soulSize);
     /**
-     * @brief Construct a victim object with both a (possibly null) actor and a
-     * specified soul size. This constructor is used for split souls (the split
-     * flag is set automatically).
+     * @brief Constructs a victim with a custom soul size. This
+     * constructor is used for split souls (the split flag is set
+     * automatically).
      */
     explicit Victim(RE::Actor* actor, SoulSize soulSize);
 
     RE::Actor* actor() const { return _actor; }
     SoulSize soulSize() const { return _soulSize; }
 
+    /**
+     * @brief Primary souls are souls that we're currently capturing. These
+     * souls are associated with an actor.
+     *
+     * Note that split souls may or may not be a primary soul.
+     */
     bool isPrimarySoul() const { return actor() != nullptr; }
+    /**
+     * @brief Secondary souls are souls displaced from an existing soul gem.
+     * These souls have no actor associated with them.
+     */
     bool isSecondarySoul() const { return actor() == nullptr; }
     bool isSplitSoul() const { return _isSplit; }
 };
