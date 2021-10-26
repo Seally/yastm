@@ -978,17 +978,17 @@ bool trapSoul(RE::Actor* const caster, RE::Actor* const victim)
                 //
                 // Standard soul shrinking is prioritized over soul splitting.
                 // Enabling both will implicitly turn off soul splitting.
-                switch (d.config.get<EC::SoulShrinkingTechnique>()) {
-                case SoulShrinkingTechnique::Shrink:
+                const auto soulShrinkingTechnique =
+                    d.config.get<EC::SoulShrinkingTechnique>();
+
+                if (soulShrinkingTechnique == SoulShrinkingTechnique::Shrink) {
                     if (_trapShrunkSoul(d)) {
                         isSoulTrapSuccessful = true;
-
                         continue; // Process next soul.
                     }
-                    break; // Break out of switch.
-                case SoulShrinkingTechnique::Split:
+                } else if (
+                    soulShrinkingTechnique == SoulShrinkingTechnique::Split) {
                     _splitSoul(d.victim(), d.victims());
-
                     continue; // Process next soul.
                 }
             }
