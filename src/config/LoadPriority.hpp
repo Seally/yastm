@@ -1,5 +1,6 @@
 #pragma once
 
+#include <functional>
 #include <string>
 
 #include <fmt/format.h>
@@ -98,3 +99,14 @@ struct fmt::formatter<LoadPriority> {
         return format_to(ctx.out(), toString(key));
     }
 };
+
+/**
+ * @brief Calls fn(loadPriority) for each available non-nominal load priority
+ * (skips LoadPriority::Auto and LoadPriority::Invalid).
+ */
+inline void forEachLoadPriority(const std::function<void(LoadPriority)>& fn)
+{
+    fn(LoadPriority::High);
+    fn(LoadPriority::Normal);
+    fn(LoadPriority::Low);
+}

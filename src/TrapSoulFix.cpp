@@ -363,8 +363,8 @@ void _replaceSoulGem(
     LOG_TRACE_FMT(
         "Replacing soul gems in {}'s inventory"sv,
         d.caster()->GetName());
-    LOG_TRACE_FMT("- from: {}"sv, soulGemToRemove);
-    LOG_TRACE_FMT("- to: {}"sv, soulGemToAdd);
+    LOG_TRACE_FMT("- from: {}"sv, *soulGemToRemove);
+    LOG_TRACE_FMT("- to: {}"sv, *soulGemToAdd);
 
     d.caster()->AddObjectToContainer(soulGemToAdd, newExtraList, 1, nullptr);
     d.caster()->RemoveItem(

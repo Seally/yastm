@@ -15,7 +15,6 @@
 #include "FormError.hpp"
 #include "ParseError.hpp"
 #include "SoulGemGroup.hpp"
-#include "../formatters/TESSoulGem.hpp"
 #include "../utilities/printerror.hpp"
 
 using namespace std::literals;
@@ -265,6 +264,7 @@ void _loadGlobalFormsIn(
         } else {
             LOG_INFO_FMT(
                 "Form ID for '{}' not specified in configuration file. Using default of {}"sv,
+                key,
                 globalVar.defaultValue());
         }
     }

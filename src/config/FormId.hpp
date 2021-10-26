@@ -73,7 +73,7 @@ struct fmt::formatter<FormId> {
         -> decltype(ctx.out()) {
         using namespace std::literals;
 
-        return format_to(
+        return fmt::format_to(
             ctx.out(),
             "[{:#08x}, {}]"sv,
             formId.id(),

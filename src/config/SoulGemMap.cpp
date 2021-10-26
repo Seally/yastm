@@ -70,7 +70,7 @@ std::vector<RE::TESSoulGem*> _validateAndGetForms(
                 if (!isReusableSoulGem) {
                     LOG_WARN_FMT(
                         "Non-reusable soul gem {} \"{}\" is listed in reusable soul gem group \"{}\"."sv,
-                        soulGemForm,
+                        *soulGemForm,
                         soulGemForm->GetName(),
                         group.id());
                 }
@@ -78,7 +78,7 @@ std::vector<RE::TESSoulGem*> _validateAndGetForms(
                 if (isReusableSoulGem) {
                     LOG_WARN_FMT(
                         "Reusable soul gem {} \"{}\" is listed in non-reusable soul gem group \"{}\""sv,
-                        soulGemForm,
+                        *soulGemForm,
                         soulGemForm->GetName(),
                         group.id());
                 }
@@ -304,13 +304,13 @@ void SoulGemMap::initializeWith(
     // In order to add this, we need the RE::TESSoulGem* loaded by the original
     // black soul gem, so we add all the non-dual soul gem groups first before
     // going over the dual soul gems.
-    addSoulGemGroupsForPriority(LoadPriority::High, addSoulGemGroup);
-    addSoulGemGroupsForPriority(LoadPriority::Normal, addSoulGemGroup);
-    addSoulGemGroupsForPriority(LoadPriority::Low, addSoulGemGroup);
+    forEachLoadPriority([&, this](const LoadPriority priority) {
+        addSoulGemGroupsForPriority(priority, addSoulGemGroup);
+    });
 
-    addSoulGemGroupsForPriority(LoadPriority::High, addDualSoulGemGroup);
-    addSoulGemGroupsForPriority(LoadPriority::Normal, addDualSoulGemGroup);
-    addSoulGemGroupsForPriority(LoadPriority::Low, addDualSoulGemGroup);
+    forEachLoadPriority([&, this](const LoadPriority priority) {
+        addSoulGemGroupsForPriority(priority, addDualSoulGemGroup);
+    });
 }
 
 void SoulGemMap::printContents() const
@@ -336,18 +336,18 @@ void SoulGemMap::printContents() const
 
             for (const auto soulGemForm :
                  _whiteSoulGems[capacityIndex][containedSoulSize]) {
-                LOG_INFO_FMT("- {}"sv, soulGemForm);
+                LOG_INFO_FMT("- {}"sv, *soulGemForm);
             }
         }
     }
 
     LOG_INFO("Listing mapped empty black soul gems."sv);
     for (const auto soulGemForm : _pureBlackSoulGemsEmpty) {
-        LOG_INFO_FMT("- {}"sv, soulGemForm);
+        LOG_INFO_FMT("- {}"sv, *soulGemForm);
     }
 
     LOG_INFO("Listing mapped filled black soul gems."sv);
     for (const auto soulGemForm : _pureBlackSoulGemsFilled) {
-        LOG_INFO_FMT("- {}"sv, soulGemForm);
+        LOG_INFO_FMT("- {}"sv, *soulGemForm);
     }
 }

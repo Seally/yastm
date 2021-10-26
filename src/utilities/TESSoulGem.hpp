@@ -6,4 +6,4 @@ namespace RE {
 } // end namespace RE
 
 RE::BGSKeyword* getReusableSoulGemKeyword();
-bool canHoldBlackSoul(RE::TESSoulGem* const soulGemForm);
+bool canHoldBlackSoul(const RE::TESSoulGem* soulGemForm);

@@ -13,7 +13,7 @@ RE::BGSKeyword* getReusableSoulGemKeyword()
     return reusableSoulGemKeyword;
 }
 
-bool canHoldBlackSoul(RE::TESSoulGem* const soulGemForm)
+bool canHoldBlackSoul(const RE::TESSoulGem* const soulGemForm)
 {
     return soulGemForm->GetFormFlags() &
            RE::TESSoulGem::RecordFlags::kCanHoldNPCSoul;

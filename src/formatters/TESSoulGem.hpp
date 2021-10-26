@@ -7,7 +7,7 @@
 #include "../utilities/TESSoulGem.hpp"
 
 template <>
-struct fmt::formatter<RE::TESSoulGem*> {
+struct fmt::formatter<RE::TESSoulGem> {
     constexpr auto parse(format_parse_context& ctx) -> decltype(ctx.begin())
     {
         // [ctx.begin(), ctx.end()) is a character range that contains a part of
@@ -32,20 +32,20 @@ struct fmt::formatter<RE::TESSoulGem*> {
     }
 
     template <typename FormatContext>
-    auto format(RE::TESSoulGem* soulGemForm, FormatContext& ctx)
+    auto format(const RE::TESSoulGem& soulGemForm, FormatContext& ctx)
         -> decltype(ctx.out())
     {
         using namespace std::literals;
 
-        return format_to(
+        return fmt::format_to(
             ctx.out(),
             FMT_STRING(
                 "[ID:{:08x}] {} (capacity={}, containedSoulSize={}, canHoldBlackSoul={}, reusable={})"sv),
-            soulGemForm->GetFormID(),
-            soulGemForm->GetName(),
-            soulGemForm->GetMaximumCapacity(),
-            soulGemForm->GetContainedSoul(),
-            canHoldBlackSoul(soulGemForm),
-            soulGemForm->HasKeyword(getReusableSoulGemKeyword()));
+            soulGemForm.GetFormID(),
+            soulGemForm.GetName(),
+            soulGemForm.GetMaximumCapacity(),
+            soulGemForm.GetContainedSoul(),
+            canHoldBlackSoul(&soulGemForm),
+            soulGemForm.HasKeyword(getReusableSoulGemKeyword()));
     }
 };
