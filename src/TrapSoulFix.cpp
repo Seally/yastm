@@ -111,8 +111,6 @@ class _SoulTrapData {
     void _incrementSoulsTrappedStat(RE::Actor* const victim)
     {
         if (!_isStatIncremented) {
-            //void* manager = native::getStatManager();
-            //native::incrementStat(manager, &victim);
             RE::SoulsTrapped::SendEvent(caster(), victim);
             _isStatIncremented = true;
         }
