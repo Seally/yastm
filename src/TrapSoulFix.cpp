@@ -19,6 +19,8 @@
 #include <RE/T/TESForm.h>
 #include <RE/T/TESSoulGem.h>
 
+#include "RE/S/SoulsTrapped.hpp"
+
 #include "global.hpp"
 #include "messages.hpp"
 #include "Victim.hpp"
@@ -42,33 +44,6 @@ using BC = BoolConfigKey;
 using EC = EnumConfigKey;
 
 namespace native {
-    /**
-     * @brief Returns a pointer to the "stat manager".
-     * (I have no idea exactly what this is, besides knowing what happens when
-     * it's removed).
-     */
-    void* getStatManager()
-    {
-        using func_t = decltype(getStatManager);
-        REL::Relocation<func_t> func{
-            REL::ID{37916}}; // SkyrimSE.exe + 0x636c40 (v1.5.97.0)
-        return func();
-    }
-
-    /**
-     * @brief Increments the Souls Trapped stat given the manager and the
-     * victim.
-     * (I have no idea exactly what this is, besides knowing what happens when
-     * it's removed).
-     */
-    int incrementStat(void* manager, RE::Actor* const* const victim)
-    {
-        using func_t = decltype(incrementStat);
-        REL::Relocation<func_t> func{
-            REL::ID{37912}}; // SkyrimSE.exe + 0x6363e0 (v1.5.97.0)
-        return func(manager, victim);
-    }
-
     /**
      * @brief Returns the remaining "raw" soul size of the actor.
      *
@@ -136,8 +111,9 @@ class _SoulTrapData {
     void _incrementSoulsTrappedStat(RE::Actor* const victim)
     {
         if (!_isStatIncremented) {
-            void* manager = native::getStatManager();
-            native::incrementStat(manager, &victim);
+            //void* manager = native::getStatManager();
+            //native::incrementStat(manager, &victim);
+            RE::SoulsTrapped::SendEvent(caster(), victim);
             _isStatIncremented = true;
         }
     }
@@ -1055,7 +1031,9 @@ bool _isTrapSoulPatchable(
 {
     const std::uint8_t expectedEntry[] = {
         // clang-format off
-        // .text:000000014063491F
+        // .text:0000000140634917
+        0x48, 0x89, 0x58, 0x10,            // mov  [rax+10h], rbx
+        0x48, 0x89, 0x68, 0x18,            // mov  [rax+18h], rbp
         0x48, 0x8b, 0xf2,                  // mov  rsi, rdx
         0x4c, 0x8b, 0xf1,                  // mov  r14, rcx
         0x40, 0x32, 0xff,                  // xor  dil, dil
@@ -1115,7 +1093,7 @@ bool installTrapSoulFix(const SKSE::LoadInterface* loadInterface)
     messaging->RegisterListener(_handleMessage);
 
     const REL::ID soulTrap1_id{37863};
-    constexpr std::uintptr_t callOffset = 0x1f;
+    constexpr std::uintptr_t callOffset = 0x17;
     constexpr std::uintptr_t returnOffset = 0x256;
 
     if (!_isTrapSoulPatchable(

@@ -131,6 +131,8 @@ set(SOURCES
     src/utilities/TESSoulGem.hpp
     src/utilities/TESSoulGem.cpp
     src/utilities/Timer.hpp
+    src/RE/S/SoulsTrapped.hpp
+    src/RE/S/SoulsTrapped.cpp
 )
 
 source_group(
