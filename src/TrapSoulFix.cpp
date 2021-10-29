@@ -948,6 +948,7 @@ bool trapSoul(RE::Actor* const caster, RE::Actor* const victim)
                 _InventoryStatus::HasSoulGemsToFill) {
                 // Caster doesn't have any soul gems. Stop looking.
                 LOG_TRACE("Caster has no soul gems to fill. Stop looking."sv);
+                break;
             }
 
             if (d.victim().soulSize() == SoulSize::Black) {
