@@ -164,7 +164,7 @@ add_library(
 target_compile_features(
     ${PROJECT_NAME}
     PRIVATE
-        cxx_std_23
+        cxx_std_20
 )
 
 target_include_directories(
