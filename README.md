@@ -62,6 +62,20 @@ specs. We use certain constructs that are only valid in v1.0+.
    [Important CMake Variables](#important-cmake-variables) section for details.
 5. Build the project.
 
+### Using a Different Compiler Version
+
+You can pick a different compiler version than the default in Visual Studio by
+setting the following settings:
+
+* Add `-Tv<msvc_version>` to CMake's command arguments.
+* Use the Visual Studio generator instead of Ninja (otherwise it won't recognize
+  the argument).
+
+_Note:_ Within Visual Studio's UI, the generator configuration may be hidden
+under advanced settings.
+
+![CMake Configuration](images/cmake-custom-compiler-0.png)
+
 ### Important CMake Variables
 
 #### Required
