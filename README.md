@@ -74,7 +74,7 @@ setting the following settings:
 _Note:_ Within Visual Studio's UI, the generator configuration may be hidden
 under advanced settings.
 
-![CMake Configuration](images/cmake-custom-compiler-0.png)
+![CMake Configuration](images/cmake-custom-compiler-0-marked.png)
 
 ### Important CMake Variables
 
