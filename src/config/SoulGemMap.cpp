@@ -189,7 +189,7 @@ void SoulGemMap::initializeWith(
      * form. 
      */
     std::unordered_map<const SoulGemGroup*, RE::TESSoulGem*>
-        blackSoulGemFilledMap;
+        filledBlackSoulGemMap;
 
     for (const auto& group : t._groupsToAdd) {
         // Add black soul gems to the map.
@@ -218,7 +218,7 @@ void SoulGemMap::initializeWith(
 
                 // Add the max-filled black soul gem form to the map for
                 // reference when adding dual soul gems.
-                blackSoulGemFilledMap.emplace(&group, filledSoulGem);
+                filledBlackSoulGemMap.emplace(&group, filledSoulGem);
             } else if (!isDualSoulGemGroup(group)) {
                 std::vector forms = _validateAndGetForms(group, dataHandler);
 
@@ -257,14 +257,14 @@ void SoulGemMap::initializeWith(
                 // Since we should have processed all the black soul gem groups
                 // already, each of which should have added an entry to this
                 // map, this suggests that there's a bug.
-                if (!blackSoulGemFilledMap.contains(&blackSoulGemGroup)) {
+                if (!filledBlackSoulGemMap.contains(&blackSoulGemGroup)) {
                     throw std::runtime_error(fmt::format(
                         FMT_STRING(
                             "Failed to find filled black soul gem for dual soul gem group \"{}\"."sv),
                         group.id()));
                 }
 
-                forms.push_back(blackSoulGemFilledMap.at(&blackSoulGemGroup));
+                forms.push_back(filledBlackSoulGemMap.at(&blackSoulGemGroup));
 
                 auto& dualSoulGems = _whiteSoulGems[SoulSize::Black - 1];
 

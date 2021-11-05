@@ -22,19 +22,8 @@ template <typename T>
 requires std::integral<T>
 inline constexpr SoulSize _toSoulSize(const T soulSize)
 {
-    switch (soulSize) {
-    case 1:
-        return SoulSize::Petty;
-    case 2:
-        return SoulSize::Lesser;
-    case 3:
-        return SoulSize::Common;
-    case 4:
-        return SoulSize::Greater;
-    case 5:
-        return SoulSize::Grand;
-    case 6:
-        return SoulSize::Black;
+    if (SoulSize::Petty <= soulSize && soulSize <= SoulSize::Black) {
+        return static_cast<SoulSize>(soulSize);
     }
 
     throw EntryValueOutOfRangeError(
