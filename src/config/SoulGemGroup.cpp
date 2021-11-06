@@ -92,7 +92,7 @@ LoadPriority _parsePriority(const toml::table& table)
     return priority;
 }
 
-SoulGemGroup::MembersType
+SoulGemGroup::MemberList
     _parseMembers(const toml::table& table, const SoulSize capacity)
 {
     const auto value = table[MEMBERS_KEY].as_array();
@@ -104,7 +104,7 @@ SoulGemGroup::MembersType
             "Expected non-empty array entry named 'members'"};
     }
 
-    SoulGemGroup::MembersType members;
+    SoulGemGroup::MemberList members;
     std::size_t index = 0;
 
     for (const toml::node& elem : *value) {

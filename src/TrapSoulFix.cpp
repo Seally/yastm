@@ -400,7 +400,7 @@ bool _fillBlackSoulGem(_SoulTrapData& d)
     return _fillSoulGem(sourceSoulGems, targetSoulGems, d);
 }
 
-bool _tryReplaceBlackSoulInDualSoulGemsWithWhiteSoul(_SoulTrapData& d)
+bool _tryReplaceBlackSoulInDualSoulGemWithWhiteSoul(_SoulTrapData& d)
 {
     const auto& soulGemMap = YASTMConfig::getInstance().soulGemMap();
 
@@ -597,14 +597,12 @@ bool _trapFullSoul(_SoulTrapData& d)
         //
         // "Future me" note: We've already checked for soul relocation.
         if (d.config[BC::AllowSoulDisplacement] &&
-            // If partial fills are disallowed, the soul must be a grand soul
-            // (all dual soul gems are grand soul gems).
-            (!d.config[BC::AllowPartiallyFillingSoulGems] ||
+            (d.config[BC::AllowPartiallyFillingSoulGems] ||
              d.victim().soulSize() == SoulSize::Grand)) {
-            LOG_TRACE("Looking up dual soul gems filled with a black soul");
+            LOG_TRACE("Looking up dual soul filled gems with a black soul"sv);
 
             const bool result =
-                _tryReplaceBlackSoulInDualSoulGemsWithWhiteSoul(d);
+                _tryReplaceBlackSoulInDualSoulGemWithWhiteSoul(d);
 
             if (result) {
                 d.notifySoulTrapSuccess(

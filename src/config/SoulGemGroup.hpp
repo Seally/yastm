@@ -20,14 +20,14 @@ namespace RE {
 class SoulGemGroup {
 public:
     using IdType = std::string;
-    using MembersType = std::vector<FormId>;
+    using MemberList = std::vector<FormId>;
 
 private:
     IdType _id;
     bool _isReusable;
     SoulSize _capacity;
     LoadPriority _priority;
-    MembersType _members;
+    MemberList _members;
 
 public:
     explicit SoulGemGroup(const toml::table& table);
@@ -52,7 +52,7 @@ public:
         return rawPriority();
     }
 
-    const MembersType& members() const { return _members; }
+    const MemberList& members() const { return _members; }
     const FormId& emptyMember() const { return members().front(); }
     const FormId& filledMember() const { return members().back(); }
 };
