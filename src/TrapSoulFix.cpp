@@ -94,6 +94,7 @@ class _SoulTrapData {
     RE::Actor* _caster;
     _InventoryStatus _casterInventoryStatus;
     UnorderedInventoryItemMap _inventoryMap;
+    std::unordered_set<SoulSize> _nullSearchResults;
 
     VictimsQueue _victims;
     std::optional<Victim> _victim;
@@ -114,6 +115,45 @@ class _SoulTrapData {
             RE::SoulsTrapped::SendEvent(caster(), victim);
             _isStatIncremented = true;
         }
+    }
+
+    void _resetInventoryData()
+    {
+        std::size_t maxFilledSoulGemsCount = 0;
+
+        // This should be a move.
+        _inventoryMap =
+            getInventoryFor(_caster, [&](const RE::TESBoundObject& obj) {
+                return obj.IsSoulGem();
+            });
+
+        // Counts the number of fully-filled soul gems.
+        //
+        // Note: This ignores the fact that we can still displace white
+        // grand souls from black soul gems and vice versa.
+        //
+        // However, displacing white grand souls from black soul gems only
+        // adds value when there exists a soul gem it can be displaced to,
+        // thus it's preferable that we exit the soul processing anyway.
+        for (const auto& [obj, entryData] : _inventoryMap) {
+            const auto soulGem = obj->As<RE::TESSoulGem>();
+
+            if (soulGem->GetMaximumCapacity() == soulGem->GetContainedSoul()) {
+                ++maxFilledSoulGemsCount;
+            }
+        }
+
+        if (_inventoryMap.size() <= 0) {
+            _casterInventoryStatus = _InventoryStatus::NoSoulGemsOwned;
+        } else if (_inventoryMap.size() == maxFilledSoulGemsCount) {
+            _casterInventoryStatus = _InventoryStatus::AllSoulGemsFilled;
+        } else {
+            _casterInventoryStatus = _InventoryStatus::HasSoulGemsToFill;
+        }
+
+        _nullSearchResults.clear();
+
+        _isInventoryMapDirty = false;
     }
 
 public:
@@ -160,40 +200,7 @@ public:
         _victims.pop();
 
         if (_isInventoryMapDirty) {
-            std::size_t maxFilledSoulGemsCount = 0;
-
-            // This should be a move.
-            _inventoryMap =
-                getInventoryFor(_caster, [&](const RE::TESBoundObject& obj) {
-                    return obj.IsSoulGem();
-                });
-
-            // Counts the number of fully-filled soul gems.
-            //
-            // Note: This ignores the fact that we can still displace white
-            // grand souls from black soul gems and vice versa.
-            //
-            // However, displacing white grand souls from black soul gems only
-            // adds value when there exists a soul gem it can be displaced to,
-            // thus it's preferable that we exit the soul processing anyway.
-            for (const auto& [obj, entryData] : _inventoryMap) {
-                const auto soulGem = obj->As<RE::TESSoulGem>();
-
-                if (soulGem->GetMaximumCapacity() ==
-                    soulGem->GetContainedSoul()) {
-                    ++maxFilledSoulGemsCount;
-                }
-            }
-
-            if (_inventoryMap.size() <= 0) {
-                _casterInventoryStatus = _InventoryStatus::NoSoulGemsOwned;
-            } else if (_inventoryMap.size() == maxFilledSoulGemsCount) {
-                _casterInventoryStatus = _InventoryStatus::AllSoulGemsFilled;
-            } else {
-                _casterInventoryStatus = _InventoryStatus::HasSoulGemsToFill;
-            }
-
-            _isInventoryMapDirty = false;
+            _resetInventoryData();
         }
     }
 
@@ -211,6 +218,19 @@ public:
         // not manage these resources on its own for performance).
         assert(!_isInventoryMapDirty);
         return _inventoryMap;
+    }
+
+    bool hasPotentialTarget(const Victim& victim) const
+    {
+        // This should not happen if the class is used correctly (the class does
+        // not manage these resources on its own for performance).
+        assert(!_isInventoryMapDirty);
+
+        return !_nullSearchResults.contains(victim.soulSize());
+    }
+    void addDiscardedVictim(const Victim& victim)
+    {
+        _nullSearchResults.emplace(victim.soulSize());
     }
 
     VictimsQueue& victims() { return _victims; }
@@ -938,6 +958,10 @@ bool trapSoul(RE::Actor* const caster, RE::Actor* const victim)
                 break;
             }
 
+            if (!d.hasPotentialTarget(d.victim())) {
+                continue;
+            }
+
             if (d.victim().soulSize() == SoulSize::Black) {
                 if (_trapBlackSoul(d)) {
                     isSoulTrapSuccessful = true;
@@ -977,9 +1001,10 @@ bool trapSoul(RE::Actor* const caster, RE::Actor* const victim)
                 } else if (
                     soulShrinkingTechnique == SoulShrinkingTechnique::Split) {
                     _splitSoul(d.victim(), d.victims());
-                    continue; // Process next soul.
                 }
             }
+
+            d.addDiscardedVictim(d.victim());
         }
 
         if (isSoulTrapSuccessful) {
