@@ -28,7 +28,7 @@ Configuration examples have been provided in the `examples` folder. A reference
 * [Vcpkg](https://github.com/microsoft/vcpkg)
   * Add the environment variable `VCPKG_ROOT` with the value as the path to
     the folder containing Vcpkg.
-* [Visual Studio Community 2019](https://visualstudio.microsoft.com/)
+* [Visual Studio Community 2019/2022](https://visualstudio.microsoft.com/)
   * Desktop development with C++.
   * The project currently does not officially support any compilers other than
     MSVC. Everything is written with the assumption that MSVC is the compiler,
@@ -57,7 +57,7 @@ specs. We use certain constructs that are only valid in v1.0+.
      and restart `explorer.exe` for this to apply properly.
 2. Clone the project _and_ its submodules using
    `git clone --recurse-submodules <repo_url>`.
-3. Open the project in Visual Studio (preferred version: Visual Studio 2019).
+3. Open the project in Visual Studio (preferred version: Visual Studio 2022).
 4. Set CMake variables. See
    [Important CMake Variables](#important-cmake-variables) section for details.
 5. Build the project.
