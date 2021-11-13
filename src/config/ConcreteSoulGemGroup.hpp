@@ -1,86 +1,70 @@
 #pragma once
 
 #include <exception>
-#include <memory>
-#include <string>
-#include <vector>
+#include <unordered_map>
 
-#include <fmt/format.h>
-#include <toml++/toml_table.h>
-
-#include <RE/S/SoulLevels.h>
+#include "SoulGemGroup.hpp"
+#include "SoulSize.hpp"
 
 #include "../utilities/stringutils.hpp"
-#include "FormId.hpp"
-#include "LoadPriority.hpp"
-#include "SoulSize.hpp"
 
 namespace RE {
     class TESDataHandler;
     class TESSoulGem;
 } // end namespace RE
 
-class SoulGemGroup {
+class ConcreteSoulGemGroup {
 public:
-    using IdType = std::string;
-    using MemberList = std::vector<FormId>;
+    using IdType = SoulGemGroup::IdType;
 
 private:
+    using FormMap = std::unordered_map<SoulSize, RE::TESSoulGem*>;
+
     IdType _id;
-    bool _isReusable;
     SoulGemCapacity _capacity;
-    LoadPriority _priority;
-    MemberList _members;
+
+    FormMap _forms;
+
+    void _initializeFromPrimaryBasis(
+        const SoulGemGroup& sourceGroup,
+        RE::TESDataHandler* dataHandler);
+    void _initializeFromSecondaryBasis(
+        const ConcreteSoulGemGroup& blackSoulGemGroup);
 
 public:
-    explicit SoulGemGroup(const toml::table& table);
+    explicit ConcreteSoulGemGroup(
+        const SoulGemGroup& sourceGroup,
+        RE::TESDataHandler* dataHandler);
+    explicit ConcreteSoulGemGroup(
+        const SoulGemGroup& whiteGrandSoulGemGroup,
+        const ConcreteSoulGemGroup& blackSoulGemGroup,
+        RE::TESDataHandler* dataHandler);
 
     [[nodiscard]] const IdType& id() const { return _id; }
-    [[nodiscard]] bool isReusable() const { return _isReusable; }
-
-    /**
-     * @brief Returns the soul capacity of the soul gems in this group. Note
-     * that this should never return SoulGemCapacity::Dual since we don't
-     * support explicitly setting that value in the configuration files.
-     */
     [[nodiscard]] SoulGemCapacity capacity() const { return _capacity; }
-    /**
-     * @brief Returns the "effective" soul gem capacity, used to match against
-     * the values reported by the game soul gem forms.
-     */
-    [[nodiscard]] RE::SOUL_LEVEL effectiveCapacity() const
-    {
-        return toSoulLevel(capacity());
-    }
 
-    [[nodiscard]] LoadPriority rawPriority() const { return _priority; }
-    [[nodiscard]] LoadPriority priority() const
+    [[nodiscard]] RE::TESSoulGem* at(const SoulSize containedSoulSize) const
     {
-        if (rawPriority() == LoadPriority::Auto) {
-            return isReusable() ? LoadPriority::High : LoadPriority::Normal;
+        const auto result = _forms.find(containedSoulSize);
+
+        if (result != _forms.end()) {
+            return result->second;
         }
 
-        return rawPriority();
+        return nullptr;
     }
 
-    [[nodiscard]] const MemberList& members() const { return _members; }
-    [[nodiscard]] const FormId& emptyMember() const
-    {
-        return members().front();
-    }
-    [[nodiscard]] const FormId& filledMember() const
-    {
-        return members().back();
-    }
+    [[nodiscard]] auto begin() const { return _forms.begin(); }
+    [[nodiscard]] auto end() const { return _forms.end(); }
 };
 
-class SoulGemGroupError : public std::runtime_error {
+class ConcreteSoulGemGroupError : public std::runtime_error {
 public:
-    explicit SoulGemGroupError(const std::string& message);
+    explicit ConcreteSoulGemGroupError(const std::string& message);
 };
 
 template <>
-struct fmt::formatter<SoulGemGroup> {
+struct fmt::formatter<ConcreteSoulGemGroup> {
 private:
     enum class Capitalization {
         AllLower,
@@ -89,7 +73,6 @@ private:
 
     bool _showReusability = false;
     bool _showCapacity = false;
-    bool _showPriority = false;
     Capitalization _capitalization = Capitalization::AllLower;
 
 public:
@@ -103,13 +86,6 @@ public:
     // Capacity:
     //
     //     'c': Show capacity string ("black"/"petty"/"common"/etc.)
-    //
-    // Reusability:
-    //
-    //     'r': Show reusability string ("reusable"/"non-reusable")
-    //
-    // Priority:
-    //     'p': Show priority and raw priority values.
     constexpr auto parse(format_parse_context& ctx) -> decltype(ctx.begin())
     {
         // [ctx.begin(), ctx.end()) is a character range that contains a part of
@@ -132,14 +108,8 @@ public:
             case 'u':
                 _capitalization = Capitalization::FirstUpper;
                 break;
-            case 'r':
-                _showReusability = true;
-                break;
             case 'c':
                 _showCapacity = true;
-                break;
-            case 'p':
-                _showPriority = true;
                 break;
             default:
                 throw format_error("invalid format");
@@ -153,16 +123,10 @@ public:
     // Formats the point p using the parsed format specification (presentation)
     // stored in this formatter.
     template <typename FormatContext>
-    auto format(const SoulGemGroup& group, FormatContext& ctx)
+    auto format(const ConcreteSoulGemGroup& group, FormatContext& ctx)
         -> decltype(ctx.out())
     {
-        // ctx.out() is an output iterator to write to.
         std::string formatString;
-
-        if (_showReusability) {
-            formatString.append(
-                group.isReusable() ? "reusable " : "non-reusable ");
-        }
 
         if (_showCapacity) {
             formatString.append(
@@ -170,13 +134,6 @@ public:
         }
 
         formatString.append("soul gem group \"{}\"");
-
-        if (_showPriority) {
-            formatString.append(fmt::format(
-                FMT_STRING(" (priority={}, rawPriority={})"),
-                group.priority(),
-                group.rawPriority()));
-        }
 
         if (_capitalization == Capitalization::FirstUpper) {
             capitalizeFirstChar(formatString);

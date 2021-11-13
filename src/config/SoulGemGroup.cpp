@@ -4,6 +4,8 @@
 #include <iterator>
 #include <queue>
 
+#include <cassert>
+
 #include "../global.hpp"
 #include "../utilities/algorithms.hpp"
 #include "ParseError.hpp"
@@ -20,27 +22,39 @@ namespace {
 
 template <typename T>
 requires std::integral<T>
-inline constexpr SoulSize _toSoulSize(const T soulSize)
+constexpr SoulGemCapacity _toSoulGemCapacityFromConfig(const T capacity)
 {
-    if (SoulSize::Petty <= soulSize && soulSize <= SoulSize::Black) {
-        return static_cast<SoulSize>(soulSize);
+    switch (capacity) {
+    case 1:
+        return SoulGemCapacity::Petty;
+    case 2:
+        return SoulGemCapacity::Lesser;
+    case 3:
+        return SoulGemCapacity::Common;
+    case 4:
+        return SoulGemCapacity::Greater;
+    case 5:
+        return SoulGemCapacity::Grand;
+    case 6:
+        return SoulGemCapacity::Black;
     }
 
     throw EntryValueOutOfRangeError(
         CAPACITY_KEY.data(),
-        EntryRange(
-            static_cast<int>(SoulSize::Petty),
-            static_cast<int>(SoulSize::Black)),
+        EntryRange(1, 6),
         "Invalid value for entry 'capacity'");
 }
 
-std::size_t _getExpectedMemberCountForCapacity(const SoulSize capacity)
+std::size_t _getExpectedMemberCountForCapacity(const SoulGemCapacity capacity)
 {
-    if (capacity == SoulSize::Black) {
+    switch (capacity) {
+    case SoulGemCapacity::Dual:
+        return 6;
+    case SoulGemCapacity::Black:
         return 2;
-    }
+    }   
 
-    return capacity + 1;
+    return capacity + 2;
 }
 
 std::string _parseId(const toml::table& table)
@@ -57,7 +71,7 @@ std::string _parseId(const toml::table& table)
     return value->get();
 }
 
-SoulSize _parseCapacity(const toml::table& table)
+SoulGemCapacity _parseCapacity(const toml::table& table)
 {
     const auto value = table[CAPACITY_KEY].as_integer();
 
@@ -68,7 +82,11 @@ SoulSize _parseCapacity(const toml::table& table)
             "Expected integer entry named 'capacity'"};
     }
 
-    return _toSoulSize(value->get());
+    const auto capacity = _toSoulGemCapacityFromConfig(value->get());
+
+    assert(capacity != SoulGemCapacity::Dual);
+
+    return capacity;
 }
 
 bool _parseIsReusable(const toml::table& table)
@@ -93,7 +111,7 @@ LoadPriority _parsePriority(const toml::table& table)
 }
 
 SoulGemGroup::MemberList
-    _parseMembers(const toml::table& table, const SoulSize capacity)
+    _parseMembers(const toml::table& table, const SoulGemCapacity capacity)
 {
     const auto value = table[MEMBERS_KEY].as_array();
 

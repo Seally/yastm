@@ -33,7 +33,7 @@ set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>" CACHE STR
 
 project(
     YASTM
-    VERSION 1.6.2
+    VERSION 1.7.0
     LANGUAGES CXX
 )
 
@@ -96,11 +96,14 @@ set(SOURCES
     src/EnchantItemFix.hpp
     src/EnchantItemFix.cpp
     src/messages.hpp
+    src/SoulValue.hpp
     src/TrapSoulFix.hpp
     src/TrapSoulFix.cpp
     src/versiondb.hpp
     src/Victim.hpp
     src/Victim.cpp
+    src/config/ConcreteSoulGemGroup.hpp
+    src/config/ConcreteSoulGemGroup.cpp
     src/config/ConfigKey.hpp
     src/config/DLLDependencyKey.hpp
     src/config/Form.hpp
@@ -126,6 +129,7 @@ set(SOURCES
     src/utilities/FormType.hpp
     src/utilities/printerror.hpp
     src/utilities/printerror.cpp
+    src/utilities/stringutils.hpp
     src/utilities/TESObjectREFR.hpp
     src/utilities/TESObjectREFR.cpp
     src/utilities/TESSoulGem.hpp

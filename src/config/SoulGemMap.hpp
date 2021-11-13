@@ -1,11 +1,14 @@
 #pragma once
 
 #include <array>
+#include <compare>
 #include <functional>
 #include <vector>
+#include <deque>
 
 #include "../global.hpp"
 #include "SoulSize.hpp"
+#include "ConcreteSoulGemGroup.hpp"
 #include "SpecificationError.hpp"
 
 namespace RE {
@@ -16,12 +19,24 @@ namespace RE {
 class SoulGemGroup;
 
 class SoulGemMap {
+public:
+    class Iterator;
+    using IteratorPair = std::pair<Iterator, Iterator>;
+
+private:
+    using SoulGemList = std::vector<RE::TESSoulGem*>;
+    using FormMap =
+        std::unordered_map<SoulGemCapacity, std::vector<ConcreteSoulGemGroup>>;
+    FormMap _soulGemMap;
+
     std::array<
         std::vector<std::vector<RE::TESSoulGem*>>,
         static_cast<std::size_t>(SoulSize::Black)>
         _whiteSoulGems;
     std::vector<RE::TESSoulGem*> _pureBlackSoulGemsEmpty;
     std::vector<RE::TESSoulGem*> _pureBlackSoulGemsFilled;
+
+    friend class Iterator;
 
 public:
     class Transaction {
@@ -42,38 +57,133 @@ public:
         }
     };
 
+    class Iterator {
+    public:
+        using iterator_category = std::random_access_iterator_tag;
+        using difference_type = std::ptrdiff_t;
+        using value_type = RE::TESSoulGem;
+        using pointer = value_type*;
+        using reference = value_type&;
+
+    private:
+        SoulSize _containedSoulSize;
+        std::size_t _index;
+        const std::vector<ConcreteSoulGemGroup>* _soulGemsAtCapacity;
+
+        explicit Iterator(
+            const std::vector<ConcreteSoulGemGroup>& soulGemsAtCapacity,
+            const SoulSize containedSoulSize,
+            const std::size_t index)
+            : _soulGemsAtCapacity{&soulGemsAtCapacity}
+            , _containedSoulSize{containedSoulSize}
+            , _index{index}
+        {}
+
+        friend class SoulGemMap;
+
+    public:
+        Iterator(const Iterator& other) = default;
+        Iterator(Iterator&& other) = default;
+        Iterator& operator=(const Iterator& other) = default;
+        Iterator& operator=(Iterator&& other) = default;
+
+        const ConcreteSoulGemGroup& group() const
+        {
+            return _soulGemsAtCapacity->at(_index);
+        }
+
+        const SoulSize containedSoulSize() const { return _containedSoulSize; }
+        pointer get() const { return group().at(_containedSoulSize); }
+
+        reference operator*() const { return *group().at(_containedSoulSize); }
+        pointer operator->() const { return get(); }
+
+        Iterator& operator++()
+        {
+            ++_index;
+            return *this;
+        }
+
+        Iterator operator++(int)
+        {
+            Iterator tmp{*this};
+            ++_index;
+            return tmp;
+        }
+
+        Iterator& operator--()
+        {
+            --_index;
+            return *this;
+        }
+
+        Iterator operator--(int)
+        {
+            Iterator tmp = *this;
+            --_index;
+            return tmp;
+        }
+
+        Iterator& operator+=(const difference_type n)
+        {
+            _index += n;
+            return *this;
+        }
+
+        friend Iterator operator+(const Iterator& it, const difference_type n)
+        {
+            Iterator tmp = it;
+            tmp._index += n;
+            return tmp;
+        }
+
+        Iterator& operator-=(const difference_type n)
+        {
+            _index -= n;
+            return *this;
+        }
+
+        friend Iterator operator-(const Iterator& it, const difference_type n)
+        {
+            Iterator tmp = it;
+            tmp._index -= n;
+            return tmp;
+        }
+
+        difference_type operator-(const Iterator& it)
+        {
+            return static_cast<difference_type>(_index - it._index);
+        }
+
+        reference operator[](const difference_type n) { return *(*this + n); }
+
+        friend bool operator==(const Iterator& a, const Iterator& b)
+        {
+            return a._index == b._index;
+        }
+
+        friend auto operator<=>(const Iterator& a, const Iterator& b)
+        {
+            return a._index <=> b._index;
+        }
+    };
+
     void initializeWith(
         RE::TESDataHandler* dataHandler,
         const std::function<void(Transaction&)>& transaction);
 
-    const std::vector<RE::TESSoulGem*>& getWhiteSoulGemsWith(
-        const SoulSize capacity,
+    IteratorPair getSoulGemsWith(
+        const SoulGemCapacity capacity,
         const SoulSize containedSoulSize) const
     {
-        try {
-            return _whiteSoulGems.at(capacity - 1)
-                .at(static_cast<std::size_t>(containedSoulSize));
-        } catch (...) {
-            std::throw_with_nested(InvalidWhiteSoulSpecificationError(
-                capacity,
-                containedSoulSize));
-        }
-    }
+        const auto& soulGemsAtCapacity = _soulGemMap.at(capacity);
 
-    constexpr const std::vector<RE::TESSoulGem*>&
-        getPureBlackSoulGemsWith(const SoulSize containedSoulSize) const
-    {
-        if (containedSoulSize == SoulSize::None) {
-            return _pureBlackSoulGemsEmpty;
-        }
-
-        if (containedSoulSize == SoulSize::Black) {
-            return _pureBlackSoulGemsFilled;
-        }
-
-        throw InvalidBlackSoulSpecificationError(
-            SoulSize::Black,
-            containedSoulSize);
+        return {
+            Iterator{soulGemsAtCapacity, containedSoulSize, 0},
+            Iterator{
+                soulGemsAtCapacity,
+                containedSoulSize,
+                soulGemsAtCapacity.size()}};
     }
 
     void printContents() const;

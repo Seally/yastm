@@ -14,16 +14,16 @@ namespace RE {
     class TESDataHandler;
 } // end namespace RE
 
-template<typename T>
+template <typename T>
 class Form {
 protected:
     std::optional<FormId> _formId;
-    T* _form;
+    T* _form = nullptr;
 
 public:
     static constexpr auto FormType = T::FORMTYPE;
 
-    explicit Form() : _form{nullptr} {}
+    explicit Form() {}
     virtual ~Form() {}
 
     void setFromToml(const toml::array& arr);
@@ -63,9 +63,6 @@ inline void Form<T>::loadForm(RE::TESDataHandler* const dataHandler)
     if (formType == FormType) {
         _form = form->As<T>();
     } else {
-        throw UnexpectedFormTypeError{
-            FormType,
-            formType,
-            form->GetName()};
+        throw UnexpectedFormTypeError{FormType, formType, form->GetName()};
     }
 }
