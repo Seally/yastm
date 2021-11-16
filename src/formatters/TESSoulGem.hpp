@@ -4,7 +4,7 @@
 
 #include <RE/T/TESSoulGem.h>
 #include <RE/B/BGSDefaultObjectManager.h>
-#include "../utilities/TESSoulGem.hpp"
+#include "../utilities/soultraputilities.hpp"
 
 template <>
 struct fmt::formatter<RE::TESSoulGem> {

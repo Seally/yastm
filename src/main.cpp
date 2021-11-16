@@ -11,33 +11,14 @@
 #include "EnchantItemFix.hpp"
 #include "TrapSoulFix.hpp"
 
-//#include "versiondb.hpp"
-
-//bool DumpOffsets() {
-//	VersionDb db;
-//
-//	if (!db.Load()) {
-//		LOG_CRITICAL("Failed to load offset database."sv);
-//		return false;
-//	}
-//
-//	const std::string& version{db.GetLoadedVersionString()};
-//
-//	db.Dump("offsets-" + version + ".txt");
-//	LOG_INFO_FMT("Dumped offsets for {}", version);
-//
-//	return true;
-//}
-
-extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Query(
-    const SKSE::QueryInterface* a_skse,
-    SKSE::PluginInfo* a_info)
+bool setUpLogging()
 {
     using namespace std::literals;
     namespace logger = SKSE::log;
 
     auto path = logger::log_directory();
-    if (!path) {
+    if (!path.has_value()) {
+        LOG_ERROR("Could not open log directory.");
         return false;
     }
 
@@ -60,21 +41,6 @@ extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Query(
     spdlog::set_pattern("%g(%#): [%^%l%$] %v"s);
 
     LOG_INFO_FMT("{} v{}"sv, version::PROJECT, version::NAME);
-
-    a_info->infoVersion = SKSE::PluginInfo::kVersion;
-    a_info->name = version::PROJECT.data();
-    a_info->version = version::MAJOR;
-
-    if (a_skse->IsEditor()) {
-        LOG_CRITICAL("Loaded in editor, marking as incompatible"sv);
-        return false;
-    }
-
-    const auto ver = a_skse->RuntimeVersion();
-    if (ver < SKSE::RUNTIME_1_5_39) {
-        LOG_CRITICAL_FMT("Unsupported runtime version {}"sv, ver.string());
-        return false;
-    }
 
     return true;
 }
@@ -100,23 +66,96 @@ bool installPatch(
     return false;
 }
 
-extern "C" DLLEXPORT bool SKSEAPI
-    SKSEPlugin_Load(const SKSE::LoadInterface* a_skse)
+bool installPatches(const SKSE::LoadInterface* const skse)
 {
-    using namespace std::literals;
-    LOG_INFO_FMT("Loaded {} v{}"sv, version::PROJECT, version::NAME);
-
-    SKSE::Init(a_skse);
-
+    // If any patch succeeds, return true since the executable code is modified.
     bool result = installPatch("ChargeItemFix"sv, installChargeItemFix);
-    // Use bitwise to avoid short-circuiting.
-    result &= installPatch("EnchantItemFix"sv, installEnchantItemFix);
-
-    try {
-        result &= installPatch("SoulTrapFix"sv, installTrapSoulFix, a_skse);
-    } catch (const std::exception& error) {
-        LOG_ERROR(error.what());
-    }
-
+    result |= installPatch("EnchantItemFix"sv, installEnchantItemFix);
+    result |= installPatch("SoulTrapFix"sv, installTrapSoulFix, skse);
     return result;
 }
+
+#if defined(SKYRIM_VERSION_SE)
+
+//#include "versiondb.hpp"
+
+//bool DumpOffsets() {
+//	VersionDb db;
+//
+//	if (!db.Load()) {
+//		LOG_CRITICAL("Failed to load offset database."sv);
+//		return false;
+//	}
+//
+//	const std::string& version{db.GetLoadedVersionString()};
+//
+//	db.Dump("offsets-" + version + ".txt");
+//	LOG_INFO_FMT("Dumped offsets for {}", version);
+//
+//	return true;
+//}
+
+extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Query(
+    const SKSE::QueryInterface* a_skse,
+    SKSE::PluginInfo* a_info)
+{
+    setUpLogging();
+
+    a_info->infoVersion = SKSE::PluginInfo::kVersion;
+    a_info->name = version::PROJECT.data();
+    a_info->version = version::MAJOR;
+
+    if (a_skse->IsEditor()) {
+        LOG_CRITICAL("Loaded in editor, marking as incompatible"sv);
+        return false;
+    }
+
+    const auto ver = a_skse->RuntimeVersion();
+    if (ver < SKSE::RUNTIME_1_5_39) {
+        LOG_CRITICAL_FMT("Unsupported runtime version {}"sv, ver.string());
+        return false;
+    }
+
+    return true;
+}
+
+extern "C" DLLEXPORT bool SKSEAPI
+    SKSEPlugin_Load(const SKSE::LoadInterface* skse)
+{
+    LOG_INFO_FMT("Loaded {} v{}", version::PROJECT, version::NAME);
+
+    SKSE::Init(skse);
+
+    return installPatches(skse);
+}
+
+#elif defined(SKYRIM_VERSION_AE)
+
+extern "C" {
+    DLLEXPORT const SKSE::PluginVersionData SKSEPlugin_Version =
+        ([]() constexpr->SKSE::PluginVersionData {
+            SKSE::PluginVersionData v;
+
+            v.PluginVersion(
+                REL::Version(version::MAJOR, version::MINOR, version::PATCH));
+            v.PluginName(version::PROJECT);
+            v.AuthorName("Seally");
+            v.UsesAddressLibrary(false);
+            v.UsesSigScanning(false);
+            v.CompatibleVersions({SKSE::RUNTIME_1_6_318});
+
+            return v;
+        })();
+
+    DLLEXPORT bool SKSEPlugin_Load(const SKSE::LoadInterface* skse)
+    {
+        setUpLogging();
+
+        LOG_INFO_FMT("Loaded {} v{}", version::PROJECT, version::NAME);
+        SKSE::Init(skse);
+
+        return installPatches(skse);
+    }
+};
+
+#endif

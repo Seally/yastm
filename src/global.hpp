@@ -28,3 +28,10 @@
 #define LOG_WARN_FMT(str, ...) LOG_WARN(FMT_STRING(str), __VA_ARGS__)
 #define LOG_ERROR_FMT(str, ...) LOG_ERROR(FMT_STRING(str), __VA_ARGS__)
 #define LOG_CRITICAL_FMT(str, ...) LOG_CRITICAL(FMT_STRING(str), __VA_ARGS__)
+
+#define VERSION_CODE(primary, secondary, sub)                 \
+    (((primary & 0xFFF) << 20) | ((secondary & 0xFFF) << 8) | \
+     ((sub & 0xFF) << 0))
+#define VERSION_CODE_PRIMARY(in) ((in >> 20) & 0xFFF)
+#define VERSION_CODE_SECONDARY(in) ((in >> 8) & 0xFFF)
+#define VERSION_CODE_SUB(in) ((in >> 0) & 0xFF)

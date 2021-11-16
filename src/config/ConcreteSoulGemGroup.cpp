@@ -6,7 +6,7 @@
 
 #include "../global.hpp"
 #include "../formatters/TESSoulGem.hpp"
-#include "../utilities/TESSoulGem.hpp"
+#include "../utilities/soultraputilities.hpp"
 #include "FormError.hpp"
 #include "SpecificationError.hpp"
 

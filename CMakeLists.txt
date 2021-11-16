@@ -29,11 +29,15 @@ endif()
 set(Boost_USE_STATIC_RUNTIME OFF CACHE BOOL "")
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>" CACHE STRING "")
 
+set(SKYRIM_VERSION "SE" CACHE STRING "Specifies Skyrim version. Possible values: SE, AE")
+
+set_property(CACHE SKYRIM_VERSION PROPERTY STRINGS "SE" "AE")
+
 # ---- Project ----
 
 project(
     YASTM
-    VERSION 1.7.0
+    VERSION 2.0.0
     LANGUAGES CXX
 )
 
@@ -129,11 +133,11 @@ set(SOURCES
     src/utilities/FormType.hpp
     src/utilities/printerror.hpp
     src/utilities/printerror.cpp
+    src/utilities/soultraputilities.hpp
+    src/utilities/soultraputilities.cpp
     src/utilities/stringutils.hpp
     src/utilities/TESObjectREFR.hpp
     src/utilities/TESObjectREFR.cpp
-    src/utilities/TESSoulGem.hpp
-    src/utilities/TESSoulGem.cpp
     src/utilities/Timer.hpp
     src/RE/S/SoulsTrapped.hpp
     src/RE/S/SoulsTrapped.cpp
@@ -249,6 +253,25 @@ target_precompile_headers(
     PRIVATE
         src/PCH.hpp
 )
+
+# Note that we use
+#     MAJOR=2 for SE
+#     MAJOR=1 for LE
+if (SKYRIM_VERSION STREQUAL "SE")
+    target_compile_definitions(${PROJECT_NAME} PRIVATE
+        SKYRIM_VERSION_MAJOR=2
+        SKYRIM_VERSION_MINOR=5
+        SKYRIM_VERSION_SE
+    )
+elseif(SKYRIM_VERSION STREQUAL "AE")
+    target_compile_definitions(${PROJECT_NAME} PRIVATE
+        SKYRIM_VERSION_MAJOR=2
+        SKYRIM_VERSION_MINOR=6
+        SKYRIM_VERSION_AE
+    )
+else()
+    message(FATAL_ERROR "Unsupported Skyrim version: ${SKYRIM_VERSION}")
+endif()
 
 # ---- Post build ----
 

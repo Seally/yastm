@@ -28,8 +28,8 @@
 #include "config/YASTMConfig.hpp"
 #include "formatters/TESSoulGem.hpp"
 #include "utilities/printerror.hpp"
+#include "utilities/soultraputilities.hpp"
 #include "utilities/TESObjectREFR.hpp"
-#include "utilities/TESSoulGem.hpp"
 #include "utilities/Timer.hpp"
 
 using namespace std::literals;
@@ -43,32 +43,6 @@ using BC = BoolConfigKey;
  * @brief Enum Config Key
  */
 using EC = EnumConfigKey;
-
-namespace native {
-    /**
-     * @brief Returns the remaining "raw" soul size of the actor.
-     *
-     * The raw soul size is the actual capacity of the soul. They're mapped to
-     * the enumerated soul sizes as follows:
-     *
-     * - None = 0
-     * - Petty = 250
-     * - Lesser = 500
-     * - Common = 1000
-     * - Greater = 2000
-     * - Grand = 3000
-     *
-     * @returns 0 if the actor has already been soul trapped, otherwise returns
-     * their raw soul size.
-     */
-    RawSoulSize getRemainingRawSoulSize(RE::Actor* const actor)
-    {
-        using func_t = decltype(getRemainingRawSoulSize);
-        REL::Relocation<func_t> func{
-            REL::ID{37861}}; // SkyrimSE.exe + 0x634830 (v1.5.97.0)
-        return func(actor);
-    }
-}
 
 enum class _InventoryStatus {
     HasSoulGemsToFill,
@@ -869,7 +843,9 @@ public:
     }
 };
 
-std::mutex _trapSoulMutex; /* Process only one soul trap at a time. */
+namespace {
+    std::mutex _trapSoulMutex; /* Process only one soul trap at a time. */
+} // end anonymous namespace
 
 bool trapSoul(RE::Actor* const caster, RE::Actor* const victim)
 {
@@ -904,7 +880,7 @@ bool trapSoul(RE::Actor* const caster, RE::Actor* const victim)
     // We begin the mutex here since we're checking isSoulTrapped status next.
     std::lock_guard<std::mutex> guard{_trapSoulMutex};
 
-    if (native::getRemainingRawSoulSize(victim) == RawSoulSize::None) {
+    if (getRemainingSoulLevelValue(victim) == SoulLevelValue::None) {
         LOG_TRACE("Victim has already been soul trapped."sv);
         return false;
     }
@@ -1052,7 +1028,8 @@ bool _isTrapSoulPatchable(
 {
     const std::uint8_t expectedEntry[] = {
         // clang-format off
-        // .text:0000000140634917
+        // [1.5.97.0]  .text:0000000140634917
+        // [1.6.318.0] .text:000000014065A9E7 (bytes are identical)
         0x48, 0x89, 0x58, 0x10,            // mov  [rax+10h], rbx
         0x48, 0x89, 0x68, 0x18,            // mov  [rax+18h], rbp
         0x48, 0x8b, 0xf2,                  // mov  rsi, rdx
@@ -1066,7 +1043,8 @@ bool _isTrapSoulPatchable(
 
     const std::uint8_t expectedExit[] = {
         // clang-format off
-        // .text:0000000140634B56
+        // [1.5.97.0]  .text:0000000140634B56
+        // [1.6.318.0] .text:0000000140634B56 (bytes are identical)
         0x4c, 0x8d, 0x5c, 0x24, 0x70, // lea r11, [rsp+98h+var_28]
         0x49, 0x8b, 0x5b, 0x38,       // mov rbx, [r11+38h]
         0x49, 0x8b, 0x6b, 0x40,       // mov rbp, [r11+40h]
@@ -1113,9 +1091,19 @@ bool installTrapSoulFix(const SKSE::LoadInterface* loadInterface)
     auto messaging = SKSE::GetMessagingInterface();
     messaging->RegisterListener(_handleMessage);
 
+    // [soulTrap1_id]
+    // 
+    // SkyrimSE.exe + 0x634900 [1.5.97.0]
+    // SkyrimSE.exe + 0x65a9d0 [1.6.318.0]
+
+#if defined(SKYRIM_VERSION_SE)
     const REL::ID soulTrap1_id{37863};
-    constexpr std::uintptr_t callOffset = 0x17;
-    constexpr std::uintptr_t returnOffset = 0x256;
+    constexpr std::uintptr_t returnOffset = 0x256; // 0x256 [1.5.97.0]
+#elif defined(SKYRIM_VERSION_AE)
+    const REL::Offset soulTrap1_id{0x65a9d0};
+    constexpr std::uintptr_t returnOffset = 0x282; // 0x282 [1.6.318.0]
+#endif
+    constexpr std::uintptr_t callOffset = 0x17; // Same in AE
 
     if (!_isTrapSoulPatchable(
             soulTrap1_id.address(),
@@ -1129,7 +1117,11 @@ bool installTrapSoulFix(const SKSE::LoadInterface* loadInterface)
     // ending address.
     struct TrapSoulCall : Xbyak::CodeGenerator {
         explicit TrapSoulCall(
+#if defined(SKYRIM_VERSION_SE)
             const REL::ID& soulTrap1_id,
+#elif defined(SKYRIM_VERSION_AE)
+            const REL::Offset& soulTrap1_id,
+#endif
             const std::uintptr_t returnOffset)
         {
             Xbyak::Label trapSoulLabel;

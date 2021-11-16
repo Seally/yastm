@@ -23,7 +23,7 @@ enum class SoulSize {
     LastWhite = Grand,
 };
 
-enum class RawSoulSize {
+enum class SoulLevelValue {
     None = 0,
     Petty = 250,
     Lesser = 500,
@@ -89,22 +89,22 @@ enum class SoulGemCapacity {
         static_cast<std::underlying_type_t<SoulGemCapacity>>(capacity)));
 }
 
-[[nodiscard]] constexpr RawSoulSize toRawSoulSize(const SoulSize soulSize)
+[[nodiscard]] constexpr SoulLevelValue toSoulLevelValue(const SoulSize soulSize)
 {
     switch (soulSize) {
     case SoulSize::None:
-        return RawSoulSize::None;
+        return SoulLevelValue::None;
     case SoulSize::Petty:
-        return RawSoulSize::Petty;
+        return SoulLevelValue::Petty;
     case SoulSize::Lesser:
-        return RawSoulSize::Lesser;
+        return SoulLevelValue::Lesser;
     case SoulSize::Common:
-        return RawSoulSize::Common;
+        return SoulLevelValue::Common;
     case SoulSize::Greater:
-        return RawSoulSize::Greater;
+        return SoulLevelValue::Greater;
     case SoulSize::Grand:
     case SoulSize::Black:
-        return RawSoulSize::Grand;
+        return SoulLevelValue::Grand;
     }
 
     throw std::runtime_error(fmt::format(
@@ -399,10 +399,10 @@ public:
 };
 
 template <>
-struct fmt::formatter<RawSoulSize> : formatter<int> {
+struct fmt::formatter<SoulLevelValue> : formatter<int> {
     // parse is inherited from formatter<unsigned int>.
     template <typename FormatContext>
-    auto format(const RawSoulSize soulSize, FormatContext& ctx)
+    auto format(const SoulLevelValue soulSize, FormatContext& ctx)
     {
         return formatter<int>::format(static_cast<int>(soulSize), ctx);
     }

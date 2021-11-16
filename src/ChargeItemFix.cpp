@@ -13,8 +13,11 @@ bool _isChargeItemPatchable(std::uintptr_t baseAddress, std::uintptr_t offset)
     // Reuseable soul gem handling branch code.
     const std::uint8_t expected[] = {
         // clang-format off
-        // .text:000000014088EB35
-        // loc_14088EB35:
+        // .text:000000014088EB35 [1.5.97.0]
+        // .text:00000001408BE27B [1.6.318.0] (bytes are identical)
+
+        // [1.5.97.0]  loc_14088EB35:
+        // [1.6.318.0] loc_1408BE27B:
         0x48, 0x85, 0xc0,             // rax is probably ExtraDataList
                                       // test    rax, rax            ; TEST performs an implied AND operation that does not modify the destination but sets CPU flags as if it did.
                                       //                             ; ANDing anything against itself produces itself, so this followed by JZ (Jump If Zero) is equivalent to the code:
@@ -46,16 +49,39 @@ bool _isChargeItemPatchable(std::uintptr_t baseAddress, std::uintptr_t offset)
 
 bool installChargeItemFix()
 {
+    //
+    // [chargeItem_id]
+    //
     // CraftingSubMenus::EnchantMenu::EnchantItem
-    const REL::ID chargeItem_id{50980}; // SkyrimSE.exe + 0x88e890 (v1.5.97)
-    const REL::ID player_id{517014};    // SkyrimSE.exe + 0x2f26ef8 (v1.5.97)
+    // SkyrimSE.exe + 0x88e890 [1.5.97.0]
+    // SkyrimSE.exe + 0x8bdfe0 [1.6.318.0]
+    //
+    // [player_id]
+    // SkyrimSE.exe + 0x2f26ef8 [1.5.97.0]
+    // SkyrimSE.exe + 0x2fc19c8 [1.6.318.0]
+    //
+    // [updateInventory_id]
+    //
     // This probably isn't updateInventory and may actually be part of the
     // update loop, but updating inventory is what we use it for here.
-    // 
-    // SkyrimSE.exe + 0x8d5710 (v1.5.97)
-    const REL::ID updateInventory_id{51911};
+    //
+    // SkyrimSE.exe + 0x8d5710 [1.5.97.0]
+    // SkyrimSE.exe + 0x905cd0 [1.6.318.0]
 
-    constexpr std::uintptr_t patchOffset = 0x2a5;
+#if defined(SKYRIM_VERSION_SE)
+    const REL::ID chargeItem_id{50980}; // SkyrimSE.exe + 0x88e890  [1.5.97.0]
+    const REL::ID player_id{517014};    // SkyrimSE.exe + 0x2f26ef8 [1.5.97.0]
+    const REL::ID updateInventory_id{
+        51911}; // SkyrimSE.exe + 0x8d5710  [1.5.97.0]
+
+    constexpr std::uintptr_t patchOffset = 0x2a5; // 0x2a5 [1.5.97.0]
+#elif defined(SKYRIM_VERSION_AE)
+    const REL::Offset chargeItem_id(0x8bdfe0);
+    const REL::Offset player_id{0x2fc19c8};
+    const REL::Offset updateInventory_id{0x905cd0};
+
+    constexpr std::uintptr_t patchOffset = 0x29b; // 0x29b [1.6.318.0]
+#endif
 
     if (!_isChargeItemPatchable(chargeItem_id.address(), patchOffset)) {
         return false;
@@ -67,13 +93,35 @@ bool installChargeItemFix()
 		 * @param[in] chargeItem_id         The REL::ID of the function to patch.
 		 */
         explicit Patch(
+#if defined(SKYRIM_VERSION_SE)
             const REL::ID& player_id,
             const REL::ID& chargeItem_id,
-            const REL::ID& updateInventory_id)
+            const REL::ID& updateInventory_id
+#elif defined(SKYRIM_VERSION_AE)
+            const REL::Offset& player_id,
+            const REL::Offset& chargeItem_id,
+            const REL::Offset& updateInventory_id
+#endif
+        )
         {
-            constexpr std::uintptr_t stackSize = 0xc8;
-            constexpr std::uintptr_t returnOffset = 0x2b9;
-            constexpr std::uintptr_t branchReturnOffset = 0x2b2;
+            constexpr std::uintptr_t stackSize = 0xc8; // Same in AE
+            // Offset to return to when we finish our little detour.
+
+#if defined(SKYRIM_VERSION_SE)
+            constexpr std::uintptr_t returnOffset = 0x2b9; // 0x2b9 [1.5.97.0]
+#elif defined(SKYRIM_VERSION_AE)
+            constexpr std::uintptr_t returnOffset = 0x2af; // 0x2af [1.6.318.0]
+#endif
+
+            // Offset to return to when the reusable soul gem doesn't have a
+            // NAM0 field.
+#if defined(SKYRIM_VERSION_SE)
+            constexpr std::uintptr_t branchReturnOffset =
+                0x2b2; // 0x2b2 [1.5.97.0]
+#elif defined(SKYRIM_VERSION_AE)
+            constexpr std::uintptr_t branchReturnOffset =
+                0x2a8; // 0x2a8 [1.6.318.0]
+#endif
 
             // Pseudocode:
             // if (soulGem->NAM0 == null) {
@@ -150,7 +198,7 @@ bool installChargeItemFix()
             // gem won't show up until the user reopens the inventory menu.
             //
             // Also, it seems we need to call this before removing the item,
-            // otherwise this seems to do nothing.
+            // otherwise this will do nothing.
             //
             // 1st argument of the function seems to be the actor in question,
             // and the 2nd the item to add. When removing items, the 2nd
@@ -158,6 +206,12 @@ bool installChargeItemFix()
             //
             // This function is called for the item remove case already, but not
             // for the added item (since it doesn't originally call it at all).
+            //
+            // Note: In the disassembly, the "remove item" version of this
+            //       function is called within the function at:
+            //
+            //           SkyrimSE.exe + 856a50 [1.5.97.0]
+            //           SkyrimSE.exe + 883930 [1.6.318.0]
             mov(rdx, ptr[rbx + 0x100]);
             mov(rcx, player_id.address());
             mov(rcx, ptr[rcx]);
