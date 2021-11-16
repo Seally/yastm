@@ -131,31 +131,28 @@ extern "C" DLLEXPORT bool SKSEAPI
 
 #elif defined(SKYRIM_VERSION_AE)
 
-extern "C" {
-    DLLEXPORT const SKSE::PluginVersionData SKSEPlugin_Version =
-        ([]() constexpr->SKSE::PluginVersionData {
-            SKSE::PluginVersionData v;
+extern "C" DLLEXPORT constexpr auto SKSEPlugin_Version = []() {
+    SKSE::PluginVersionData v{};
 
-            v.PluginVersion(
-                REL::Version(version::MAJOR, version::MINOR, version::PATCH));
-            v.PluginName(version::PROJECT);
-            v.AuthorName("Seally");
-            v.UsesAddressLibrary(false);
-            v.UsesSigScanning(false);
-            v.CompatibleVersions({SKSE::RUNTIME_1_6_318});
+    v.PluginVersion(
+        REL::Version(version::MAJOR, version::MINOR, version::PATCH));
+    v.PluginName(version::PROJECT);
+    v.AuthorName("Seally");
+    v.UsesAddressLibrary(false);
+    v.UsesSigScanning(false);
+    v.CompatibleVersions({SKSE::RUNTIME_1_6_318});
 
-            return v;
-        })();
+    return v;
+}();
 
-    DLLEXPORT bool SKSEPlugin_Load(const SKSE::LoadInterface* skse)
-    {
-        setUpLogging();
+extern "C" DLLEXPORT bool SKSEPlugin_Load(const SKSE::LoadInterface* skse)
+{
+    setUpLogging();
 
-        LOG_INFO_FMT("Loaded {} v{}", version::PROJECT, version::NAME);
-        SKSE::Init(skse);
+    LOG_INFO_FMT("Loaded {} v{}", version::PROJECT, version::NAME);
+    SKSE::Init(skse);
 
-        return installPatches(skse);
-    }
-};
+    return installPatches(skse);
+}
 
 #endif
