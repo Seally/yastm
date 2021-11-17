@@ -75,8 +75,6 @@ bool installPatches(const SKSE::LoadInterface* const skse)
     return result;
 }
 
-#if defined(SKYRIM_VERSION_SE)
-
 //#include "versiondb.hpp"
 
 //bool DumpOffsets() {
@@ -96,21 +94,21 @@ bool installPatches(const SKSE::LoadInterface* const skse)
 //}
 
 extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Query(
-    const SKSE::QueryInterface* a_skse,
-    SKSE::PluginInfo* a_info)
+    const SKSE::QueryInterface* skse,
+    SKSE::PluginInfo* info)
 {
     setUpLogging();
 
-    a_info->infoVersion = SKSE::PluginInfo::kVersion;
-    a_info->name = version::PROJECT.data();
-    a_info->version = version::MAJOR;
+    info->infoVersion = SKSE::PluginInfo::kVersion;
+    info->name = version::PROJECT.data();
+    info->version = version::MAJOR;
 
-    if (a_skse->IsEditor()) {
+    if (skse->IsEditor()) {
         LOG_CRITICAL("Loaded in editor, marking as incompatible"sv);
         return false;
     }
 
-    const auto ver = a_skse->RuntimeVersion();
+    const auto ver = skse->RuntimeVersion();
     if (ver < SKSE::RUNTIME_1_5_39) {
         LOG_CRITICAL_FMT("Unsupported runtime version {}"sv, ver.string());
         return false;
@@ -128,31 +126,3 @@ extern "C" DLLEXPORT bool SKSEAPI
 
     return installPatches(skse);
 }
-
-#elif defined(SKYRIM_VERSION_AE)
-
-extern "C" DLLEXPORT constexpr auto SKSEPlugin_Version = []() {
-    SKSE::PluginVersionData v{};
-
-    v.PluginVersion(
-        REL::Version(version::MAJOR, version::MINOR, version::PATCH));
-    v.PluginName(version::PROJECT);
-    v.AuthorName("Seally");
-    v.UsesAddressLibrary(false);
-    v.UsesSigScanning(false);
-    v.CompatibleVersions({SKSE::RUNTIME_1_6_318});
-
-    return v;
-}();
-
-extern "C" DLLEXPORT bool SKSEPlugin_Load(const SKSE::LoadInterface* skse)
-{
-    setUpLogging();
-
-    LOG_INFO_FMT("Loaded {} v{}", version::PROJECT, version::NAME);
-    SKSE::Init(skse);
-
-    return installPatches(skse);
-}
-
-#endif

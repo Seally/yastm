@@ -60,26 +60,16 @@ bool installEnchantItemFix()
     //
     // CraftingSubMenus::EnchantMenu::EnchantItem
     //
-    // SkyrimSE.exe + 0x86c640 [1.5.97.0]
+    // SkyrimSE.exe + 0x86c640 [1.5.97.0]  [ADDRLIB:50450]
     // SkyrimSE.exe + 0x89a9c0 [1.6.318.0]
-    //
-    // [player_id]
-    //
-    // SkyrimSE.exe + 0x2f26ef8 [1.5.97.0]
-    // SkyrimSE.exe + 0x2fc19c8 [1.6.318.0]
+    const REL::ID craftingSubMenus_enchantConstructMenu_enchantItem_id(50450);
 
-#if defined(SKYRIM_VERSION_SE)
-    const REL::ID craftingSubMenus_enchantConstructMenu_enchantItem_id{50450};
+    // SkyrimSE.exe + 0x2f26ef8 [1.5.97.0]  [ADDRLIB:517014]
+    // SkyrimSE.exe + 0x2fc19c8 [1.6.318.0]
     const REL::ID player_id{517014};
 
     constexpr std::uintptr_t patchOffset = 0x222; // 0x222 [1.5.97.0]
-#elif defined(SKYRIM_VERSION_AE)
-    const REL::Offset craftingSubMenus_enchantConstructMenu_enchantItem_id{
-        0x89a9c0};
-    const REL::Offset player_id{0x2fc19c8};
-
-    constexpr std::uintptr_t patchOffset = 0x220; // 0x220 [1.6.318.0]
-#endif
+                                                  // 0x220 [1.6.318.0]
 
     if (!_isEnchantItemPatchable(
             craftingSubMenus_enchantConstructMenu_enchantItem_id.address(),
@@ -93,32 +83,19 @@ bool installEnchantItemFix()
          * @param[in] craftingSubMenus_enchantConstructMenu_enchantItem_id  The REL::ID of the function to patch.
          */
         explicit Patch(
-#if defined(SKYRIM_VERSION_SE)
             const REL::ID& player_id,
-            const REL::ID& craftingSubMenus_enchantConstructMenu_enchantItem_id
-#elif defined(SKYRIM_VERSION_AE)
-            const REL::Offset& player_id,
-            const REL::Offset&
-                craftingSubMenus_enchantConstructMenu_enchantItem_id
-#endif
-        )
+            const REL::ID& craftingSubMenus_enchantConstructMenu_enchantItem_id)
         {
             constexpr std::uintptr_t stackSize = 0xb8; // Same in AE
+
             // Offset to return to when we finish our little detour.
-
-#if defined(SKYRIM_VERSION_SE)
             constexpr std::uintptr_t returnOffset = 0x236; // 0x236 [1.5.97.0]
-#elif defined(SKYRIM_VERSION_AE)
-            constexpr std::uintptr_t returnOffset = 0x234; // 0x234 [1.6.318.0]
-#endif
+                                                           // 0x234 [1.6.318.0]
 
-            // Offset to return to when the reusable soul gem doesn't have a
-            // NAM0 field.
-#if defined(SKYRIM_VERSION_SE)
+            // Offset to return to when the reusable soul gem does not have a
+            // NAM0 field. 
             constexpr std::uintptr_t setSoulOffset = 0x22f; // 0x22f [1.5.97.0]
-#elif defined(SKYRIM_VERSION_AE)
-            constexpr std::uintptr_t setSoulOffset = 0x22d; // 0x22d [1.6.318.0]
-#endif
+                                                            // 0x22d [1.6.318.0]
 
             // Pseudocode:
             // if (soulGem->NAM0 == null) {

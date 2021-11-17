@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.21)
 
 # ---- Options ----
 
@@ -29,15 +29,11 @@ endif()
 set(Boost_USE_STATIC_RUNTIME OFF CACHE BOOL "")
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>" CACHE STRING "")
 
-set(SKYRIM_VERSION "SE" CACHE STRING "Specifies Skyrim version. Possible values: SE, AE")
-
-set_property(CACHE SKYRIM_VERSION PROPERTY STRINGS "SE" "AE")
-
 # ---- Project ----
 
 project(
     YASTM
-    VERSION 2.0.0
+    VERSION 1.7.0
     LANGUAGES CXX
 )
 
@@ -253,25 +249,6 @@ target_precompile_headers(
     PRIVATE
         src/PCH.hpp
 )
-
-# Note that we use
-#     MAJOR=2 for SE
-#     MAJOR=1 for LE
-if (SKYRIM_VERSION STREQUAL "SE")
-    target_compile_definitions(${PROJECT_NAME} PRIVATE
-        SKYRIM_VERSION_MAJOR=2
-        SKYRIM_VERSION_MINOR=5
-        SKYRIM_VERSION_SE
-    )
-elseif(SKYRIM_VERSION STREQUAL "AE")
-    target_compile_definitions(${PROJECT_NAME} PRIVATE
-        SKYRIM_VERSION_MAJOR=2
-        SKYRIM_VERSION_MINOR=6
-        SKYRIM_VERSION_AE
-    )
-else()
-    message(FATAL_ERROR "Unsupported Skyrim version: ${SKYRIM_VERSION}")
-endif()
 
 # ---- Post build ----
 

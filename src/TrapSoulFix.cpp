@@ -1008,7 +1008,7 @@ bool trapSoul(RE::Actor* const caster, RE::Actor* const victim)
     return false;
 }
 
-void _handleMessage(SKSE::MessagingInterface::Message* message)
+void _handleMessage(SKSE::MessagingInterface::Message* const message)
 {
     using namespace std::literals;
 
@@ -1075,7 +1075,7 @@ bool _isTrapSoulPatchable(
     return true;
 }
 
-bool installTrapSoulFix(const SKSE::LoadInterface* loadInterface)
+bool installTrapSoulFix(const SKSE::LoadInterface* const loadInterface)
 {
     try {
         auto& config = YASTMConfig::getInstance();
@@ -1093,16 +1093,11 @@ bool installTrapSoulFix(const SKSE::LoadInterface* loadInterface)
 
     // [soulTrap1_id]
     // 
-    // SkyrimSE.exe + 0x634900 [1.5.97.0]
+    // SkyrimSE.exe + 0x634900 [1.5.97.0]  [ADDRID:37863]
     // SkyrimSE.exe + 0x65a9d0 [1.6.318.0]
-
-#if defined(SKYRIM_VERSION_SE)
     const REL::ID soulTrap1_id{37863};
     constexpr std::uintptr_t returnOffset = 0x256; // 0x256 [1.5.97.0]
-#elif defined(SKYRIM_VERSION_AE)
-    const REL::Offset soulTrap1_id{0x65a9d0};
-    constexpr std::uintptr_t returnOffset = 0x282; // 0x282 [1.6.318.0]
-#endif
+                                                   // 0x282 [1.6.318.0]
     constexpr std::uintptr_t callOffset = 0x17; // Same in AE
 
     if (!_isTrapSoulPatchable(
@@ -1117,11 +1112,7 @@ bool installTrapSoulFix(const SKSE::LoadInterface* loadInterface)
     // ending address.
     struct TrapSoulCall : Xbyak::CodeGenerator {
         explicit TrapSoulCall(
-#if defined(SKYRIM_VERSION_SE)
             const REL::ID& soulTrap1_id,
-#elif defined(SKYRIM_VERSION_AE)
-            const REL::Offset& soulTrap1_id,
-#endif
             const std::uintptr_t returnOffset)
         {
             Xbyak::Label trapSoulLabel;

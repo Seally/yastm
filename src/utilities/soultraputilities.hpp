@@ -17,58 +17,51 @@ inline bool canHoldBlackSoul(const RE::TESSoulGem* const soulGemForm)
            RE::TESSoulGem::RecordFlags::kCanHoldNPCSoul;
 }
 
-inline RE::SOUL_LEVEL getSoulSize(RE::Actor* const actor)
-{
-    using func_t = decltype(getSoulSize);
-    // SkyrimSE.exe + 0x6348a0 [1.5.97.0]
-    // SkyrimSE.exe + 0x65a970 [1.6.318.0]
-#if defined(SKYRIM_VERSION_SE)
-    REL::Relocation<func_t> func{REL::ID{37862}};
-#elif defined(SKYRIM_VERSION_AE)
-    REL::Relocation<func_t> func{REL::Offset{0x65a970}};
-#endif
-    return func(actor);
-}
-
+// TODO: Possibly related to/same as Actor::CalculateCachedOwnerIsNPC()
 inline bool isActorNPC(RE::Actor* const actor)
 {
     using func_t = decltype(isActorNPC);
-    // SkyrimSE.exe + 0x606850 [1.5.97.0]
+    // SkyrimSE.exe + 0x606850 [1.5.97.0]  [ADDRLIB:36889]
     // SkyrimSE.exe + 0x62de60 [1.6.318.0]
-#if defined(SKYRIM_VERSION_SE)
-    REL::Relocation<func_t> func{REL::ID{36889}};
-#elif defined(SKYRIM_VERSION_AE)
-    REL::Relocation<func_t> func{REL::Offset{0x62de60}};
-#endif
+    REL::Relocation<func_t> func(REL::ID(36889));
     return func(actor);
 }
+
+//inline RE::SOUL_LEVEL
+//    calculateSoulLevel(const std::uint32_t actorLevel, const bool isNPC)
+//{
+//    using func_t = decltype(calculateSoulLevel);
+//    // SkyrimSE.exe + 0x3c1740 [1.5.97.0]  [ADDRLIB:25933]
+//    // SkyrimSE.exe + 0x3d91a0 [1.6.318.0]
+//    REL::Relocation<func_t> func{REL::ID{25933}};
+//    return func(actorLevel, isNPC);
+//}
+//
+//inline RE::SOUL_LEVEL getSoulLevel(RE::Actor* const actor) {
+//    return calculateSoulLevel(actor->GetLevel(), isActorNPC(actor));
+//}
 
 inline RE::SOUL_LEVEL getRemainingSoulLevel(RE::Actor* const actor)
 {
+    actor->GetLevel();
     using func_t = decltype(getRemainingSoulLevel);
-    // SkyrimSE.exe + 0x6348a0 [1.5.97.0]
+    // SkyrimSE.exe + 0x6348a0 [1.5.97.0]  [ADDRLIB:37862]
     // SkyrimSE.exe + 0x65a970 [1.6.318.0]
-#if defined(SKYRIM_VERSION_SE)
-    REL::Relocation<func_t> func{REL::ID{37862}};
-#elif defined(SKYRIM_VERSION_AE)
-    REL::Relocation<func_t> func{REL::Offset{0x65a970}};
-#endif
+    REL::Relocation<func_t> func(REL::ID(37862));
     return func(actor);
 }
 
-inline RE::SOUL_LEVEL
-    calculateSoulLevel(std::uint32_t actorLevel, const bool isNPC)
-{
-    using func_t = decltype(calculateSoulLevel);
-    // SkyrimSE.exe + 0x3c1740 [1.5.97.0]
-    // SkyrimSE.exe + 0x3d91a0 [1.6.318.0]
-#if defined(SKYRIM_VERSION_SE)
-    REL::Relocation<func_t> func{REL::ID{25933}};
-#elif defined(SKYRIM_VERSION_AE)
-    REL::Relocation<func_t> func{REL::Offset{0x3d91a0}};
-#endif
-    return func(actorLevel, isNPC);
-}
+///**
+// * Converts RE::SOUL_LEVEL to a SoulLevelValue. 
+// */
+//inline SoulLevelValue toSoulLevelValue(const RE::SOUL_LEVEL soulLevel)
+//{
+//    using func_t = SoulLevelValue(RE::SOUL_LEVEL);
+//    // SkyrimSE.exe + 0x237a90 [1.5.97.0]  [ADDRLIB:17753]
+//    // SkyrimSE.exe + 0x247e20 [1.6.318.0]
+//    REL::Relocation<func_t> func(REL::ID(17753));
+//    return func(soulLevel);
+//}
 
 /**
  * @brief Returns the remaining "raw" soul size of the actor.
@@ -86,28 +79,11 @@ inline RE::SOUL_LEVEL
  * @returns 0 if the actor has already been soul trapped, otherwise returns
  * their raw soul size.
  */
-inline SoulLevelValue getRemainingSoulLevelValue(const RE::SOUL_LEVEL soulLevel)
-{
-    using func_t = SoulLevelValue(RE::SOUL_LEVEL soulSize);
-    // SkyrimSE.exe + 0x237a90 [1.5.97.0]
-    // SkyrimSE.exe + 0x247e20 [1.6.318.0]
-#if defined(SKYRIM_VERSION_SE)
-    REL::Relocation<func_t> func{REL::ID{17753}};
-#elif defined(SKYRIM_VERSION_AE)
-    REL::Relocation<func_t> func{REL::Offset{0x247e20}};
-#endif
-    return func(soulLevel);
-}
-
 inline SoulLevelValue getRemainingSoulLevelValue(RE::Actor* const actor)
 {
-    using func_t = SoulLevelValue(RE::Actor * actor);
-    // SkyrimSE.exe + 0x634830 [1.5.97.0]
+    using func_t = decltype(getRemainingSoulLevelValue);
+    // SkyrimSE.exe + 0x634830 [1.5.97.0]  [ADDRLIB:37861]
     // SkyrimSE.exe + 0x65a900 [1.6.318.0] (inlined but not removed in source).
-#if defined(SKYRIM_VERSION_SE)
-    REL::Relocation<func_t> func{REL::ID{37861}};
-#elif defined(SKYRIM_VERSION_AE)
-    REL::Relocation<func_t> func{REL::Offset{0x65a900}};
-#endif
+    REL::Relocation<func_t> func(REL::ID(37861));
     return func(actor);
 }

@@ -10,13 +10,9 @@ namespace RE {
     {
         using func_t = decltype(&SoulsTrapped::GetEventSource);
 
-        // SkyrimSE.exe + 0x636c40 [1.5.97.0]
+        // SkyrimSE.exe + 0x636c40 [1.5.97.0]  [ADDRLIB:37916]
         // SkyrimSE.exe + 0x65c9e0 [1.6.318.0]
-#if defined(SKYRIM_VERSION_SE)
-        REL::Relocation<func_t> func{REL::ID(37916)};
-#elif defined(SKYRIM_VERSION_AE)
-        REL::Relocation<func_t> func{REL::Offset(0x65C9E0)};
-#endif
+        REL::Relocation<func_t> func(REL::ID(37916));
         return func();
     }
 

@@ -12,7 +12,7 @@ SoulSize _getActorSoulSize(RE::Actor* const actor)
         return SoulSize::Black;
     }
 
-    return static_cast<SoulSize>(getSoulSize(actor));
+    return toSoulSize(getRemainingSoulLevel(actor));
 }
 
 Victim::Victim(RE::Actor* const actor)
