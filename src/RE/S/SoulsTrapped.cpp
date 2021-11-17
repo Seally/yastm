@@ -12,7 +12,7 @@ namespace RE {
 
         // SkyrimSE.exe + 0x636c40 [1.5.97.0]  [ADDRLIB:37916]
         // SkyrimSE.exe + 0x65c9e0 [1.6.318.0]
-        REL::Relocation<func_t> func(REL::ID(37916));
+        REL::Relocation<func_t> func(REL::Offset(0x65c9e0));
         return func();
     }
 

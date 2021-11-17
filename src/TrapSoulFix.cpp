@@ -1095,8 +1095,8 @@ bool installTrapSoulFix(const SKSE::LoadInterface* const loadInterface)
     // 
     // SkyrimSE.exe + 0x634900 [1.5.97.0]  [ADDRID:37863]
     // SkyrimSE.exe + 0x65a9d0 [1.6.318.0]
-    const REL::ID soulTrap1_id{37863};
-    constexpr std::uintptr_t returnOffset = 0x256; // 0x256 [1.5.97.0]
+    const REL::Offset soulTrap1_id{0x65a9d0};
+    constexpr std::uintptr_t returnOffset = 0x282; // 0x256 [1.5.97.0]
                                                    // 0x282 [1.6.318.0]
     constexpr std::uintptr_t callOffset = 0x17; // Same in AE
 
@@ -1112,7 +1112,7 @@ bool installTrapSoulFix(const SKSE::LoadInterface* const loadInterface)
     // ending address.
     struct TrapSoulCall : Xbyak::CodeGenerator {
         explicit TrapSoulCall(
-            const REL::ID& soulTrap1_id,
+            const REL::Offset& soulTrap1_id,
             const std::uintptr_t returnOffset)
         {
             Xbyak::Label trapSoulLabel;

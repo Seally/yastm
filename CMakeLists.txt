@@ -33,7 +33,7 @@ set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>" CACHE STR
 
 project(
     YASTM
-    VERSION 1.7.0
+    VERSION 2.0.0
     LANGUAGES CXX
 )
 
