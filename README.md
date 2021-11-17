@@ -70,6 +70,12 @@ setting the following settings:
 * Add `-Tv<msvc_version>` to CMake's command arguments.
 * Use the Visual Studio generator instead of Ninja (otherwise it won't recognize
   the argument).
+  * In Visual Studio 2022, the bundled CMake version does not currently support
+    the VS2022 generator as of this writing. In order to use this generator,
+    install an up-to-date version of CMake and change the CMake executable path
+    to point to it (should be under advanced settings).
+
+    If you also have VS2019 installed, you can use its generator instead.
 
 _Note:_ Within Visual Studio's UI, the generator configuration may be hidden
 under advanced settings.
