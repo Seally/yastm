@@ -52,20 +52,20 @@ bool installChargeItemFix()
     // CraftingSubMenus::EnchantMenu::EnchantItem
     // SkyrimSE.exe + 0x88e890 [1.5.97.0]  [ADDRLIB:50980]
     // SkyrimSE.exe + 0x8bdfe0 [1.6.318.0]
-    const REL::Offset chargeItem_id(0x8bdfe0);
+    const REL::ID chargeItem_id(50980);
 
     // SkyrimSE.exe + 0x2f26ef8 [1.5.97.0]  [ADDRLIB:517014]
     // SkyrimSE.exe + 0x2fc19c8 [1.6.318.0]
-    const REL::Offset player_id(0x2fc19c8);
+    const REL::ID player_id(517014);
 
     // This probably isn't updateInventory and may actually be part of the
     // update loop, but updating inventory is what we use it for here.
     //
     // SkyrimSE.exe + 0x8d5710 [1.5.97.0]  [ADDRLIB:51911]
     // SkyrimSE.exe + 0x905cd0 [1.6.318.0]
-    const REL::Offset updateInventory_id(0x905cd0);
+    const REL::ID updateInventory_id(51911);
 
-    constexpr std::uintptr_t patchOffset = 0x29b; // 0x2a5 [1.5.97.0]
+    constexpr std::uintptr_t patchOffset = 0x2a5; // 0x2a5 [1.5.97.0]
                                                   // 0x29b [1.6.318.0]
 
     if (!_isChargeItemPatchable(chargeItem_id.address(), patchOffset)) {
@@ -74,24 +74,24 @@ bool installChargeItemFix()
 
     struct Patch : Xbyak::CodeGenerator {
         /**
-		 * @param[in] player_id      The REL::Offset of the player.
-		 * @param[in] chargeItem_id  The REL::Offset of the function to patch.
+		 * @param[in] player_id             The REL::ID of the player.
+		 * @param[in] chargeItem_id         The REL::ID of the function to patch.
 		 */
         explicit Patch(
-            const REL::Offset& player_id,
-            const REL::Offset& chargeItem_id,
-            const REL::Offset& updateInventory_id)
+            const REL::ID& player_id,
+            const REL::ID& chargeItem_id,
+            const REL::ID& updateInventory_id)
         {
             constexpr std::uintptr_t stackSize = 0xc8; // Same in AE
 
             // Offset to return to when we finish our little detour.
-            constexpr std::uintptr_t returnOffset = 0x2af; // 0x2b9 [1.5.97.0]
+            constexpr std::uintptr_t returnOffset = 0x2b9; // 0x2b9 [1.5.97.0]
                                                            // 0x2af [1.6.318.0]
 
             // Offset to return to when the reusable soul gem doesn't have a
             // NAM0 field.
             constexpr std::uintptr_t branchReturnOffset =
-                0x2a8; // 0x2b2 [1.5.97.0]
+                0x2b2; // 0x2b2 [1.5.97.0]
                        // 0x2a8 [1.6.318.0]
 
             // Pseudocode:

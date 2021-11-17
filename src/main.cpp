@@ -93,25 +93,34 @@ bool installPatches(const SKSE::LoadInterface* const skse)
 //	return true;
 //}
 
-extern "C" DLLEXPORT constinit auto SKSEPlugin_Version = []() {
-    SKSE::PluginVersionData v;
-
-    v.PluginVersion(
-        REL::Version(version::MAJOR, version::MINOR, version::PATCH));
-    v.PluginName(version::PROJECT);
-    v.AuthorName("Seally");
-    v.UsesAddressLibrary(false);
-    v.UsesSigScanning(false);
-    v.CompatibleVersions({SKSE::RUNTIME_1_6_318});
-
-    return v;
-}();
-
-extern "C" DLLEXPORT bool SKSEPlugin_Load(const SKSE::LoadInterface* skse)
+extern "C" DLLEXPORT bool SKSEAPI
+    SKSEPlugin_Query(const SKSE::QueryInterface* skse, SKSE::PluginInfo* info)
 {
     setUpLogging();
 
+    info->infoVersion = SKSE::PluginInfo::kVersion;
+    info->name = version::PROJECT.data();
+    info->version = version::MAJOR;
+
+    if (skse->IsEditor()) {
+        LOG_CRITICAL("Loaded in editor, marking as incompatible"sv);
+        return false;
+    }
+
+    const auto ver = skse->RuntimeVersion();
+    if (ver < SKSE::RUNTIME_1_5_39) {
+        LOG_CRITICAL_FMT("Unsupported runtime version {}"sv, ver.string());
+        return false;
+    }
+
+    return true;
+}
+
+extern "C" DLLEXPORT bool SKSEAPI
+    SKSEPlugin_Load(const SKSE::LoadInterface* skse)
+{
     LOG_INFO_FMT("Loaded {} v{}", version::PROJECT, version::NAME);
+
     SKSE::Init(skse);
 
     return installPatches(skse);
