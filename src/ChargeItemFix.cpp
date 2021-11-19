@@ -157,7 +157,7 @@ bool installChargeItemFix()
             //     std::int32_t a_count,
             //     TESObjectREFR * a_fromRefr
             // )
-            mov(rax, ptr[r10]);                    // rax <= player
+            mov(rax, ptr[r10]);                    // rax <- player
             mov(ptr[rsp + stackSize - 0xa8], r12); // a_fromRefr = 0
             mov(r9d, 1);                           // a_count = 1
             mov(r8, r12);                          // a_extraList = 0
@@ -168,8 +168,8 @@ bool installChargeItemFix()
             // Updates the inventory UI. If we don't call this, the added soul
             // gem won't show up until the user reopens the inventory menu.
             //
-            // Also, it seems we need to call this before removing the item,
-            // otherwise this will do nothing.
+            // It seems we need to call this before removing the item, otherwise
+            // this will do nothing.
             //
             // 1st argument of the function seems to be the actor in question,
             // and the 2nd the item to add. When removing items, the 2nd
@@ -214,7 +214,7 @@ bool installChargeItemFix()
             //     const NiPoint3 * a_dropLoc = 0, <- 0
             //     const NiPoint3 * a_rotate = 0   <- 0
             // )
-            mov(rax, ptr[r10]);                    // rax <= player
+            mov(rax, ptr[r10]);                    // rax <- player
             mov(ptr[rsp + stackSize - 0x88], r12); // a_rotate = 0
             mov(ptr[rsp + stackSize - 0x90], r12); // a_dropLoc = 0
             mov(ptr[rsp + stackSize - 0x98], r12); // a_moveToRef = 0

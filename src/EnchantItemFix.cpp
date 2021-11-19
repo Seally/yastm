@@ -157,7 +157,7 @@ bool installEnchantItemFix()
             //     std::int32_t a_count,
             //     TESObjectREFR * a_fromRefr
             // )
-            mov(rax, ptr[r10]);                    // rax <= player
+            mov(rax, ptr[r10]);                    // rax <- player
             mov(ptr[rsp + stackSize - 0x98], r13); // a_fromRefr = 0
             mov(r9d, 1);                           // a_count = 1
             mov(r8, r13);                          // a_extraList = 0
@@ -194,7 +194,7 @@ bool installEnchantItemFix()
             //     const NiPoint3 * a_dropLoc = 0, <- 0
             //     const NiPoint3 * a_rotate = 0   <- 0
             // )
-            mov(rax, ptr[r10]);                    // rax <= player
+            mov(rax, ptr[r10]);                    // rax <- player
             mov(ptr[rsp + stackSize - 0x78], r13); // a_rotate = 0
             mov(ptr[rsp + stackSize - 0x80], r13); // a_dropLoc = 0
             mov(ptr[rsp + stackSize - 0x88], r13); // a_moveToRef = 0
