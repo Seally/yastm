@@ -14,6 +14,8 @@
 class FormId {
     std::uint32_t _id;
     std::string _pluginName;
+    /** Lowercase-only version of the plugin name. Used for comparison. **/
+    std::string _pluginNameLower;
 
 public:
     explicit FormId(const toml::array& arr);
@@ -23,11 +25,15 @@ public:
 
     std::uint32_t id() const { return _id; }
     const std::string& pluginName() const { return _pluginName; }
-};
 
-inline bool operator==(const FormId& lhs, const FormId& rhs) {
-    return lhs.id() == rhs.id() && lhs.pluginName() == rhs.pluginName();
-}
+    friend bool operator==(const FormId& lhs, const FormId& rhs)
+    {
+        return lhs._id == rhs._id &&
+               lhs._pluginNameLower == rhs._pluginNameLower;
+    }
+
+    friend std::hash<FormId>;
+};
 
 // Inject hash specialization into std namespace.
 namespace std {
@@ -36,8 +42,8 @@ namespace std {
         std::size_t operator()(const FormId& formId) const noexcept {
             std::size_t seed = 0;
 
-            boost::hash_combine(seed, formId.id());
-            boost::hash_combine(seed, formId.pluginName());
+            boost::hash_combine(seed, formId._id);
+            boost::hash_combine(seed, formId._pluginNameLower);
 
             return seed;
         }

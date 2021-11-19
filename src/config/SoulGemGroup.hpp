@@ -179,7 +179,7 @@ public:
         }
 
         if (_capitalization == Capitalization::FirstUpper) {
-            capitalizeFirstChar(formatString);
+            capitalizeFirstChar(formatString, formatString);
         }
 
         return fmt::format_to(ctx.out(), formatString, group.id());

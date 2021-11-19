@@ -1,5 +1,7 @@
 #include "FormId.hpp"
 
+#include "../utilities/stringutils.hpp"
+
 #include "ParseError.hpp"
 
 FormId::FormId(const toml::array& arr)
@@ -23,9 +25,12 @@ FormId::FormId(const toml::array& arr)
 
     _id = static_cast<std::uint32_t>(formIdValue->get());
     _pluginName = pluginNameValue->get();
+    toLowerString(_pluginName, _pluginNameLower);
 }
 
-FormId::FormId(std::uint32_t id, std::string_view pluginName)
+FormId::FormId(const std::uint32_t id, std::string_view pluginName)
     : _id{id}
     , _pluginName{pluginName}
-{}
+{
+    toLowerString(_pluginName, _pluginNameLower);
+}

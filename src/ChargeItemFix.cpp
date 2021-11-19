@@ -205,14 +205,14 @@ bool installChargeItemFix()
 
             L(removeItemLabel);
             // PlayerCharacter::RemoveItem(
-            //     char* ???,                      <= ???
-            //     TESBoundObject * a_item,        <= soulGem
-            //     std::int32_t a_count,           <= 1
-            //     ITEM_REMOVE_REASON a_reason,    <= 0
-            //     ExtraDataList * a_extraList,    <= soulGem's extraDataList (if it exists)
-            //     TESObjectREFR * a_moveToRef,    <= 0
-            //     const NiPoint3 * a_dropLoc = 0, <= 0
-            //     const NiPoint3 * a_rotate = 0   <= 0
+            //     char* ???,                      <- ???
+            //     TESBoundObject * a_item,        <- soulGem
+            //     std::int32_t a_count,           <- 1
+            //     ITEM_REMOVE_REASON a_reason,    <- 0
+            //     ExtraDataList * a_extraList,    <- soulGem's extraDataList (if it exists)
+            //     TESObjectREFR * a_moveToRef,    <- 0
+            //     const NiPoint3 * a_dropLoc = 0, <- 0
+            //     const NiPoint3 * a_rotate = 0   <- 0
             // )
             mov(rax, ptr[r10]);                    // rax <= player
             mov(ptr[rsp + stackSize - 0x88], r12); // a_rotate = 0

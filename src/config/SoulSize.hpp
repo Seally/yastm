@@ -390,7 +390,7 @@ public:
             formatString = toString(soulSize);
 
             if (_capitalization == Capitalization::FirstUpper) {
-                capitalizeFirstChar(formatString);
+                capitalizeFirstChar(formatString, formatString);
             }
         }
 
@@ -488,7 +488,7 @@ public:
             formatString = toString(capacity);
 
             if (_capitalization == Capitalization::FirstUpper) {
-                capitalizeFirstChar(formatString);
+                capitalizeFirstChar(formatString, formatString);
             }
         }
 

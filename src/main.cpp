@@ -93,8 +93,8 @@ bool installPatches(const SKSE::LoadInterface* const skse)
 //	return true;
 //}
 
-extern "C" DLLEXPORT constexpr auto SKSEPlugin_Version = []() {
-    SKSE::PluginVersionData v{};
+extern "C" DLLEXPORT constinit auto SKSEPlugin_Version = []() {
+    SKSE::PluginVersionData v;
 
     v.PluginVersion(
         REL::Version(version::MAJOR, version::MINOR, version::PATCH));
