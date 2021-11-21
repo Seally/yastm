@@ -1093,8 +1093,8 @@ bool installTrapSoulFix(const SKSE::LoadInterface* const loadInterface)
 
     // [soulTrap1_id]
     // 
-    // SkyrimSE.exe + 0x634900 [1.5.97.0]  [ADDRID:37863]
-    // SkyrimSE.exe + 0x65a9d0 [1.6.318.0]
+    // SkyrimSE.exe + 0x634900 [1.5.97.0]  [ADDRLIB:37863]
+    // SkyrimSE.exe + 0x65a9d0 [1.6.318.0] [ADDRLIB:38818]
     const REL::Offset soulTrap1_id{0x65a9d0};
     constexpr std::uintptr_t returnOffset = 0x282; // 0x256 [1.5.97.0]
                                                    // 0x282 [1.6.318.0]

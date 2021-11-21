@@ -61,12 +61,12 @@ bool installEnchantItemFix()
     // CraftingSubMenus::EnchantMenu::EnchantItem
     //
     // SkyrimSE.exe + 0x86c640 [1.5.97.0]  [ADDRLIB:50450]
-    // SkyrimSE.exe + 0x89a9c0 [1.6.318.0]
+    // SkyrimSE.exe + 0x89a9c0 [1.6.318.0] [ADDRLIB:51355]
     const REL::Offset craftingSubMenus_enchantConstructMenu_enchantItem_id(
         0x89a9c0);
 
     // SkyrimSE.exe + 0x2f26ef8 [1.5.97.0]  [ADDRLIB:517014]
-    // SkyrimSE.exe + 0x2fc19c8 [1.6.318.0]
+    // SkyrimSE.exe + 0x2fc19c8 [1.6.318.0] [ADDRLIB:403521]
     const REL::Offset player_id{0x2fc19c8};
 
     constexpr std::uintptr_t patchOffset = 0x220; // 0x222 [1.5.97.0]

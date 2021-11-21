@@ -51,18 +51,18 @@ bool installChargeItemFix()
 {
     // CraftingSubMenus::EnchantMenu::EnchantItem
     // SkyrimSE.exe + 0x88e890 [1.5.97.0]  [ADDRLIB:50980]
-    // SkyrimSE.exe + 0x8bdfe0 [1.6.318.0]
+    // SkyrimSE.exe + 0x8bdfe0 [1.6.318.0] [ADDRLIB:51859]
     const REL::Offset chargeItem_id(0x8bdfe0);
 
     // SkyrimSE.exe + 0x2f26ef8 [1.5.97.0]  [ADDRLIB:517014]
-    // SkyrimSE.exe + 0x2fc19c8 [1.6.318.0]
+    // SkyrimSE.exe + 0x2fc19c8 [1.6.318.0] [ADDRLIB:403521]
     const REL::Offset player_id(0x2fc19c8);
 
     // This probably isn't updateInventory and may actually be part of the
     // update loop, but updating inventory is what we use it for here.
     //
     // SkyrimSE.exe + 0x8d5710 [1.5.97.0]  [ADDRLIB:51911]
-    // SkyrimSE.exe + 0x905cd0 [1.6.318.0]
+    // SkyrimSE.exe + 0x905cd0 [1.6.318.0] [ADDRLIB:52849]
     const REL::Offset updateInventory_id(0x905cd0);
 
     constexpr std::uintptr_t patchOffset = 0x29b; // 0x2a5 [1.5.97.0]
@@ -181,8 +181,8 @@ bool installChargeItemFix()
             // Note: In the disassembly, the "remove item" version of this
             //       function is called within the function at:
             //
-            //           SkyrimSE.exe + 856a50 [1.5.97.0]
-            //           SkyrimSE.exe + 883930 [1.6.318.0]
+            //           SkyrimSE.exe + 856a50 [1.5.97.0]  [ADDRLIB:50099]
+            //           SkyrimSE.exe + 883930 [1.6.318.0] [ADDRLIB:51031]
             mov(rdx, ptr[rbx + 0x100]);
             mov(rcx, player_id.address());
             mov(rcx, ptr[rcx]);
