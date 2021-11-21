@@ -62,12 +62,11 @@ bool installEnchantItemFix()
     //
     // SkyrimSE.exe + 0x86c640 [1.5.97.0]  [ADDRLIB:50450]
     // SkyrimSE.exe + 0x89a9c0 [1.6.318.0] [ADDRLIB:51355]
-    const REL::Offset craftingSubMenus_enchantConstructMenu_enchantItem_id(
-        0x89a9c0);
+    const REL::ID craftingSubMenus_enchantConstructMenu_enchantItem_id(51355);
 
     // SkyrimSE.exe + 0x2f26ef8 [1.5.97.0]  [ADDRLIB:517014]
     // SkyrimSE.exe + 0x2fc19c8 [1.6.318.0] [ADDRLIB:403521]
-    const REL::Offset player_id{0x2fc19c8};
+    const REL::ID player_id(403521);
 
     constexpr std::uintptr_t patchOffset = 0x220; // 0x222 [1.5.97.0]
                                                   // 0x220 [1.6.318.0]
@@ -80,13 +79,12 @@ bool installEnchantItemFix()
 
     struct Patch : Xbyak::CodeGenerator {
         /**
-         * @param[in] player_id                                             The REL::Offset of the player.
-         * @param[in] craftingSubMenus_enchantConstructMenu_enchantItem_id  The REL::Offset of the function to patch.
+         * @param[in] player_id                                             The REL::ID of the player.
+         * @param[in] craftingSubMenus_enchantConstructMenu_enchantItem_id  The REL::ID of the function to patch.
          */
         explicit Patch(
-            const REL::Offset& player_id,
-            const REL::Offset&
-                craftingSubMenus_enchantConstructMenu_enchantItem_id)
+            const REL::ID& player_id,
+            const REL::ID& craftingSubMenus_enchantConstructMenu_enchantItem_id)
         {
             constexpr std::uintptr_t stackSize = 0xb8; // Same in AE
 
