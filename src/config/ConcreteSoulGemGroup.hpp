@@ -6,6 +6,7 @@
 #include "SoulGemGroup.hpp"
 #include "SoulSize.hpp"
 
+#include "../global.hpp"
 #include "../utilities/stringutils.hpp"
 
 namespace RE {
@@ -43,7 +44,7 @@ public:
     [[nodiscard]] const IdType& id() const { return _id; }
     [[nodiscard]] SoulGemCapacity capacity() const { return _capacity; }
 
-    [[nodiscard]] RE::TESSoulGem* at(const SoulSize containedSoulSize) const
+    RE::TESSoulGem* at(const SoulSize containedSoulSize) const
     {
         const auto result = _forms.find(containedSoulSize);
 

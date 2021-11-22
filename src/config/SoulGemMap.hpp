@@ -4,7 +4,7 @@
 #include <compare>
 #include <functional>
 #include <vector>
-#include <deque>
+#include <memory>
 
 #include "../global.hpp"
 #include "SoulSize.hpp"
@@ -25,16 +25,11 @@ public:
 
 private:
     using SoulGemList = std::vector<RE::TESSoulGem*>;
+    using ConcreteSoulGemGroupList =
+        std::vector<std::unique_ptr<ConcreteSoulGemGroup>>;
     using FormMap =
-        std::unordered_map<SoulGemCapacity, std::vector<ConcreteSoulGemGroup>>;
+        std::unordered_map<SoulGemCapacity, ConcreteSoulGemGroupList>;
     FormMap _soulGemMap;
-
-    std::array<
-        std::vector<std::vector<RE::TESSoulGem*>>,
-        static_cast<std::size_t>(SoulSize::Black)>
-        _whiteSoulGems;
-    std::vector<RE::TESSoulGem*> _pureBlackSoulGemsEmpty;
-    std::vector<RE::TESSoulGem*> _pureBlackSoulGemsFilled;
 
     friend class Iterator;
 
@@ -68,10 +63,10 @@ public:
     private:
         SoulSize _containedSoulSize;
         std::size_t _index;
-        const std::vector<ConcreteSoulGemGroup>* _soulGemsAtCapacity;
+        const ConcreteSoulGemGroupList* _soulGemsAtCapacity;
 
         explicit Iterator(
-            const std::vector<ConcreteSoulGemGroup>& soulGemsAtCapacity,
+            const ConcreteSoulGemGroupList& soulGemsAtCapacity,
             const SoulSize containedSoulSize,
             const std::size_t index)
             : _soulGemsAtCapacity{&soulGemsAtCapacity}
@@ -89,7 +84,7 @@ public:
 
         const ConcreteSoulGemGroup& group() const
         {
-            return _soulGemsAtCapacity->at(_index);
+            return *_soulGemsAtCapacity->at(_index);
         }
 
         const SoulSize containedSoulSize() const { return _containedSoulSize; }

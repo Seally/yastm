@@ -202,8 +202,7 @@ void ConcreteSoulGemGroup::_initializeFromPrimaryBasis(
             _checkReusableSoulGemFields(soulGemForm, sourceGroup);
         }
 
-        _forms.insert(
-            {_toContainedSoulSize(sourceGroup.capacity(), i), soulGemForm});
+        _forms.emplace(_toContainedSoulSize(sourceGroup.capacity(), i), soulGemForm);
     }
 
 }
