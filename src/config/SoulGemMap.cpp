@@ -35,25 +35,30 @@ void SoulGemMap::initializeWith(
     */
     std::unordered_map<
         std::reference_wrapper<const FormId>,
-        std::reference_wrapper<const ConcreteSoulGemGroup>,
+        const ConcreteSoulGemGroup*,
         std::hash<FormId>>
         blackSoulGemGroupMap;
 
+    LOG_INFO("Loading black soul gem groups");
     // Black soul gem groups are added first since we need to construct a map to
     // identify dual soul gem groups.
     forEachLoadPriority([&, this](const LoadPriority priority) {
         for (const auto& group : t._groupsToAdd) {
             try {
                 if (group.get().priority() == priority) {
+                    LOG_INFO_FMT("- Loading soul gems for {:c}", group.get());
+
                     // Add black soul gems to the map.
                     if (group.get().capacity() == SoulGemCapacity::Black) {
                         const auto& addedGroup =
                             soulGemGroupsByCapacity[SoulGemCapacity::Black]
-                                .emplace_back(group, dataHandler);
+                                .emplace_back(new ConcreteSoulGemGroup(
+                                    group,
+                                    dataHandler));
 
                         blackSoulGemGroupMap.emplace(
                             group.get().emptyMember(),
-                            addedGroup);
+                            addedGroup.get());
                     }
                 }
             } catch (const std::exception& error) {
@@ -62,6 +67,7 @@ void SoulGemMap::initializeWith(
         }
     });
 
+    LOG_INFO("Loading other soul gem groups");
     forEachLoadPriority([&, this](const LoadPriority priority) {
         for (const auto& group : t._groupsToAdd) {
             try {
@@ -69,22 +75,30 @@ void SoulGemMap::initializeWith(
                     const auto capacity = group.get().capacity();
 
                     if (capacity == SoulGemCapacity::Grand) {
+                        LOG_INFO_FMT("- Loading soul gems for {}", group.get());
+
                         auto it = blackSoulGemGroupMap.find(
                             group.get().emptyMember());
 
                         if (it != blackSoulGemGroupMap.end()) {
                             // Group is a dual soul gem group.
                             soulGemGroupsByCapacity[SoulGemCapacity::Dual]
-                                .emplace_back(group, it->second, dataHandler);
+                                .emplace_back(new ConcreteSoulGemGroup(
+                                    group,
+                                    *it->second,
+                                    dataHandler));
                         } else {
                             // Group is a normal grand soul gem group.
                             soulGemGroupsByCapacity[SoulGemCapacity::Grand]
-                                .emplace_back(group, dataHandler);
+                                .emplace_back(new ConcreteSoulGemGroup(
+                                    group,
+                                    dataHandler));
                         }
                     } else if (capacity != SoulGemCapacity::Black) {
+                        LOG_INFO_FMT("- Loading soul gems for {}", group.get());
+
                         soulGemGroupsByCapacity[capacity].emplace_back(
-                            group,
-                            dataHandler);
+                            new ConcreteSoulGemGroup(group, dataHandler));
                     }
                 }
             } catch (const std::exception& error) {
@@ -93,6 +107,7 @@ void SoulGemMap::initializeWith(
         }
     });
 
+    LOG_INFO("Initialize missing capacity vectors");
     // Initialize the missing vectors for capacities if not already constructed.
     forEachSoulGemCapacity([&](const SoulGemCapacity capacity) {
         soulGemGroupsByCapacity.try_emplace(capacity);

@@ -52,7 +52,7 @@ std::size_t _getExpectedMemberCountForCapacity(const SoulGemCapacity capacity)
         return 6;
     case SoulGemCapacity::Black:
         return 2;
-    }   
+    }
 
     return capacity + 2;
 }
