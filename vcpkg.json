@@ -8,6 +8,7 @@
         "boost-atomic",
         "boost-container-hash",
         "boost-stl-interfaces",
+        "rsm-binary-io",
         "span-lite",
         "spdlog",
         "xbyak",
