@@ -2,7 +2,7 @@
 
 #include <cassert>
 
-#include "utilities/SoulTrapUtilities.hpp"
+#include "../utilities/SoulTrapUtilities.hpp"
 
 SoulSize _getActorSoulSize(RE::Actor* const actor)
 {

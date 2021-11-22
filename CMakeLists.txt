@@ -95,13 +95,10 @@ set(SOURCES
     src/ChargeItemFix.cpp
     src/EnchantItemFix.hpp
     src/EnchantItemFix.cpp
-    src/messages.hpp
     src/SoulValue.hpp
     src/TrapSoulFix.hpp
     src/TrapSoulFix.cpp
     src/versiondb.hpp
-    src/Victim.hpp
-    src/Victim.cpp
     src/config/ConcreteSoulGemGroup.hpp
     src/config/ConcreteSoulGemGroup.cpp
     src/config/ConfigKey.hpp
@@ -125,6 +122,11 @@ set(SOURCES
     src/config/YASTMConfig.hpp
     src/config/YASTMConfig.cpp
     src/formatters/TESSoulGem.hpp
+    src/trapsoul/messages.hpp
+    src/trapsoul/trapsoul.hpp
+    src/trapsoul/trapsoul.cpp
+    src/trapsoul/Victim.hpp
+    src/trapsoul/Victim.cpp
     src/utilities/algorithms.hpp
     src/utilities/FormType.hpp
     src/utilities/printerror.hpp
