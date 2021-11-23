@@ -7,7 +7,7 @@ AlignConsecutiveDeclarations: 'false'
 AlignConsecutiveMacros: 'false'
 AlignEscapedNewlines: Left
 AlignOperands: Align
-AlignTrailingComments: 'true'
+AlignTrailingComments: 'false'
 AllowAllArgumentsOnNextLine: 'false'
 AllowAllConstructorInitializersOnNextLine: 'false'
 AllowAllParametersOfDeclarationOnNextLine: 'false'
@@ -57,7 +57,7 @@ Cpp11BracedListStyle: 'true'
 DeriveLineEnding: 'true'
 DerivePointerAlignment: 'false'
 DisableFormat: 'false'
-FixNamespaceComments: 'false'
+FixNamespaceComments: 'true'
 IncludeBlocks: Preserve
 IndentCaseBlocks: 'true'
 IndentCaseLabels: 'false'

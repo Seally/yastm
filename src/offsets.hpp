@@ -9,7 +9,7 @@ namespace re {
         // SkyrimSE.exe + 0x636c40 [1.5.97.0]  [ADDRLIB:37916]
         // SkyrimSE.exe + 0x65c9e0 [1.6.318.0] [ADDRLIB:38873]
         constexpr REL::ID GetEventSource(VERSION_SPECIFIC(37916, 38873));
-    } // end namespace SoulsTrapped
+    } // namespace SoulsTrapped
 
     namespace CraftingSubMenus {
         namespace EnchantMenu {
@@ -17,15 +17,15 @@ namespace re {
             //
             // SkyrimSE.exe + 0x86c640 [1.5.97.0]  [ADDRLIB:50450]
             // SkyrimSE.exe + 0x89a9c0 [1.6.318.0] [ADDRLIB:51355]
-            const REL::ID EnchantItem(VERSION_SPECIFIC(50450, 51355));
-        } // end namespace EnchantMenu
-    }     // end namespace CraftingSubMenus
+            constexpr REL::ID EnchantItem(VERSION_SPECIFIC(50450, 51355));
+        } // namespace EnchantMenu
+    } // namespace CraftingSubMenus
 
     namespace InventoryMenu {
         // SkyrimSE.exe + 0x88e890 [1.5.97.0]  [ADDRLIB:50980]
         // SkyrimSE.exe + 0x8bdfe0 [1.6.318.0] [ADDRLIB:51859]
         constexpr REL::ID ChargeItem(VERSION_SPECIFIC(50980, 51859));
-    } // end namespace InventoryMenu
+    } // namespace InventoryMenu
 
     namespace soultraputils {
         namespace Actor {
@@ -61,7 +61,7 @@ namespace re {
         // SkyrimSE.exe + 0x237a90 [1.5.97.0]  [ADDRLIB:17753]
         // SkyrimSE.exe + 0x247e20 [1.6.318.0] [ADDRLIB:18166]
         constexpr REL::ID ToSoulLevelValue(VERSION_SPECIFIC(17753, 18166));
-    } // end namespace soultraputils
+    } // namespace soultraputils
 
     namespace fix {
         namespace chargeitem {
@@ -77,42 +77,47 @@ namespace re {
             // SkyrimSE.exe + 0x905cd0 [1.6.318.0] [ADDRLIB:52849]
             constexpr REL::ID updateInventory(VERSION_SPECIFIC(51911, 52849));
 
+            // 0x2a5 [1.5.97.0]
+            // 0x29b [1.6.318.0]
             constexpr std::ptrdiff_t beginOffset =
-                VERSION_SPECIFIC(0x2a5, 0x29b); // 0x2a5 [1.5.97.0]
-                                                // 0x29b [1.6.318.0]
+                VERSION_SPECIFIC(0x2a5, 0x29b);
 
             // Offset to return to when we finish the patched branch.
+            // 0x2b9 [1.5.97.0]
+            // 0x2af [1.6.318.0]
             constexpr std::ptrdiff_t successContinueOffset =
-                VERSION_SPECIFIC(0x2b9, 0x2af); // 0x2b9 [1.5.97.0]
-                                                // 0x2af [1.6.318.0]
+                VERSION_SPECIFIC(0x2b9, 0x2af);
 
             // Offset to return to when the reusable soul gem's linked soul gem
             // field is null.
+            // 0x2b2 [1.5.97.0]
+            // 0x2a8 [1.6.318.0]
             constexpr std::ptrdiff_t noLinkedSoulGemContinueOffset =
-                VERSION_SPECIFIC(0x2b2, 0x2a8); // 0x2b2 [1.5.97.0]
-                                                // 0x2a8 [1.6.318.0]
+                VERSION_SPECIFIC(0x2b2, 0x2a8);
 
             constexpr std::uintptr_t stackSize = 0xc8; // Same in AE
-        } // end namespace chargeitem
+        } // namespace chargeitem
 
         namespace enchantitem {
             constexpr REL::ID player = chargeitem::player;
-
+            // 0x222 [1.5.97.0]
+            // 0x220 [1.6.318.0]
             constexpr std::ptrdiff_t beginOffset =
-                VERSION_SPECIFIC(0x222, 0x220); // 0x222 [1.5.97.0]
-                                                // 0x220 [1.6.318.0]
+                VERSION_SPECIFIC(0x222, 0x220);
             // Offset to return to when we finish the patched branch.
+            // 0x236 [1.5.97.0]
+            // 0x234 [1.6.318.0]
             constexpr std::ptrdiff_t successContinueOffset =
-                VERSION_SPECIFIC(0x236, 0x234); // 0x236 [1.5.97.0]
-                                                // 0x234 [1.6.318.0]
+                VERSION_SPECIFIC(0x236, 0x234);
             // Offset to return to when the reusable soul gem's linked soul gem
             // field is null.
+            // 0x22f [1.5.97.0]
+            // 0x22d [1.6.318.0]
             constexpr std::ptrdiff_t noLinkedSoulGemContinueOffset =
-                VERSION_SPECIFIC(0x22f, 0x22d); // 0x22f [1.5.97.0]
-                                                // 0x22d [1.6.318.0]
+                VERSION_SPECIFIC(0x22f, 0x22d);
 
             constexpr std::uintptr_t stackSize = 0xb8; // Same in AE
-        } // end namespace enchantitem
+        } // namespace enchantitem
 
         namespace trapsoul {
             // Part 1 of TrapSoul()
@@ -126,9 +131,10 @@ namespace re {
             constexpr REL::ID TrapSoul1(VERSION_SPECIFIC(37863, 38818));
 
             constexpr std::ptrdiff_t beginOffset = 0x17; // Same in AE
+            // 0x256 [1.5.97.0]
+            // 0x282 [1.6.318.0]
             constexpr std::ptrdiff_t continueOffset =
-                VERSION_SPECIFIC(0x256, 0x282); // 0x256 [1.5.97.0]
-                                                // 0x282 [1.6.318.0]
-        } // end namespace trapsoul
-    } // end namespace fix
-} // end namespace re
+                VERSION_SPECIFIC(0x256, 0x282);
+        } // namespace trapsoul
+    } // namespace fix
+} // namespace re

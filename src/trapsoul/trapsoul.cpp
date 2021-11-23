@@ -46,7 +46,7 @@ enum class _InventoryStatus {
      */
     NoSoulGemsOwned,
     /**
-     * @brief Caster has soul gems, but all are fully-filled. 
+     * @brief Caster has soul gems, but all are fully-filled.
     */
     AllSoulGemsFilled,
 };
@@ -811,7 +811,7 @@ void _splitSoul(const Victim& victim, VictimsQueue& victimQueue)
  * destruction, respectively.
  *
  * It is also a timer object which will print the lifetime of this wrapper
- * object if profiling is enabled. 
+ * object if profiling is enabled.
  */
 class _TrapSoulWrapper : public Timer {
 public:
@@ -840,7 +840,7 @@ public:
 
 namespace {
     std::mutex _trapSoulMutex; /* Process only one soul trap at a time. */
-} // end anonymous namespace
+} // namespace
 
 bool trapSoul(RE::Actor* const caster, RE::Actor* const victim)
 {

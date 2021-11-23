@@ -41,8 +41,8 @@ bool _isTrapSoulPatchable()
     }
 
     if (std::memcmp(
-            reinterpret_cast<std::uint8_t*>(
-                static_cast<std::uintptr_t>(TrapSoul1.address() + continueOffset)),
+            reinterpret_cast<std::uint8_t*>(static_cast<std::uintptr_t>(
+                TrapSoul1.address() + continueOffset)),
             expectedExitBytes,
             sizeof expectedExitBytes) != 0) {
         LOG_CRITICAL(

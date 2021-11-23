@@ -119,8 +119,8 @@ void _checkReusableSoulGemFields(
     if (soulGemForm->GetContainedSoul() != RE::SOUL_LEVEL::kNone) {
         if (soulGemForm->linkedSoulGem == nullptr) {
             throw FormError(fmt::format(
-                FMT_STRING(
-                    "Reusable soul gem {} in {} contains a soul but has no linked soul gem specified in the form."),
+                FMT_STRING("Reusable soul gem {} in {} contains a soul but has "
+                           "no linked soul gem specified in the form."),
                 *soulGemForm,
                 group));
         }
@@ -128,8 +128,8 @@ void _checkReusableSoulGemFields(
         if (soulGemForm->linkedSoulGem->GetContainedSoul() !=
             RE::SOUL_LEVEL::kNone) {
             throw FormError(fmt::format(
-                FMT_STRING(
-                    "Linked soul gem for reusable soul gem {} in {} is not an empty soul gem."),
+                FMT_STRING("Linked soul gem for reusable soul gem {} in {} is "
+                           "not an empty soul gem."),
                 *soulGemForm,
                 group));
         }
@@ -202,9 +202,10 @@ void ConcreteSoulGemGroup::_initializeFromPrimaryBasis(
             _checkReusableSoulGemFields(soulGemForm, sourceGroup);
         }
 
-        _forms.emplace(_toContainedSoulSize(sourceGroup.capacity(), i), soulGemForm);
+        _forms.emplace(
+            _toContainedSoulSize(sourceGroup.capacity(), i),
+            soulGemForm);
     }
-
 }
 
 void ConcreteSoulGemGroup::_initializeFromSecondaryBasis(
@@ -274,7 +275,8 @@ ConcreteSoulGemGroup::ConcreteSoulGemGroup(
         assert(_capacity == SoulGemCapacity::Dual);
     } catch (...) {
         std::throw_with_nested(ConcreteSoulGemGroupError(fmt::format(
-            FMT_STRING("Error while creating concrete soul gem group from {:c} and {:c}:"sv),
+            FMT_STRING(
+                "Error while creating concrete soul gem group from {:c} and {:c}:"sv),
             whiteGrandSoulGemGroup,
             blackSoulGemGroup)));
     }

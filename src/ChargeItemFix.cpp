@@ -81,9 +81,10 @@ bool installChargeItemFix()
             Xbyak::Label updateInventoryLabel;
 
             // Check the NAM0 entry for the soul gem.
-            mov(rcx,
-                ptr[rbx + 0x100]); // rbx = soulGem, [rbx + 100h] = soulGem.NAM0
-            test(rcx, rcx);        // ZF = 1 if rax is 0.
+            // clang-format off
+            mov(rcx, ptr[rbx + 0x100]); // rbx = soulGem, [rbx + 100h] = soulGem.NAM0
+            test(rcx, rcx);             // ZF = 1 if rax is 0.
+            // clang-format on
             jz(ifNAM0IsNullLabel, T_NEAR);
 
             // assign r10 to player
@@ -105,12 +106,12 @@ bool installChargeItemFix()
             //     std::int32_t a_count,
             //     TESObjectREFR * a_fromRefr
             // )
-            mov(rax, ptr[r10]);                    // rax <- player
+            mov(rax, ptr[r10]); // rax <- player
             mov(ptr[rsp + stackSize - 0xa8], r12); // a_fromRefr = 0
-            mov(r9d, 1);                           // a_count = 1
-            mov(r8, r12);                          // a_extraList = 0
-            mov(rdx, ptr[rbx + 0x100]);            // a_object = soulGem.NAM0
-            mov(rcx, r10);                         // this = player
+            mov(r9d, 1); // a_count = 1
+            mov(r8, r12); // a_extraList = 0
+            mov(rdx, ptr[rbx + 0x100]); // a_object = soulGem.NAM0
+            mov(rcx, r10); // this = player
             call(qword[rax + 0x2d0]); // PlayerCharacter::AddObjectToContainer
 
             // Updates the inventory UI. If we don't call this, the added soul
@@ -162,18 +163,19 @@ bool installChargeItemFix()
             //     const NiPoint3 * a_dropLoc = 0, <- 0
             //     const NiPoint3 * a_rotate = 0   <- 0
             // )
-            mov(rax, ptr[r10]);                    // rax <- player
-            mov(ptr[rsp + stackSize - 0x88], r12); // a_rotate = 0
-            mov(ptr[rsp + stackSize - 0x90], r12); // a_dropLoc = 0
-            mov(ptr[rsp + stackSize - 0x98], r12); // a_moveToRef = 0
-            mov(ptr[rsp + stackSize - 0xa0],
-                rcx); // a_extraList = soulGem's extraDataList (if it exists)
+            // clang-format off
+            mov(rax, ptr[r10]);                       // rax <- player
+            mov(ptr[rsp + stackSize - 0x88], r12);    // a_rotate = 0
+            mov(ptr[rsp + stackSize - 0x90], r12);    // a_dropLoc = 0
+            mov(ptr[rsp + stackSize - 0x98], r12);    // a_moveToRef = 0
+            mov(ptr[rsp + stackSize - 0xa0], rcx);    // a_extraList = soulGem's extraDataList (if it exists)
             mov(dword[rsp + stackSize - 0xa8], r12d); // a_reason = 0
             mov(r9d, 1);                              // a_count = 1
             mov(r8, rbx);                             // a_item = soulGem
             lea(rdx, ptr[rsp + stackSize + 0x8]);     // ???
             mov(rcx, r10);                            // this = player
-            call(qword[rax + 0x2b0]); // PlayerCharacter::RemoveItem
+            call(qword[rax + 0x2b0]);                 // PlayerCharacter::RemoveItem
+            // clang-format on
             jmp(ptr[rip + returnContinueLabel]);
 
             L(returnContinueLabel);

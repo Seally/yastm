@@ -39,7 +39,8 @@ public:
 namespace std {
     template <>
     struct hash<FormId> {
-        std::size_t operator()(const FormId& formId) const noexcept {
+        std::size_t operator()(const FormId& formId) const noexcept
+        {
             std::size_t seed = 0;
 
             boost::hash_combine(seed, formId._id);
@@ -48,11 +49,12 @@ namespace std {
             return seed;
         }
     };
-}
+} // namespace std
 
 template <>
 struct fmt::formatter<FormId> {
-    constexpr auto parse(format_parse_context& ctx) -> decltype(ctx.begin()) {
+    constexpr auto parse(format_parse_context& ctx) -> decltype(ctx.begin())
+    {
         // [ctx.begin(), ctx.end()) is a character range that contains a part of
         // the format string starting from the format specifications to be parsed,
         // e.g. in
@@ -75,8 +77,8 @@ struct fmt::formatter<FormId> {
     }
 
     template <typename FormatContext>
-    auto format(const FormId& formId, FormatContext& ctx)
-        -> decltype(ctx.out()) {
+    auto format(const FormId& formId, FormatContext& ctx) -> decltype(ctx.out())
+    {
         using namespace std::literals;
 
         return fmt::format_to(

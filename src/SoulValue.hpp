@@ -212,7 +212,7 @@ constexpr std::strong_ordering operator<=>(
     const SoulGemCapacityValue& capacity)
 {
     // Same line means equivalent:
-    // 
+    //
     // SoulSize   Capacity
     //
     // None=0
@@ -257,7 +257,9 @@ struct fmt::formatter<SoulSizeValue> : fmt::formatter<SoulSize> {
     auto format(const SoulSizeValue& soulSize, FormatContext& ctx)
         -> decltype(ctx.out())
     {
-        return fmt::formatter<SoulSize>::format(static_cast<SoulSize>(soulSize), ctx);
+        return fmt::formatter<SoulSize>::format(
+            static_cast<SoulSize>(soulSize),
+            ctx);
     }
 };
 
@@ -268,6 +270,7 @@ struct fmt::formatter<SoulGemCapacityValue> : fmt::formatter<SoulGemCapacity> {
         -> decltype(ctx.out())
     {
         return fmt::formatter<SoulGemCapacity>::format(
-            static_cast<SoulGemCapacity>(capacity), ctx);
+            static_cast<SoulGemCapacity>(capacity),
+            ctx);
     }
 };

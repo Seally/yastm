@@ -24,8 +24,6 @@ UnexpectedFormTypeError::UnexpectedFormTypeError(
 {}
 
 MissingFormError::MissingFormError(const FormId& formId)
-    : FormError{fmt::format(
-          FMT_STRING("Form does not exist: {}"sv),
-          formId)}
+    : FormError{fmt::format(FMT_STRING("Form does not exist: {}"sv), formId)}
     , formId{formId}
 {}

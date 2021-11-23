@@ -14,7 +14,7 @@ namespace RE {
         public:
             // members
             Actor* trapper; // 00
-            Actor* target;  // 08
+            Actor* target; // 08
         };
         static_assert(sizeof(Event) == 0x10);
 
@@ -23,4 +23,4 @@ namespace RE {
         static void                                 SendEvent(Actor* a_trapper, Actor* a_target);
         // clang-format on
     };
-}
+} // namespace RE

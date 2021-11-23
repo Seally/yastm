@@ -21,7 +21,7 @@ namespace RE {
     class TESDataHandler;
     class TESGlobal;
     class TESSoulGem;
-}
+} // namespace RE
 
 class YASTMConfig {
 public:

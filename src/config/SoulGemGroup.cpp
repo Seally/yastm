@@ -21,8 +21,8 @@ namespace {
 } // end anonymous namespace
 
 template <typename T>
-requires std::integral<T>
-constexpr SoulGemCapacity _toSoulGemCapacityFromConfig(const T capacity)
+requires std::integral<T> constexpr SoulGemCapacity
+    _toSoulGemCapacityFromConfig(const T capacity)
 {
     switch (capacity) {
     case 1:

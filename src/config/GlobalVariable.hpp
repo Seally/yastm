@@ -17,7 +17,7 @@
 namespace RE {
     class TESDataHandler;
     class TESGlobal;
-}
+} // namespace RE
 
 template <typename KeyType>
 class GlobalVariable : public Form<RE::TESGlobal> {

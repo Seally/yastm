@@ -117,8 +117,7 @@ inline void
        static_cast<float>(SoulShrinkingTechnique::Shrink));
 }
 
-inline void
-    forEachEnumConfigKey(const std::function<void(EnumConfigKey)>& fn)
+inline void forEachEnumConfigKey(const std::function<void(EnumConfigKey)>& fn)
 {
     fn(EnumConfigKey::SoulShrinkingTechnique);
 }

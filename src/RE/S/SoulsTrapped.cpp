@@ -23,4 +23,4 @@ namespace RE {
             source->SendEvent(std::addressof(e));
         }
     }
-}
+} // namespace RE
