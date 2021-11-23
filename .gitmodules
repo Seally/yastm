@@ -1,3 +1,6 @@
-[submodule "extern/CommonLibSSE"]
-	path = extern/CommonLibSSE
+[submodule "extern/CommonLibSSE_AE"]
+	path = extern/CommonLibSSE_AE
 	url = https://github.com/Seally/CommonLibSSE.git
+[submodule "extern/CommonLibSSE_SE"]
+	path = extern/CommonLibSSE_SE
+	url = https://github.com/Seally/CommonLibSSE

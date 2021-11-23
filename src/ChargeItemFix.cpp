@@ -4,39 +4,22 @@
 #include <xbyak/xbyak.h>
 
 #include "global.hpp"
+#include "expectedbytes.hpp"
+#include "offsets.hpp"
 
 /**
  * @brief Check if memory has the expected bytes for patching.
  */
-bool _isChargeItemPatchable(std::uintptr_t baseAddress, std::uintptr_t offset)
+bool _isChargeItemPatchable()
 {
-    // Reuseable soul gem handling branch code.
-    const std::uint8_t expected[] = {
-        // clang-format off
-        // .text:000000014088EB35 [1.5.97.0]
-        // .text:00000001408BE27B [1.6.318.0] (bytes are identical)
-
-        // [1.5.97.0]  loc_14088EB35:
-        // [1.6.318.0] loc_1408BE27B:
-        0x48, 0x85, 0xc0,             // rax is probably ExtraDataList
-                                      // test    rax, rax            ; TEST performs an implied AND operation that does not modify the destination but sets CPU flags as if it did.
-                                      //                             ; ANDing anything against itself produces itself, so this followed by JZ (Jump If Zero) is equivalent to the code:
-                                      //                             ; if (rax) { ...<jump destination>... }
-        0x74, 0x05,                   // jz      short loc_14055EB3F
-        0x48, 0x8b, 0x08,             // mov     rcx, [rax]          ; Dereferences rcx and assigns it to itself.
-        0xeb, 0x03,                   // jmp     short loc_14088EB42
-        // loc_14088EB3F:
-        0x49, 0x8b, 0xcc,             // mov     rcx, r12            ; r12 has been set to 0 for the scope of the function
-        // loc_14088EB42:
-        0x33, 0xd2,                   // xor     edx, edx            ; equivalent to mov edx, 0
-        // clang-format on
-    };
+    using namespace re::fix::chargeitem;
+    using re::InventoryMenu::ChargeItem;
 
     if (std::memcmp(
-            reinterpret_cast<std::uint8_t*>(
-                static_cast<std::uintptr_t>(baseAddress + offset)),
-            expected,
-            sizeof expected) != 0) {
+            reinterpret_cast<std::uint8_t*>(static_cast<std::uintptr_t>(
+                ChargeItem.address() + beginOffset)),
+            expectedBytes,
+            sizeof expectedBytes) != 0) {
         LOG_CRITICAL(
             "[CHARGE] Expected bytes for reusable soul gem handling not "
             "found.");
@@ -49,51 +32,16 @@ bool _isChargeItemPatchable(std::uintptr_t baseAddress, std::uintptr_t offset)
 
 bool installChargeItemFix()
 {
-    // CraftingSubMenus::EnchantMenu::EnchantItem
-    // SkyrimSE.exe + 0x88e890 [1.5.97.0]  [ADDRLIB:50980]
-    // SkyrimSE.exe + 0x8bdfe0 [1.6.318.0] [ADDRLIB:51859]
-    const REL::ID chargeItem_id(51859);
+    using namespace re::fix::chargeitem;
+    using re::InventoryMenu::ChargeItem;
 
-    // SkyrimSE.exe + 0x2f26ef8 [1.5.97.0]  [ADDRLIB:517014]
-    // SkyrimSE.exe + 0x2fc19c8 [1.6.318.0] [ADDRLIB:403521]
-    const REL::ID player_id(403521);
-
-    // This probably isn't updateInventory and may actually be part of the
-    // update loop, but updating inventory is what we use it for here.
-    //
-    // SkyrimSE.exe + 0x8d5710 [1.5.97.0]  [ADDRLIB:51911]
-    // SkyrimSE.exe + 0x905cd0 [1.6.318.0] [ADDRLIB:52849]
-    const REL::ID updateInventory_id(52849);
-
-    constexpr std::uintptr_t patchOffset = 0x29b; // 0x2a5 [1.5.97.0]
-                                                  // 0x29b [1.6.318.0]
-
-    if (!_isChargeItemPatchable(chargeItem_id.address(), patchOffset)) {
+    if (!_isChargeItemPatchable()) {
         return false;
     }
 
     struct Patch : Xbyak::CodeGenerator {
-        /**
-		 * @param[in] player_id      The REL::ID of the player.
-		 * @param[in] chargeItem_id  The REL::ID of the function to patch.
-		 */
-        explicit Patch(
-            const REL::ID& player_id,
-            const REL::ID& chargeItem_id,
-            const REL::ID& updateInventory_id)
+        explicit Patch()
         {
-            constexpr std::uintptr_t stackSize = 0xc8; // Same in AE
-
-            // Offset to return to when we finish our little detour.
-            constexpr std::uintptr_t returnOffset = 0x2af; // 0x2b9 [1.5.97.0]
-                                                           // 0x2af [1.6.318.0]
-
-            // Offset to return to when the reusable soul gem doesn't have a
-            // NAM0 field.
-            constexpr std::uintptr_t branchReturnOffset =
-                0x2a8; // 0x2b2 [1.5.97.0]
-                       // 0x2a8 [1.6.318.0]
-
             // Pseudocode:
             // if (soulGem->NAM0 == null) {
             //     <go to original code>
@@ -139,7 +87,7 @@ bool installChargeItemFix()
             jz(ifNAM0IsNullLabel, T_NEAR);
 
             // assign r10 to player
-            mov(r10, player_id.address());
+            mov(r10, player.address());
             mov(r10, ptr[r10]);
 
             // For details on how arguments are passed, see the x64 calling
@@ -184,12 +132,12 @@ bool installChargeItemFix()
             //           SkyrimSE.exe + 856a50 [1.5.97.0]  [ADDRLIB:50099]
             //           SkyrimSE.exe + 883930 [1.6.318.0] [ADDRLIB:51031]
             mov(rdx, ptr[rbx + 0x100]);
-            mov(rcx, player_id.address());
+            mov(rcx, player.address());
             mov(rcx, ptr[rcx]);
             call(ptr[rip + updateInventoryLabel]);
 
             // assign r10 to player (again, since r10 may not be preserved).
-            mov(r10, player_id.address());
+            mov(r10, player.address());
             mov(r10, ptr[r10]);
 
             // re-fetch the original value for rax since we overwrote it earlier.
@@ -229,7 +177,7 @@ bool installChargeItemFix()
             jmp(ptr[rip + returnContinueLabel]);
 
             L(returnContinueLabel);
-            dq(chargeItem_id.address() + returnOffset);
+            dq(ChargeItem.address() + successContinueOffset);
 
             L(ifNAM0IsNullLabel);
             // Original branch code since we've overwritten some of it when
@@ -244,16 +192,16 @@ bool installChargeItemFix()
             jmp(ptr[rip + setSoulLabel]);
 
             L(setSoulLabel);
-            dq(chargeItem_id.address() + branchReturnOffset);
+            dq(ChargeItem.address() + noLinkedSoulGemContinueOffset);
 
             jmp(ptr[rip + returnContinueLabel]);
 
             L(updateInventoryLabel);
-            dq(updateInventory_id.address());
+            dq(updateInventory.address());
         }
     };
 
-    Patch patch{player_id, chargeItem_id, updateInventory_id};
+    Patch patch;
     patch.ready();
 
     LOG_INFO_FMT("[CHARGE] Patch size: {}", patch.getSize());
@@ -263,7 +211,7 @@ bool installChargeItemFix()
     // so we need to allocate more.
     SKSE::AllocTrampoline(1 << 8);
     trampoline.write_branch<6>(
-        chargeItem_id.address() + patchOffset,
+        ChargeItem.address() + beginOffset,
         trampoline.allocate(patch));
 
     return true;

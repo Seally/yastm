@@ -5,13 +5,13 @@
 
 #include <memory>
 
+#include "../../offsets.hpp"
+
 namespace RE {
     BSTEventSource<SoulsTrapped::Event>* SoulsTrapped::GetEventSource()
     {
         using func_t = decltype(&SoulsTrapped::GetEventSource);
-        // SkyrimSE.exe + 0x636c40 [1.5.97.0]  [ADDRLIB:37916]
-        // SkyrimSE.exe + 0x65c9e0 [1.6.318.0] [ADDRLIB:38873]
-        REL::Relocation<func_t> func(REL::ID(38873));
+        REL::Relocation<func_t> func(re::SoulsTrapped::GetEventSource);
         return func();
     }
 

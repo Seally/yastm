@@ -1,4 +1,4 @@
-#include "soultraputilities.hpp"
+#include "soultraputils.hpp"
 
 RE::BGSKeyword* getReusableSoulGemKeyword()
 {

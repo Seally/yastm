@@ -35,3 +35,17 @@
 #define VERSION_CODE_PRIMARY(in) ((in >> 20) & 0xFFF)
 #define VERSION_CODE_SECONDARY(in) ((in >> 8) & 0xFFF)
 #define VERSION_CODE_SUB(in) ((in >> 0) & 0xFF)
+
+#if defined(SKYRIM_VERSION_AE)
+#    define AE_ONLY(output) output
+#    define SE_ONLY(output)
+/* Syntax: VERSION_SPECIFIC(SE_OUTPUT, AE_OUTPUT) */
+#    define VERSION_SPECIFIC(se, ae) ae
+#elif defined(SKYRIM_VERSION_SE)
+#    define AE_ONLY(output)
+#    define SE_ONLY(output) output
+/* Syntax: VERSION_SPECIFIC(SE_OUTPUT, AE_OUTPUT) */
+#    define VERSION_SPECIFIC(se, ae) se
+#else
+#    error "SKYRIM_VERSION_<version> is not defined."
+#endif

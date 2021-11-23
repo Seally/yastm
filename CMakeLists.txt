@@ -29,13 +29,27 @@ endif()
 set(Boost_USE_STATIC_RUNTIME OFF CACHE BOOL "")
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>" CACHE STRING "")
 
+set(SKYRIM_VERSION "AE" CACHE STRING "Sets the DLL target compile version.")
+
+set_property(CACHE SKYRIM_VERSION PROPERTY STRINGS "AE" "SE")
+
 # ---- Project ----
 
-project(
-    YASTM
-    VERSION 2.0.1
-    LANGUAGES CXX
-)
+if(SKYRIM_VERSION STREQUAL "SE")
+    project(
+        YASTM
+        VERSION 1.7.3
+        LANGUAGES CXX
+    )
+elseif(SKYRIM_VERSION STREQUAL "AE")
+    project(
+        YASTM
+        VERSION 2.0.1
+        LANGUAGES CXX
+    )
+else()
+    message(FATAL_ERROR "Unknown Skyrim version: ${SKYRIM_VERSION}")
+endif()
 
 configure_file(
     ${CMAKE_CURRENT_SOURCE_DIR}/cmake/version.hpp.in
@@ -80,7 +94,15 @@ set(Boost_USE_STATIC_LIBS ON)
 
 # ---- Dependencies ----
 
-add_subdirectory("extern/CommonLibSSE" CommonLibSSE)
+
+if(SKYRIM_VERSION STREQUAL "SE")
+    add_subdirectory("extern/CommonLibSSE_SE" CommonLibSSE)
+elseif(SKYRIM_VERSION STREQUAL "AE")
+    add_subdirectory("extern/CommonLibSSE_AE" CommonLibSSE)
+else()
+    message(FATAL_ERROR "Unknown Skyrim version: ${SKYRIM_VERSION}")
+endif()
+
 
 find_package(spdlog REQUIRED CONFIG)
 find_package(tomlplusplus REQUIRED)
@@ -95,6 +117,8 @@ set(SOURCES
     src/ChargeItemFix.cpp
     src/EnchantItemFix.hpp
     src/EnchantItemFix.cpp
+    src/expectedbytes.hpp
+    src/offsets.hpp
     src/SoulValue.hpp
     src/TrapSoulFix.hpp
     src/TrapSoulFix.cpp
@@ -131,8 +155,8 @@ set(SOURCES
     src/utilities/FormType.hpp
     src/utilities/printerror.hpp
     src/utilities/printerror.cpp
-    src/utilities/soultraputilities.hpp
-    src/utilities/soultraputilities.cpp
+    src/utilities/soultraputils.hpp
+    src/utilities/soultraputils.cpp
     src/utilities/stringutils.hpp
     src/utilities/TESObjectREFR.hpp
     src/utilities/TESObjectREFR.cpp
@@ -251,6 +275,14 @@ target_precompile_headers(
     PRIVATE
         src/PCH.hpp
 )
+
+if (SKYRIM_VERSION STREQUAL "AE")
+    target_compile_definitions(${PROJECT_NAME} PRIVATE SKYRIM_VERSION_AE)
+elseif(SKYRIM_VERSION STREQUAL "SE")
+    target_compile_definitions(${PROJECT_NAME} PRIVATE SKYRIM_VERSION_SE)
+else()
+    message(FATAL_ERROR "Unknown Skyrim version: ${SKYRIM_VERSION}")
+endif()
 
 # ---- Post build ----
 

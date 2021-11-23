@@ -88,6 +88,9 @@ under advanced settings.
 
 * `SKSE_SUPPORT_XBYAK` - This option comes from CommonLibSSE and is required
   to be set to `ON` for the project to build.
+* `SKYRIM_VERSION` - Specifies the version of Skyrim to compile for.
+
+  Valid values: `SE`, `AE`
 
 #### Optional
 
