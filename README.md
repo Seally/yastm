@@ -84,6 +84,10 @@ under advanced settings.
 
 ### Important CMake Variables
 
+These variables should be set in `CMakePresets.json` and
+`CMakeUserPresets.json`. The environment variable `VCPKG_ROOT` should be set to
+the path of Vcpkg.
+
 #### Required
 
 * `SKSE_SUPPORT_XBYAK` - This option comes from CommonLibSSE and is required
@@ -101,3 +105,79 @@ under advanced settings.
 
   _Tip:_ You can also set this to the mod folder you're working on if you're
   using something like Mod Organizer 2.
+
+### Example `CMakeUserPresets.json`
+
+Copy and paste this into `CMakeUserPresets.json`, then modify values as
+appropriate. Replace `base-vs2022` with `base-vs2019` if you're using VS2019.
+
+Both configurations are set up to use MSVC 14.2 compiler (VS2019) instead of
+14.3. Either install it or remove the `toolset` key from `CMakePresets.json`
+if you don't have the compiler installed.
+
+```json
+{
+    "version": 3,
+    "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 2,
+        "patch": 1
+    },
+    "configurePresets": [
+        {
+            "name": "x64-Debug-SE-MSVC142",
+            "inherits": [ "base-vs2022", "se" ],
+            "cacheVariables": {
+                "SKYRIM64_DATA_PATH": "D:/Games/MO2 Data/SkyrimSE/mods/YASTM - SKSE Plugin (Debug)"
+            }
+        },
+        {
+            "name": "x64-Release-SE-MSVC142",
+            "inherits": [ "base-vs2022", "se" ],
+            "cacheVariables": {
+                "SKYRIM64_DATA_PATH": "D:/Games/MO2 Data/SkyrimSE/mods/YASTM - SKSE Plugin"
+            }
+        },
+        {
+            "name": "x64-Debug-AE-MSVC142",
+            "inherits": [ "base-vs2022", "ae" ],
+            "cacheVariables": {
+                "SKYRIM64_DATA_PATH": "D:/Games/MO2 Data/SkyrimAE/mods/YASTM - SKSE Plugin (Debug)"
+            }
+        },
+        {
+            "name": "x64-Release-AE-MSVC142",
+            "inherits": [ "base-vs2022", "ae" ],
+            "cacheVariables": {
+                "SKYRIM64_DATA_PATH": "D:/Games/MO2 Data/SkyrimAE/mods/YASTM - SKSE Plugin"
+            }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "se-debug",
+            "displayName": "SE Debug",
+            "configuration": "Debug",
+            "configurePreset": "x64-Debug-SE-MSVC142"
+        },
+        {
+            "name": "se-release",
+            "displayName": "SE Release",
+            "configuration": "RelWithDebInfo",
+            "configurePreset": "x64-Release-SE-MSVC142"
+        },
+        {
+            "name": "ae-debug",
+            "displayName": "AE Debug",
+            "configuration": "Debug",
+            "configurePreset": "x64-Debug-AE-MSVC142"
+        },
+        {
+            "name": "ae-release",
+            "displayName": "AE Release",
+            "configuration": "RelWithDebInfo",
+            "configurePreset": "x64-Release-AE-MSVC142"
+        }
+    ]
+}
+```

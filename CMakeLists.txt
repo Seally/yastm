@@ -252,10 +252,7 @@ if(MSVC)
             # /WX                     # Warning level (warnings are errors)
 
             "$<$<CONFIG:DEBUG>:>"
-            "$<$<CONFIG:RELEASE>:/Zc:inline;/JMC-;/Ob3>"
-
-            # Optimization flags
-            "$<$<CONFIG:RELEASE>:/O2>"
+            "$<$<CONFIG:RELEASE>:/Zc:inline;/JMC-;/O2;/Ob3>"
     )
 
     target_link_options(

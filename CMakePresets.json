@@ -1,0 +1,56 @@
+{
+    "version": 3,
+    "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 2,
+        "patch": 1
+    },
+    "configurePresets": [
+        {
+            "name": "base",
+            "hidden": true,
+            "toolset": {
+                "strategy": "set",
+                "value": "v142"
+            },
+            "architecture": {
+                "strategy": "set",
+                "value": "x64"
+            },
+            "cacheVariables": {
+                "SKSE_SUPPORT_XBYAK": true,
+                "COPY_BUILD": true,
+                "CMAKE_TOOLCHAIN_FILE": {
+                    "value": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+                    "type": "FILEPATH"
+                }
+            }
+        },
+        {
+            "name": "base-vs2019",
+            "inherits": "base",
+            "generator": "Visual Studio 16 2019",
+            "hidden": true
+        },
+        {
+            "name": "base-vs2022",
+            "inherits": "base",
+            "generator": "Visual Studio 17 2022",
+            "hidden": true
+        },
+        {
+            "name": "se",
+            "hidden": true,
+            "cacheVariables": {
+                "SKYRIM_VERSION": "SE"
+            }
+        },
+        {
+            "name": "ae",
+            "hidden": true,
+            "cacheVariables": {
+                "SKYRIM_VERSION": "AE"
+            }
+        }
+    ]
+}
