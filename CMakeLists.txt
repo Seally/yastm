@@ -122,7 +122,6 @@ set(SOURCES
     src/SoulValue.hpp
     src/TrapSoulFix.hpp
     src/TrapSoulFix.cpp
-    src/versiondb.hpp
     src/config/ConcreteSoulGemGroup.hpp
     src/config/ConcreteSoulGemGroup.cpp
     src/config/ConfigKey.hpp
