@@ -23,7 +23,9 @@
                 "CMAKE_TOOLCHAIN_FILE": {
                     "value": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
                     "type": "FILEPATH"
-                }
+                },
+                "CMAKE_CXX_FLAGS_RELEASE": "/O2 /DNDEBUG",
+                "CMAKE_CXX_FLAGS_RELWITHDEBINFO": "/Zi /O2 /DNDEBUG"
             }
         },
         {

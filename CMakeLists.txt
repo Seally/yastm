@@ -257,8 +257,8 @@ if(MSVC)
             /W4                     # Warning level
             # /WX                     # Warning level (warnings are errors)
 
-            "$<$<CONFIG:DEBUG>:>"
-            "$<$<CONFIG:RELEASE>:/Zc:inline;/JMC-;/O2;/Ob3>"
+            "$<$<CONFIG:Debug>:>"
+            "$<$<CONFIG:Release,RelWithDebInfo>:/Zc:inline;/JMC-;/O2;/Ob3>"
     )
 
     target_link_options(
@@ -266,8 +266,8 @@ if(MSVC)
         PRIVATE
             /WX # Treat Linker Warnings as Errors
 
-            "$<$<CONFIG:DEBUG>:/INCREMENTAL;/OPT:NOREF;/OPT:NOICF>"
-            "$<$<CONFIG:RELEASE>:/INCREMENTAL:NO;/OPT:REF;/OPT:ICF;/DEBUG:FULL>"
+            "$<$<CONFIG:Debug>:/INCREMENTAL;/OPT:NOREF;/OPT:NOICF>"
+            "$<$<CONFIG:Release,RelWithDebInfo>:/INCREMENTAL:NO;/OPT:REF;/OPT:ICF;/DEBUG:FULL>"
     )
 else()
     message(WARNING "MSVC is the only supported compiler. Proceed at your own caution.")
