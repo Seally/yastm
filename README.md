@@ -120,8 +120,8 @@ if you don't have the compiler installed.
     "version": 3,
     "cmakeMinimumRequired": {
         "major": 3,
-        "minor": 2,
-        "patch": 1
+        "minor": 21,
+        "patch": 0
     },
     "configurePresets": [
         {
