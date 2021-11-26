@@ -38,13 +38,13 @@ set_property(CACHE SKYRIM_VERSION PROPERTY STRINGS "AE" "SE")
 if(SKYRIM_VERSION STREQUAL "SE")
     project(
         YASTM
-        VERSION 1.7.3
+        VERSION 1.8.0
         LANGUAGES CXX
     )
 elseif(SKYRIM_VERSION STREQUAL "AE")
     project(
         YASTM
-        VERSION 2.0.1
+        VERSION 2.8.0
         LANGUAGES CXX
     )
 else()
@@ -146,6 +146,12 @@ set(SOURCES
     src/config/YASTMConfig.hpp
     src/config/YASTMConfig.cpp
     src/formatters/TESSoulGem.hpp
+    src/fsutils/FSUtils.hpp
+    src/fsutils/FSUtils.cpp
+    src/fsutils/internal/Config.hpp
+    src/fsutils/internal/Config.cpp
+    src/fsutils/internal/ConfigManager.hpp
+    src/fsutils/internal/ConfigManager.cpp
     src/trapsoul/messages.hpp
     src/trapsoul/trapsoul.hpp
     src/trapsoul/trapsoul.cpp

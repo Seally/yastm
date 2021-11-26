@@ -10,6 +10,7 @@
 #include "ChargeItemFix.hpp"
 #include "EnchantItemFix.hpp"
 #include "TrapSoulFix.hpp"
+#include "fsutils/FSUtils.hpp"
 
 bool setUpLogging()
 {
@@ -72,6 +73,10 @@ bool installPatches(const SKSE::LoadInterface* const skse)
     bool result = installPatch("ChargeItemFix"sv, installChargeItemFix);
     result |= installPatch("EnchantItemFix"sv, installEnchantItemFix);
     result |= installPatch("SoulTrapFix"sv, installTrapSoulFix, skse);
+    result |= installPatch(
+        "YASTMFSUtils"sv,
+        registerFSUtils,
+        SKSE::GetPapyrusInterface());
     return result;
 }
 
