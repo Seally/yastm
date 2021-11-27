@@ -13,7 +13,7 @@ public:
     Config(std::string_view path);
 
     template <typename T>
-    T get(std::string_view key, const T defaultValue) const
+    T get(std::string_view key, const T& defaultValue) const
     {
         std::shared_lock lock(_mutex);
 
