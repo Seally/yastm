@@ -96,10 +96,10 @@ bool installEnchantItemFix()
 
             // TESSoulGem has NAM0 defined.
             // PlayerCharacter::AddObjectToContainer(
-            //     TESBoundObject * a_object,
-            //     ExtraDataList * a_extraList,
+            //     TESBoundObject* a_object,
+            //     ExtraDataList* a_extraList,
             //     std::int32_t a_count,
-            //     TESObjectREFR * a_fromRefr
+            //     TESObjectREFR* a_fromRefr
             // )
             // clang-format off
             mov(rax, ptr[r10]);                    // rax <- player
@@ -131,14 +131,14 @@ bool installEnchantItemFix()
 
             L(removeItemLabel);
             // PlayerCharacter::RemoveItem(
-            //     char* ???,                      <- ???
-            //     TESBoundObject * a_item,        <- soulGem
-            //     std::int32_t a_count,           <- 1
-            //     ITEM_REMOVE_REASON a_reason,    <- 0
-            //     ExtraDataList * a_extraList,    <- soulGem's extraDataList (if it exists)
-            //     TESObjectREFR * a_moveToRef,    <- 0
-            //     const NiPoint3 * a_dropLoc = 0, <- 0
-            //     const NiPoint3 * a_rotate = 0   <- 0
+            //     char* ???,                     <- ???
+            //     TESBoundObject* a_item,        <- soulGem
+            //     std::int32_t a_count,          <- 1
+            //     ITEM_REMOVE_REASON a_reason,   <- 0
+            //     ExtraDataList* a_extraList,    <- soulGem's extraDataList (if it exists)
+            //     TESObjectREFR* a_moveToRef,    <- 0
+            //     const NiPoint3* a_dropLoc = 0, <- 0
+            //     const NiPoint3* a_rotate = 0   <- 0
             // )
             // clang-format off
             mov(rax, ptr[r10]);                       // rax <- player
