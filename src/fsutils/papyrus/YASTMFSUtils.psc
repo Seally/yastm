@@ -1,7 +1,23 @@
 scriptname YASTMFSUtils hidden
 
-; YASTMFSUtils operates on configuration handles, which basically is an
-; identifier for a configuration instance.
+
+; ==============================================================================
+; General Filesystem Functions
+; ==============================================================================
+
+; Checks if the file at <SkyrimPath>/Data/<filePath> exists.
+bool function FileExists(string filePath) global native
+
+; Removes the file at <SkyrimPath>/Data/<filePath>.
+bool function RemoveFile(string filePath) global native
+
+; ==============================================================================
+; Configuration File Handling
+; ==============================================================================
+
+; YASTMFSUtils use TOML as the configuration file format. It operates on
+; configuration handles, which is basically an identifier for a configuration
+; instance.
 ;
 ; '0' indicates a handle creation failure. When opening or creating a
 ; configuration, check the return value against zero before doing anything else

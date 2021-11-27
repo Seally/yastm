@@ -12,6 +12,74 @@
 using namespace std::literals;
 using RE::BSScript::Internal::VirtualMachine;
 
+bool FileExists(
+    RE::BSScript::Internal::VirtualMachine* vm,
+    RE::VMStackID stackId,
+    RE::StaticFunctionTag*,
+    RE::BSFixedString path)
+{
+    std::filesystem::path filePath("Data");
+    filePath /= path.c_str();
+
+    try {
+        return std::filesystem::exists(filePath);
+    } catch (const std::exception& error) {
+        std::stringstream stream;
+
+        printErrorToStream(error, stream);
+        vm->TraceStack(
+            stream.str().c_str(),
+            stackId,
+            RE::BSScript::ErrorLogger::Severity::kInfo);
+    }
+
+    return false;
+}
+
+bool RemoveFile(
+    RE::BSScript::Internal::VirtualMachine* vm,
+    RE::VMStackID stackId,
+    RE::StaticFunctionTag*,
+    RE::BSFixedString path)
+{
+    std::filesystem::path filePath("Data");
+    filePath /= path.c_str();
+
+    try {
+        return std::filesystem::remove(filePath);
+    } catch (const std::exception& error) {
+        std::stringstream stream;
+
+        printErrorToStream(error, stream);
+        vm->TraceStack(
+            stream.str().c_str(),
+            stackId,
+            RE::BSScript::ErrorLogger::Severity::kInfo);
+    }
+
+    return false;
+}
+
+ConfigManager::HandleType CreateConfig(
+    RE::BSScript::Internal::VirtualMachine* vm,
+    RE::VMStackID stackId,
+    RE::StaticFunctionTag*)
+{
+    try {
+        return ConfigManager::getInstance().createConfig();
+    } catch (const std::exception& error) {
+        std::stringstream stream;
+
+        printErrorToStream(error, stream);
+        vm->TraceStack(
+            stream.str().c_str(),
+            stackId,
+            RE::BSScript::ErrorLogger::Severity::kInfo);
+    }
+
+    return 0;
+}
+
 ConfigManager::HandleType OpenConfig(
     RE::BSScript::Internal::VirtualMachine* vm,
     RE::VMStackID stackId,
@@ -28,26 +96,6 @@ ConfigManager::HandleType OpenConfig(
 
     try {
         return ConfigManager::getInstance().openConfig(filePath);
-    } catch (const std::exception& error) {
-        std::stringstream stream;
-
-        printErrorToStream(error, stream);
-        vm->TraceStack(
-            stream.str().c_str(),
-            stackId,
-            RE::BSScript::ErrorLogger::Severity::kInfo);
-    }
-
-    return 0;
-}
-
-ConfigManager::HandleType CreateConfig(
-    RE::BSScript::Internal::VirtualMachine* vm,
-    RE::VMStackID stackId,
-    RE::StaticFunctionTag*)
-{
-    try {
-        return ConfigManager::getInstance().createConfig();
     } catch (const std::exception& error) {
         std::stringstream stream;
 
@@ -290,6 +338,11 @@ bool _registerPapyrusFunctions(VirtualMachine* const vm)
 
     _FunctionRegistry registry("YASTMFSUtils", vm);
 
+    // General file system functions
+    registry.registerFunction("FileExists", FileExists);
+    registry.registerFunction("RemoveFile", RemoveFile);
+
+    // Functions handling configuration files.
     registry.registerFunction("CreateConfig", CreateConfig);
     registry.registerFunction("OpenConfig", OpenConfig);
     registry.registerFunction("SaveConfig", SaveConfig);
@@ -300,6 +353,7 @@ bool _registerPapyrusFunctions(VirtualMachine* const vm)
     registry.registerFunction("LoadInt", LoadValue<int>);
     registry.registerFunction("LoadFloat", LoadValue<float>);
 
+    // Functions for debugging purposes.
     registry.registerFunction("GetConfigCount", GetConfigCount);
     registry.registerFunction("GetLargestHandle", GetLargestHandle);
     registry.registerFunction("GetNextHandle", GetNextHandle);
