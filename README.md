@@ -55,32 +55,17 @@ specs. We use certain constructs that are only valid in v1.0+.
    * The CMake script uses the `VCPKG_ROOT` environment variable to locate
      Vcpkg. Make sure this is set before starting your IDE. You may need to kill
      and restart `explorer.exe` for this to apply properly.
+   * The build configuration is currently set up to use MSVS 14.2 (from VS2019) 
+     as the compiler so to replicate the build you'll need to also install that
+     version of the compiler from the installer if you're using VS2022.
 2. Clone the project _and_ its submodules using
    `git clone --recurse-submodules <repo_url>`.
 3. Open the project in Visual Studio (preferred version: Visual Studio 2022).
-4. Set CMake variables. See
-   [Important CMake Variables](#important-cmake-variables) section for details.
+4. Set CMake variables. You can use `CMakePresets.json` as a starting point. See
+   [Important CMake Variables](#important-cmake-variables) and
+   [Example `CMakeUserPresets.json`](#example-cmakeuserpresets.json) sections
+   for details.  
 5. Build the project.
-
-### Using a Different Compiler Version
-
-You can pick a different compiler version than the default in Visual Studio by
-setting the following settings:
-
-* Add `-Tv<msvc_version>` to CMake's command arguments.
-* Use the Visual Studio generator instead of Ninja (otherwise it won't recognize
-  the argument).
-  * In Visual Studio 2022, the bundled CMake version does not currently support
-    the VS2022 generator as of this writing. In order to use this generator,
-    install an up-to-date version of CMake and change the CMake executable path
-    to point to it (should be under advanced settings).
-
-    If you also have VS2019 installed, you can use its generator instead.
-
-_Note:_ Within Visual Studio's UI, the generator configuration may be hidden
-under advanced settings.
-
-![CMake Configuration](images/cmake-custom-compiler-0-marked.png)
 
 ### Important CMake Variables
 
