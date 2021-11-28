@@ -36,7 +36,9 @@ public:
      * @brief Primary souls are souls that we're currently capturing. These
      * souls are associated with an actor.
      *
-     * Note that split souls may or may not be a primary soul.
+     * Note that split souls may or may not be a primary soul depending on
+     * whether the original soul was a displaced soul or the one we're soul
+     * trapping.
      */
     bool isPrimarySoul() const { return actor() != nullptr; }
     /**
