@@ -3,4 +3,4 @@
 	url = https://github.com/Seally/CommonLibSSE.git
 [submodule "extern/CommonLibSSE_SE"]
 	path = extern/CommonLibSSE_SE
-	url = https://github.com/Seally/CommonLibSSE
+	url = https://github.com/Seally/CommonLibSSE.git
