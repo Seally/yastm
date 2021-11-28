@@ -5,14 +5,12 @@
     "homepage": "https://github.com/Seally/yastm",
     "license": "MIT",
     "dependencies": [
-        "boost-atomic",
         "boost-container-hash",
         "boost-stl-interfaces",
+        "fmt",
         "rsm-binary-io",
-        "span-lite",
         "spdlog",
-        "xbyak",
         "tomlplusplus",
-        "fmt"
+        "xbyak"
     ]
 }
