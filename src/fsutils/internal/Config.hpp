@@ -12,6 +12,12 @@ public:
     Config() {}
     Config(std::string_view path);
 
+    bool has(std::string_view key) const
+    {
+        std::shared_lock lock(_mutex);
+        return _data.contains(key);
+    }
+
     template <typename T>
     T get(std::string_view key, const T& defaultValue) const
     {

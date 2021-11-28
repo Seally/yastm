@@ -38,11 +38,21 @@ bool function RemoveFile(string filePath) global native
 ; ; Opens file at "Data/YASTMUserConfig.toml"
 ; int handle = YASTMFSUtils.OpenConfig("YASTMUserConfig.toml")
 ;
-; if handle != 0
+; if handle != 0;
+;     ; If you need to know if a value is missing before retrieving it, check
+;     ; for its existence with HasEntry().
+;     if YASTMFSUtils.HasEntry(handle, "version")
+;         int version = YASTMFSUtils.GetInt(handle, "version", 1)
+;
+;         if version == 1
+;             ; do version specific stuff
+;         endIf
+;     endIf
+;
 ;     ; 0 is the value to return if it's missing. Due to Papyrus type
 ;     ; restrictions we can't return null.
-;     int myValue0 = YASTMFSUtils.LoadInt(handle, "MyValue0", 0)
-;     float myValue1 = YASTMFSUtils.LoadFloat(handle, "MyValue1", 0)
+;     int myValue0 = YASTMFSUtils.GetInt(handle, "MyValue0", 0)
+;     float myValue1 = YASTMFSUtils.GetFloat(handle, "MyValue1", 0)
 ;
 ;     YASTMFSUtils.CloseConfig(handle)
 ;     ; ... do something with the values
@@ -54,8 +64,8 @@ bool function RemoveFile(string filePath) global native
 ; int handle = YASTMFSUtils.CreateConfig()
 ;
 ; if handle != 0
-;     YASTMFSUtils.SaveInt(handle, "MyValue0", 20)
-;     YASTMFSUtils.SaveFloat(handle, "MyValue1", 30)
+;     YASTMFSUtils.SetInt(handle, "MyValue0", 20)
+;     YASTMFSUtils.SetFloat(handle, "MyValue1", 30)
 ;
 ;     ; Saves to "Data/YASTMUserConfig.toml"
 ;     YASTMFSUtils.SaveConfig(handle, "YASTMUserConfig.toml")
@@ -84,19 +94,28 @@ bool function SaveConfig(int configHandle, string filePath) global native
 ; CreateConfig(), except when handle == 0.
 function CloseConfig(int configHandle) global native
 
-; Saves an int 'value' to the 'handle' associated with 'key'.
-bool function SaveInt(int configHandle, string key, int value) global native
+; Checks if an entry with the given 'key' exists in 'handle'.
+;
+; You can use this before calling Get<dataType>(handle, key, defaultValue) to
+; check if the value will be defaulted or not.
+;
+; Subject to race conditions if multiple scripts are processing the same handle,
+; but it's NOT recommended to share the handle IDs between scripts anyway.
+bool function HasEntry(int configHandle, string key) global native
 
-; Saves a float 'value' to the 'handle' associated with 'key'.
-bool function SaveFloat(int configHandle, string key, float value) global native
-
-; Loads an int value associated with 'key' in the given 'handle', or the
+; Retrieves an int value associated with 'key' in the given 'handle', or the
 ; 'defaultValue' if the value is missing or has an incompatible type.
-int function LoadInt(int configHandle, string key, int defaultValue) global native
+int function GetInt(int configHandle, string key, int defaultValue) global native
 
-; Loads a float value associated with 'key' in the given 'handle', or the
+; Retrieves a float value associated with 'key' in the given 'handle', or the
 ; 'defaultValue' if the value is missing or has an incompatible type.
-float function LoadFloat(int configHandle, string key, float defaultValue) global native
+float function GetFloat(int configHandle, string key, float defaultValue) global native
+
+; Sets an int 'value' to the 'handle' associated with 'key'.
+bool function SetInt(int configHandle, string key, int value) global native
+
+; Sets a float 'value' to the 'handle' associated with 'key'.
+bool function SetFloat(int configHandle, string key, float value) global native
 
 ; ==============================================================================
 ; For debugging purposes. Do NOT use in production code!

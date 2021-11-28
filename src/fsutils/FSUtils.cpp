@@ -155,8 +155,41 @@ void CloseConfig(
     }
 }
 
+bool HasEntry(
+    RE::BSScript::Internal::VirtualMachine* vm,
+    RE::VMStackID stackId,
+    RE::StaticFunctionTag*,
+    ConfigManager::HandleType handle,
+    RE::BSFixedString key)
+{
+    if (key.length() <= 0) {
+        vm->TraceStack("Key is empty", stackId);
+        return false;
+    }
+
+    try {
+        auto maybeConfig = ConfigManager::getInstance().getConfig(handle);
+
+        if (maybeConfig.has_value()) {
+            auto& config = maybeConfig.value().get();
+
+            return config.has(key);
+        }
+    } catch (const std::exception& error) {
+        std::stringstream stream;
+
+        printErrorToStream(error, stream);
+        vm->TraceStack(
+            stream.str().c_str(),
+            stackId,
+            RE::BSScript::ErrorLogger::Severity::kInfo);
+    }
+
+    return false;
+}
+
 template <typename T>
-bool SaveValue(
+bool SetValue(
     RE::BSScript::Internal::VirtualMachine* vm,
     RE::VMStackID stackId,
     RE::StaticFunctionTag*,
@@ -192,7 +225,7 @@ bool SaveValue(
 }
 
 template <typename T>
-T LoadValue(
+T GetValue(
     RE::BSScript::Internal::VirtualMachine* vm,
     RE::VMStackID stackId,
     RE::StaticFunctionTag*,
@@ -348,10 +381,11 @@ bool _registerPapyrusFunctions(VirtualMachine* const vm)
     registry.registerFunction("SaveConfig", SaveConfig);
     registry.registerFunction("CloseConfig", CloseConfig);
 
-    registry.registerFunction("SaveInt", SaveValue<int>);
-    registry.registerFunction("SaveFloat", SaveValue<float>);
-    registry.registerFunction("LoadInt", LoadValue<int>);
-    registry.registerFunction("LoadFloat", LoadValue<float>);
+    registry.registerFunction("HasEntry", HasEntry);
+    registry.registerFunction("GetInt", GetValue<int>);
+    registry.registerFunction("GetFloat", GetValue<float>);
+    registry.registerFunction("SetInt", SetValue<int>);
+    registry.registerFunction("SetFloat", SetValue<float>);
 
     // Functions for debugging purposes.
     registry.registerFunction("GetConfigCount", GetConfigCount);
