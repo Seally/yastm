@@ -207,8 +207,7 @@ std::size_t
                         throw InvalidEntryValueTypeError{
                             "soulGems",
                             ValueType::Table,
-                            "Member of 'soulGems' array must be a "
-                            "table."};
+                            "Member of 'soulGems' array must be a table."};
                     }
                 });
             } catch (const std::exception& error) {

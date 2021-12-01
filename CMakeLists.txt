@@ -37,14 +37,14 @@ set_property(CACHE SKYRIM_VERSION PROPERTY STRINGS "AE" "SE")
 
 if(SKYRIM_VERSION STREQUAL "SE")
     project(
-        YASTM
+        YASTM_SE
         VERSION 1.8.0
         LANGUAGES CXX
     )
 elseif(SKYRIM_VERSION STREQUAL "AE")
     project(
-        YASTM
-        VERSION 2.8.0
+        YASTM_AE
+        VERSION 1.8.0
         LANGUAGES CXX
     )
 else()
