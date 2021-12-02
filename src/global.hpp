@@ -47,5 +47,5 @@
 /* Syntax: VERSION_SPECIFIC(SE_OUTPUT, AE_OUTPUT) */
 #    define VERSION_SPECIFIC(se, ae) se
 #else
-#    error "SKYRIM_VERSION_<version> is not defined."
+#    error "SKYRIM_VERSION_<version> is not defined or invalid."
 #endif

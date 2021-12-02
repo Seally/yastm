@@ -35,21 +35,11 @@ set_property(CACHE SKYRIM_VERSION PROPERTY STRINGS "AE" "SE")
 
 # ---- Project ----
 
-if(SKYRIM_VERSION STREQUAL "SE")
-    project(
-        YASTM_SE
-        VERSION 1.8.0
-        LANGUAGES CXX
-    )
-elseif(SKYRIM_VERSION STREQUAL "AE")
-    project(
-        YASTM_AE
-        VERSION 1.8.0
-        LANGUAGES CXX
-    )
-else()
-    message(FATAL_ERROR "Unknown Skyrim version: ${SKYRIM_VERSION}")
-endif()
+project(
+    YASTM
+    VERSION 1.8.0
+    LANGUAGES CXX
+)
 
 configure_file(
     ${CMAKE_CURRENT_SOURCE_DIR}/cmake/version.hpp.in

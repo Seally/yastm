@@ -22,7 +22,7 @@ BEGIN
             VALUE "InternalName", "@PROJECT_NAME@"
             VALUE "LegalCopyright", "MIT License"
             VALUE "ProductName", "@PROJECT_NAME@"
-            VALUE "ProductVersion", "@PROJECT_VERSION@.0"
+            VALUE "ProductVersion", "@PROJECT_VERSION@.0-@SKYRIM_VERSION@"
         END
     END
     BLOCK "VarFileInfo"
