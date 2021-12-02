@@ -167,7 +167,7 @@ struct fmt::formatter<BoolConfigKey> {
         // the format string starting from the format specifications to be parsed,
         // e.g. in
         //
-        //   fmt::format("{:f} - point of interest", point{1, 2});
+        //   fmt::format("{:f} - point of interest", point(1, 2));
         //
         // the range will contain "f} - point of interest". The formatter should
         // parse specifiers until '}' or the end of the range.
@@ -200,7 +200,7 @@ struct fmt::formatter<EnumConfigKey> {
         // the format string starting from the format specifications to be parsed,
         // e.g. in
         //
-        //   fmt::format("{:f} - point of interest", point{1, 2});
+        //   fmt::format("{:f} - point of interest", point(1, 2));
         //
         // the range will contain "f} - point of interest". The formatter should
         // parse specifiers until '}' or the end of the range.
@@ -233,7 +233,7 @@ struct fmt::formatter<SoulShrinkingTechnique> {
         // the format string starting from the format specifications to be parsed,
         // e.g. in
         //
-        //   fmt::format("{:f} - point of interest", point{1, 2});
+        //   fmt::format("{:f} - point of interest", point(1, 2));
         //
         // the range will contain "f} - point of interest". The formatter should
         // parse specifiers until '}' or the end of the range.

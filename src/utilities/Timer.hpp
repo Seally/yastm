@@ -10,7 +10,7 @@ class Timer {
 
 public:
     explicit Timer()
-        : _begin{clock_type::now()}
+        : _begin(clock_type::now())
     {}
     virtual ~Timer() {}
 
@@ -39,7 +39,7 @@ class AccumulatingTimer {
 
 public:
     explicit AccumulatingTimer()
-        : _totalDuration{second_type::zero()}
+        : _totalDuration(second_type::zero())
     {}
     virtual ~AccumulatingTimer() {}
 

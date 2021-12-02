@@ -61,7 +61,12 @@ public:
 
 class ConcreteSoulGemGroupError : public std::runtime_error {
 public:
-    explicit ConcreteSoulGemGroupError(const std::string& message);
+    explicit ConcreteSoulGemGroupError(const std::string& message)
+        : std::runtime_error(message)
+    {}
+    explicit ConcreteSoulGemGroupError(const char* message)
+        : std::runtime_error(message)
+    {}
 };
 
 template <>
@@ -93,7 +98,7 @@ public:
         // the format string starting from the format specifications to be parsed,
         // e.g. in
         //
-        //   fmt::format("{:f} - point of interest", point{1, 2});
+        //   fmt::format("{:f} - point of interest", point(1, 2));
         //
         // the range will contain "f} - point of interest". The formatter should
         // parse specifiers until '}' or the end of the range.

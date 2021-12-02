@@ -63,6 +63,6 @@ inline void Form<T>::loadForm(RE::TESDataHandler* const dataHandler)
     if (formType == FormType) {
         _form = form->As<T>();
     } else {
-        throw UnexpectedFormTypeError{FormType, formType, form->GetName()};
+        throw UnexpectedFormTypeError(FormType, formType, form->GetName());
     }
 }

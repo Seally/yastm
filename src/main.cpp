@@ -12,10 +12,17 @@
 #include "TrapSoulFix.hpp"
 #include "fsutils/FSUtils.hpp"
 
+struct Point {
+    int x;
+    int y;
+};
+
 bool setUpLogging()
 {
     using namespace std::literals;
     namespace logger = SKSE::log;
+
+    Point foo(1, 2);
 
     auto path = logger::log_directory();
     if (!path.has_value()) {
@@ -90,7 +97,7 @@ bool installPatches(const SKSE::LoadInterface* const skse)
 //		return false;
 //	}
 //
-//	const std::string& version{db.GetLoadedVersionString()};
+//	const std::string& version(db.GetLoadedVersionString());
 //
 //	db.Dump("offsets-" + version + ".txt");
 //	LOG_INFO_FMT("Dumped offsets for {}", version);

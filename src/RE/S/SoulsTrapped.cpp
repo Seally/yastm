@@ -17,7 +17,7 @@ namespace RE {
 
     void SoulsTrapped::SendEvent(Actor* const a_trapper, Actor* const a_target)
     {
-        Event e{a_trapper, a_target};
+        Event e(a_trapper, a_target);
         auto source = GetEventSource();
         if (source) {
             source->SendEvent(std::addressof(e));

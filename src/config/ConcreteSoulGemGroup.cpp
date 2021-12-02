@@ -11,169 +11,174 @@
 #include "../utilities/misc.hpp"
 #include "../utilities/native.hpp"
 
-SoulSize _toContainedSoulSize(
-    const SoulGemCapacity capacity,
-    const std::size_t index)
-{
-    if (capacity == SoulGemCapacity::Black) {
-        switch (index) {
-        case 0:
-            return SoulSize::None;
-        case 1:
-            return SoulSize::Black;
+namespace {
+    SoulSize _toContainedSoulSize(
+        const SoulGemCapacity capacity,
+        const std::size_t index)
+    {
+        if (capacity == SoulGemCapacity::Black) {
+            switch (index) {
+            case 0:
+                return SoulSize::None;
+            case 1:
+                return SoulSize::Black;
+            }
+        } else {
+            switch (index) {
+            case 0:
+                return SoulSize::None;
+            case 1:
+                return SoulSize::Petty;
+            case 2:
+                return SoulSize::Lesser;
+            case 3:
+                return SoulSize::Common;
+            case 4:
+                return SoulSize::Greater;
+            case 5:
+                return SoulSize::Grand;
+            }
         }
-    } else {
-        switch (index) {
-        case 0:
-            return SoulSize::None;
-        case 1:
-            return SoulSize::Petty;
-        case 2:
-            return SoulSize::Lesser;
-        case 3:
-            return SoulSize::Common;
-        case 4:
-            return SoulSize::Greater;
-        case 5:
-            return SoulSize::Grand;
-        }
+
+        throw std::runtime_error(fmt::format(
+            FMT_STRING("Invalid member index {} for capacity {}"),
+            index,
+            capacity));
     }
 
-    throw std::runtime_error(fmt::format(
-        FMT_STRING("Invalid member index {} for capacity {}"),
-        index,
-        capacity));
-}
-
-void _checkFormIsNotNull(RE::TESForm* form, const FormId& formId)
-{
-    if (form == nullptr) {
-        throw MissingFormError(formId);
-    }
-}
-
-void _checkFormIsSoulGem(RE::TESForm* form)
-{
-    if (!form->IsSoulGem()) {
-        throw UnexpectedFormTypeError(
-            RE::FormType::SoulGem,
-            form->GetFormType(),
-            form->GetName());
-    }
-}
-
-void _checkGroupCapacityMatchesSoulGemFormCapacity(
-    RE::TESSoulGem* form,
-    const FormId& formId,
-    const SoulGemGroup& group)
-{
-    // We use effective capacity since black souls are grand souls
-    // in-game.
-    if (group.effectiveCapacity() != form->GetMaximumCapacity()) {
-        throw SpecificationError(fmt::format(
-            FMT_STRING(
-                "Soul gem form {} \"{}\" in {} does not have a capacity matching configuration"sv),
-            formId,
-            form->GetName(),
-            group));
-    }
-}
-
-bool _checkSoulGemReusability(
-    RE::TESSoulGem* const soulGemForm,
-    const SoulGemGroup& group)
-{
-    const bool isReusable =
-        soulGemForm->HasKeyword(getReusableSoulGemKeyword());
-
-    // These errors aren't critical so we won't bail, but log a warning
-    // about it anyway.
-    if (group.isReusable()) {
-        if (!isReusable) {
-            LOG_WARN_FMT(
-                "Non-reusable soul gem {} is listed in {:r}"sv,
-                *soulGemForm,
-                group);
-        }
-    } else {
-        if (isReusable) {
-            LOG_WARN_FMT(
-                "Reusable soul gem {} is listed in {:r}"sv,
-                *soulGemForm,
-                group);
+    void _checkFormIsNotNull(RE::TESForm* form, const FormId& formId)
+    {
+        if (form == nullptr) {
+            throw MissingFormError(formId);
         }
     }
 
-    return isReusable;
-}
-
-void _checkReusableSoulGemFields(
-    RE::TESSoulGem* const soulGemForm,
-    const SoulGemGroup& group)
-{
-    // Checks reusable soul gems for the appropriate fields.
-    //
-    // We use the linked soul gem field to fix a crash that occurs when
-    // trying to use reusable soul gems whose base form does not have an
-    // empty soul gem (the entire point of the ChargeItemFix and
-    // EnchantItemFix) so it is absolutely important to get this right.
-    if (soulGemForm->GetContainedSoul() != RE::SOUL_LEVEL::kNone) {
-        if (soulGemForm->linkedSoulGem == nullptr) {
-            throw FormError(fmt::format(
-                FMT_STRING("Reusable soul gem {} in {} contains a soul but has "
-                           "no linked soul gem specified in the form."),
-                *soulGemForm,
-                group));
+    void _checkFormIsSoulGem(RE::TESForm* form)
+    {
+        if (!form->IsSoulGem()) {
+            throw UnexpectedFormTypeError(
+                RE::FormType::SoulGem,
+                form->GetFormType(),
+                form->GetName());
         }
+    }
 
-        if (soulGemForm->linkedSoulGem->GetContainedSoul() !=
-            RE::SOUL_LEVEL::kNone) {
-            throw FormError(fmt::format(
-                FMT_STRING("Linked soul gem for reusable soul gem {} in {} is "
-                           "not an empty soul gem."),
-                *soulGemForm,
+    void _checkGroupCapacityMatchesSoulGemFormCapacity(
+        RE::TESSoulGem* form,
+        const FormId& formId,
+        const SoulGemGroup& group)
+    {
+        // We use effective capacity since black souls are grand souls
+        // in-game.
+        if (group.effectiveCapacity() != form->GetMaximumCapacity()) {
+            throw SpecificationError(fmt::format(
+                FMT_STRING(
+                    "Soul gem form {} \"{}\" in {} does not have a capacity matching configuration"sv),
+                formId,
+                form->GetName(),
                 group));
         }
     }
-}
 
-void _checkIndexMatchesContainedSoulSize(
-    const std::size_t index,
-    RE::TESSoulGem* const soulGemForm,
-    const SoulGemGroup& group)
-{
-    if (group.capacity() == SoulGemCapacity::Black) {
-        switch (index) {
-        case 0:
-            if (soulGemForm->GetContainedSoul() != RE::SOUL_LEVEL::kNone) {
-                throw SpecificationError(fmt::format(
-                    FMT_STRING(
-                        "{:uc} member at index {} is not an empty soul gem."),
-                    group,
-                    index));
+    bool _checkSoulGemReusability(
+        RE::TESSoulGem* const soulGemForm,
+        const SoulGemGroup& group)
+    {
+        const bool isReusable =
+            soulGemForm->HasKeyword(getReusableSoulGemKeyword());
+
+        // These errors aren't critical so we won't bail, but log a warning
+        // about it anyway.
+        if (group.isReusable()) {
+            if (!isReusable) {
+                LOG_WARN_FMT(
+                    "Non-reusable soul gem {} is listed in {:r}"sv,
+                    *soulGemForm,
+                    group);
             }
-            break;
-        case 1:
-            if (soulGemForm->GetContainedSoul() != RE::SOUL_LEVEL::kGrand) {
-                throw SpecificationError(fmt::format(
-                    FMT_STRING(
-                        "{:uc} member at index {} is not a filled soul gem."),
-                    group,
-                    index));
+        } else {
+            if (isReusable) {
+                LOG_WARN_FMT(
+                    "Reusable soul gem {} is listed in {:r}"sv,
+                    *soulGemForm,
+                    group);
             }
-            break;
-        default:
-            throw SpecificationError(
-                fmt::format(FMT_STRING("Extra members found in {:c}"), group));
         }
-    } else if (static_cast<int>(soulGemForm->GetContainedSoul()) != index) {
-        throw SpecificationError(fmt::format(
-            FMT_STRING(
-                "{:u} member at index {} does not contain the appropriate soul size."sv),
-            group,
-            index));
+
+        return isReusable;
     }
-}
+
+    void _checkReusableSoulGemFields(
+        RE::TESSoulGem* const soulGemForm,
+        const SoulGemGroup& group)
+    {
+        // Checks reusable soul gems for the appropriate fields.
+        //
+        // We use the linked soul gem field to fix a crash that occurs when
+        // trying to use reusable soul gems whose base form does not have an
+        // empty soul gem (the entire point of the ChargeItemFix and
+        // EnchantItemFix) so it is absolutely important to get this right.
+        if (soulGemForm->GetContainedSoul() != RE::SOUL_LEVEL::kNone) {
+            if (soulGemForm->linkedSoulGem == nullptr) {
+                throw FormError(fmt::format(
+                    FMT_STRING(
+                        "Reusable soul gem {} in {} contains a soul but has "
+                        "no linked soul gem specified in the form."),
+                    *soulGemForm,
+                    group));
+            }
+
+            if (soulGemForm->linkedSoulGem->GetContainedSoul() !=
+                RE::SOUL_LEVEL::kNone) {
+                throw FormError(fmt::format(
+                    FMT_STRING(
+                        "Linked soul gem for reusable soul gem {} in {} is "
+                        "not an empty soul gem."),
+                    *soulGemForm,
+                    group));
+            }
+        }
+    }
+
+    void _checkIndexMatchesContainedSoulSize(
+        const std::size_t index,
+        RE::TESSoulGem* const soulGemForm,
+        const SoulGemGroup& group)
+    {
+        if (group.capacity() == SoulGemCapacity::Black) {
+            switch (index) {
+            case 0:
+                if (soulGemForm->GetContainedSoul() != RE::SOUL_LEVEL::kNone) {
+                    throw SpecificationError(fmt::format(
+                        FMT_STRING("{:uc} member at index {} is not an empty "
+                                   "soul gem."),
+                        group,
+                        index));
+                }
+                break;
+            case 1:
+                if (soulGemForm->GetContainedSoul() != RE::SOUL_LEVEL::kGrand) {
+                    throw SpecificationError(fmt::format(
+                        FMT_STRING("{:uc} member at index {} is not a filled "
+                                   "soul gem."),
+                        group,
+                        index));
+                }
+                break;
+            default:
+                throw SpecificationError(fmt::format(
+                    FMT_STRING("Extra members found in {:c}"),
+                    group));
+            }
+        } else if (static_cast<int>(soulGemForm->GetContainedSoul()) != index) {
+            throw SpecificationError(fmt::format(
+                FMT_STRING(
+                    "{:u} member at index {} does not contain the appropriate soul size."sv),
+                group,
+                index));
+        }
+    }
+} // namespace
 
 void ConcreteSoulGemGroup::_initializeFromPrimaryBasis(
     const SoulGemGroup& sourceGroup,
@@ -282,7 +287,3 @@ ConcreteSoulGemGroup::ConcreteSoulGemGroup(
             blackSoulGemGroup)));
     }
 }
-
-ConcreteSoulGemGroupError::ConcreteSoulGemGroupError(const std::string& message)
-    : std::runtime_error{message}
-{}

@@ -69,9 +69,9 @@ public:
             const ConcreteSoulGemGroupList& soulGemsAtCapacity,
             const SoulSize containedSoulSize,
             const std::size_t index)
-            : _soulGemsAtCapacity{&soulGemsAtCapacity}
-            , _containedSoulSize{containedSoulSize}
-            , _index{index}
+            : _soulGemsAtCapacity(&soulGemsAtCapacity)
+            , _containedSoulSize(containedSoulSize)
+            , _index(index)
         {}
 
         friend class SoulGemMap;
@@ -101,7 +101,7 @@ public:
 
         Iterator operator++(int)
         {
-            Iterator tmp{*this};
+            Iterator tmp(*this);
             ++_index;
             return tmp;
         }
@@ -174,11 +174,11 @@ public:
         const auto& soulGemsAtCapacity = _soulGemMap.at(capacity);
 
         return {
-            Iterator{soulGemsAtCapacity, containedSoulSize, 0},
-            Iterator{
+            Iterator(soulGemsAtCapacity, containedSoulSize, 0),
+            Iterator(
                 soulGemsAtCapacity,
                 containedSoulSize,
-                soulGemsAtCapacity.size()}};
+                soulGemsAtCapacity.size())};
     }
 
     void printContents() const;

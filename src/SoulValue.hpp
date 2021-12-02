@@ -20,12 +20,12 @@ private:
     UnderlyingValueType _value;
 
     constexpr SoulSizeValue(const UnderlyingValueType soulSize)
-        : _value{soulSize}
+        : _value(soulSize)
     {}
 
 public:
     constexpr SoulSizeValue(const ValueType soulSize)
-        : _value{static_cast<UnderlyingValueType>(soulSize)}
+        : _value(static_cast<UnderlyingValueType>(soulSize))
     {}
 
     constexpr UnderlyingValueType raw() const { return _value; }
@@ -119,11 +119,11 @@ private:
 
 public:
     constexpr SoulGemCapacityValue(const UnderlyingValueType capacity)
-        : _value{capacity}
+        : _value(capacity)
     {}
 
     constexpr SoulGemCapacityValue(const ValueType capacity)
-        : SoulGemCapacityValue{static_cast<UnderlyingValueType>(capacity)}
+        : SoulGemCapacityValue(static_cast<UnderlyingValueType>(capacity))
     {}
 
     constexpr UnderlyingValueType raw() const { return _value; }

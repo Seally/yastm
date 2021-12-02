@@ -146,5 +146,7 @@ inline auto YASTMConfig::Snapshot::get() const
 
 class YASTMConfigLoadError : public std::runtime_error {
 public:
-    explicit YASTMConfigLoadError(const std::string& message);
+    explicit YASTMConfigLoadError(const std::string& message)
+        : std::runtime_error(message)
+    {}
 };

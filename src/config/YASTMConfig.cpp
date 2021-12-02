@@ -46,7 +46,7 @@ void _readGlobalVariableConfigs(
     YASTMConfig::GlobalVariableMap<KeyType>& map)
 {
     const auto keyName = toString(key);
-    const auto tomlKeyName = std::string{keyName} + "Global";
+    const auto tomlKeyName = std::string(keyName) + "Global";
 
     if (const auto idArray = table[tomlKeyName].as_array(); idArray) {
         if (map.contains(key)) {
@@ -74,8 +74,8 @@ void YASTMConfig::_readYASTMConfig()
 {
     toml::table table;
 
-    const std::filesystem::path configPath{"Data/YASTM.toml"sv};
-    const std::string configPathStr{configPath.string()};
+    const std::filesystem::path configPath("Data/YASTM.toml"sv);
+    const std::string configPathStr(configPath.string());
 
     try {
         table = toml::parse_file(configPathStr);
@@ -100,23 +100,21 @@ void YASTMConfig::_readYASTMConfig()
             error.what());
     }
 
-#ifndef NDEBUG
     // Print the loaded configuration (we can't read the in-game forms yet.
     // Game hasn't fully initialized.)
-    LOG_TRACE("Loaded configuration from TOML:"sv);
+    LOG_INFO("Loaded configuration from TOML:"sv);
 
     for (const auto& [key, globalVar] : _globalBools) {
         if (globalVar.isConfigLoaded()) {
-            LOG_TRACE_FMT("- {} = {}"sv, key, globalVar.formId());
+            LOG_INFO_FMT("- {} = {}"sv, key, globalVar.formId());
         }
     }
 
     for (const auto& [key, globalVar] : _globalEnums) {
         if (globalVar.isConfigLoaded()) {
-            LOG_TRACE_FMT("- {} = {}"sv, key, globalVar.formId());
+            LOG_INFO_FMT("- {} = {}"sv, key, globalVar.formId());
         }
     }
-#endif // NDEBUG
 }
 
 void YASTMConfig::_readIndividualConfigs()
@@ -165,13 +163,12 @@ void YASTMConfig::_readIndividualConfigs()
         }
     }
 
-#ifndef NDEBUG
     // Print the loaded configuration (we can't read the in-game forms yet.
     // Game hasn't fully initialized.)
-    LOG_TRACE("Loaded soul gem configuration from TOML:"sv);
+    LOG_INFO("Loaded soul gem configuration from TOML:"sv);
 
     for (const auto& soulGemGroup : _soulGemGroupList) {
-        LOG_TRACE_FMT(
+        LOG_INFO_FMT(
             "    {} (isReusable={}, capacity={}, priority={})"sv,
             soulGemGroup.id(),
             soulGemGroup.isReusable(),
@@ -179,13 +176,12 @@ void YASTMConfig::_readIndividualConfigs()
             toString(soulGemGroup.rawPriority()));
 
         for (const auto& soulGemId : soulGemGroup.members()) {
-            LOG_TRACE_FMT("        {}"sv, soulGemId);
+            LOG_INFO_FMT("        {}"sv, soulGemId);
         }
     }
-#endif // NDEBUG
 
     if (validSoulGemGroupsCount <= 0) {
-        throw YASTMConfigLoadError{"No valid soul gem groups found."};
+        throw YASTMConfigLoadError("No valid soul gem groups found.");
     }
 }
 
@@ -204,10 +200,10 @@ std::size_t
                         // We've found a valid soul gem group!
                         ++validSoulGemGroupsCount;
                     } else {
-                        throw InvalidEntryValueTypeError{
+                        throw InvalidEntryValueTypeError(
                             "soulGems",
                             ValueType::Table,
-                            "Member of 'soulGems' array must be a table."};
+                            "Member of 'soulGems' array must be a table.");
                     }
                 });
             } catch (const std::exception& error) {
@@ -304,7 +300,3 @@ void YASTMConfig::_createSoulGemMap(RE::TESDataHandler* const dataHandler)
 
     _soulGemMap.printContents();
 }
-
-YASTMConfigLoadError::YASTMConfigLoadError(const std::string& message)
-    : std::runtime_error{message}
-{}

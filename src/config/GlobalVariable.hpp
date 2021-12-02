@@ -26,8 +26,8 @@ class GlobalVariable : public Form<RE::TESGlobal> {
 
 public:
     explicit GlobalVariable(const KeyType key, const float defaultValue)
-        : _key{key}
-        , _defaultValue{defaultValue}
+        : _key(key)
+        , _defaultValue(defaultValue)
     {}
 
     KeyType key() const { return _key; }

@@ -16,19 +16,19 @@ SoulSize _getActorSoulSize(RE::Actor* const actor)
 }
 
 Victim::Victim(RE::Actor* const actor)
-    : _actor{actor}
-    , _soulSize{_getActorSoulSize(actor)}
-    , _isSplit{false}
+    : _actor(actor)
+    , _soulSize(_getActorSoulSize(actor))
+    , _isSplit(false)
 {}
 
 Victim::Victim(const SoulSize soulSize)
-    : _actor{nullptr}
-    , _soulSize{soulSize}
-    , _isSplit{false}
+    : _actor(nullptr)
+    , _soulSize(soulSize)
+    , _isSplit(false)
 {}
 
 Victim::Victim(RE::Actor* const actor, const SoulSize soulSize)
-    : _actor{actor}
-    , _soulSize{soulSize}
-    , _isSplit{true}
+    : _actor(actor)
+    , _soulSize(soulSize)
+    , _isSplit(true)
 {}

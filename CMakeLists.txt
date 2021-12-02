@@ -134,7 +134,6 @@ set(SOURCES
     src/config/GlobalVariable.hpp
     src/config/LoadPriority.hpp
     src/config/ParseError.hpp
-    src/config/ParseError.cpp
     src/config/SoulGemGroup.hpp
     src/config/SoulGemGroup.cpp
     src/config/SoulGemMap.hpp
@@ -152,8 +151,11 @@ set(SOURCES
     src/fsutils/internal/ConfigManager.hpp
     src/fsutils/internal/ConfigManager.cpp
     src/trapsoul/messages.hpp
+    src/trapsoul/SearchResult.hpp
+    src/trapsoul/SoulTrapData.hpp
     src/trapsoul/trapsoul.hpp
     src/trapsoul/trapsoul.cpp
+    src/trapsoul/types.hpp
     src/trapsoul/Victim.hpp
     src/trapsoul/Victim.cpp
     src/utilities/algorithms.hpp

@@ -9,7 +9,13 @@
 
 class FormError : public std::runtime_error {
 public:
-    explicit FormError(const std::string& message);
+    explicit FormError(const std::string& message)
+        : std::runtime_error(message)
+    {}
+
+    explicit FormError(const char* message)
+        : std::runtime_error(message)
+    {}
 };
 
 class UnexpectedFormTypeError : public FormError {
