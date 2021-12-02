@@ -158,10 +158,11 @@ set(SOURCES
     src/trapsoul/Victim.cpp
     src/utilities/algorithms.hpp
     src/utilities/FormType.hpp
+    src/utilities/misc.hpp
+    src/utilities/misc.cpp
+    src/utilities/native.hpp
     src/utilities/printerror.hpp
     src/utilities/printerror.cpp
-    src/utilities/soultraputils.hpp
-    src/utilities/soultraputils.cpp
     src/utilities/stringutils.hpp
     src/utilities/TESObjectREFR.hpp
     src/utilities/TESObjectREFR.cpp

@@ -16,6 +16,10 @@ namespace re {
         constexpr REL::ID GetEventSource(VERSION_SPECIFIC(37916, 38873));
     } // namespace SoulsTrapped
 
+    namespace BSExtraDataList {
+        constexpr REL::ID SetSoul(VERSION_SPECIFIC(11474, 11620));
+    }
+
     namespace CraftingSubMenus {
         namespace EnchantMenu {
             // CraftingSubMenus::EnchantMenu::EnchantItem
@@ -77,10 +81,6 @@ namespace re {
 
     namespace fix {
         namespace chargeitem {
-            // SkyrimSE.exe + 0x2f26ef8 [1.5.97.0]      [ADDRLIB:517014]
-            // SkyrimSE.exe + 0x2fc19c8 [1.6.318/323.0] [ADDRLIB:403521]
-            constexpr REL::ID player(VERSION_SPECIFIC(517014, 403521));
-
             // This probably isn't updateInventory and may actually be part of
             // the update loop, but updating inventory is what we use it for
             // here.
@@ -92,42 +92,28 @@ namespace re {
 
             // 0x2a5 [1.5.97.0]
             // 0x29b [1.6.318/323.0]
-            constexpr std::ptrdiff_t beginOffset =
+            constexpr std::ptrdiff_t patchOffset =
                 VERSION_SPECIFIC(0x2a5, 0x29b);
 
             // Offset to return to when we finish the patched branch.
             // 0x2b9 [1.5.97.0]
             // 0x2af [1.6.318/323.0]
-            constexpr std::ptrdiff_t successContinueOffset =
+            constexpr std::ptrdiff_t continueOffset =
                 VERSION_SPECIFIC(0x2b9, 0x2af);
-
-            // Offset to return to when the reusable soul gem's linked soul gem
-            // field is null.
-            // 0x2b2 [1.5.97.0]
-            // 0x2a8 [1.6.318/323.0]
-            constexpr std::ptrdiff_t noLinkedSoulGemContinueOffset =
-                VERSION_SPECIFIC(0x2b2, 0x2a8);
 
             constexpr std::uintptr_t stackSize = 0xc8; // Same in AE
         } // namespace chargeitem
 
         namespace enchantitem {
-            constexpr REL::ID player = chargeitem::player;
             // 0x222 [1.5.97.0]
             // 0x220 [1.6.318/323.0]
-            constexpr std::ptrdiff_t beginOffset =
+            constexpr std::ptrdiff_t patchOffset =
                 VERSION_SPECIFIC(0x222, 0x220);
             // Offset to return to when we finish the patched branch.
             // 0x236 [1.5.97.0]
             // 0x234 [1.6.318/323.0]
-            constexpr std::ptrdiff_t successContinueOffset =
+            constexpr std::ptrdiff_t continueOffset =
                 VERSION_SPECIFIC(0x236, 0x234);
-            // Offset to return to when the reusable soul gem's linked soul gem
-            // field is null.
-            // 0x22f [1.5.97.0]
-            // 0x22d [1.6.318/323.0]
-            constexpr std::ptrdiff_t noLinkedSoulGemContinueOffset =
-                VERSION_SPECIFIC(0x22f, 0x22d);
 
             constexpr std::uintptr_t stackSize = 0xb8; // Same in AE
         } // namespace enchantitem
@@ -145,7 +131,7 @@ namespace re {
             // SkyrimSE.exe + 0x65a740 [1.6.323.0] [ADDRLIB:38818]
             constexpr REL::ID TrapSoul1(VERSION_SPECIFIC(37863, 38818));
 
-            constexpr std::ptrdiff_t beginOffset = 0x17; // Same in AE
+            constexpr std::ptrdiff_t patchOffset = 0x17; // Same in AE
             // 0x256 [1.5.97.0]
             // 0x282 [1.6.318/323.0]
             constexpr std::ptrdiff_t continueOffset =

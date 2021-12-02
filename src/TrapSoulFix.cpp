@@ -32,7 +32,7 @@ bool _isTrapSoulPatchable()
 
     if (std::memcmp(
             reinterpret_cast<std::uint8_t*>(
-                static_cast<std::uintptr_t>(TrapSoul1.address() + beginOffset)),
+                static_cast<std::uintptr_t>(TrapSoul1.address() + patchOffset)),
             expectedEntryBytes,
             sizeof expectedEntryBytes) != 0) {
         LOG_CRITICAL(
@@ -107,8 +107,9 @@ bool installTrapSoulFix(const SKSE::LoadInterface* const loadInterface)
     LOG_INFO_FMT("[TRAPSOUL] Patch size: {}"sv, patch.getSize());
 
     auto& trampoline = SKSE::GetTrampoline();
+    SKSE::AllocTrampoline(1 << 7);
     trampoline.write_branch<5>(
-        TrapSoul1.address() + beginOffset,
+        TrapSoul1.address() + patchOffset,
         trampoline.allocate(patch));
 
     return true;

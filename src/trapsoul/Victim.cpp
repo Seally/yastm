@@ -2,17 +2,17 @@
 
 #include <cassert>
 
-#include "../utilities/soultraputils.hpp"
+#include "../utilities/native.hpp"
 
 SoulSize _getActorSoulSize(RE::Actor* const actor)
 {
     assert(actor != nullptr);
 
-    if (isActorNPC(actor)) {
+    if (native::isActorNPC(actor)) {
         return SoulSize::Black;
     }
 
-    return toSoulSize(getRemainingSoulLevel(actor));
+    return toSoulSize(native::getRemainingSoulLevel(actor));
 }
 
 Victim::Victim(RE::Actor* const actor)

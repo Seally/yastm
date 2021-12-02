@@ -1,4 +1,7 @@
-#include "soultraputils.hpp"
+#include "misc.hpp"
+
+#include <RE/B/BGSDefaultObjectManager.h>
+#include <RE/B/BGSKeyword.h>
 
 RE::BGSKeyword* getReusableSoulGemKeyword()
 {

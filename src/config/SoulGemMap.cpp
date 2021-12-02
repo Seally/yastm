@@ -15,7 +15,7 @@
 #include "FormError.hpp"
 #include "SoulGemGroup.hpp"
 #include "../utilities/printerror.hpp"
-#include "../utilities/soultraputils.hpp"
+#include "../utilities/native.hpp"
 #include "../formatters/TESSoulGem.hpp"
 
 using namespace std::literals;

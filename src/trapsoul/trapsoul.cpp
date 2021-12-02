@@ -23,6 +23,8 @@
 #include "Victim.hpp"
 #include "../config/YASTMConfig.hpp"
 #include "../formatters/TESSoulGem.hpp"
+#include "../utilities/misc.hpp"
+#include "../utilities/native.hpp"
 #include "../utilities/printerror.hpp"
 #include "../utilities/TESObjectREFR.hpp"
 #include "../utilities/Timer.hpp"
@@ -875,7 +877,7 @@ bool trapSoul(RE::Actor* const caster, RE::Actor* const victim)
     // We begin the mutex here since we're checking isSoulTrapped status next.
     std::lock_guard<std::mutex> guard{_trapSoulMutex};
 
-    if (getRemainingSoulLevelValue(victim) == SoulLevelValue::None) {
+    if (native::getRemainingSoulLevelValue(victim) == SoulLevelValue::None) {
         LOG_TRACE("Victim has already been soul trapped."sv);
         return false;
     }

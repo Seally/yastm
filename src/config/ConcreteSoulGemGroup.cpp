@@ -5,10 +5,11 @@
 #include <fmt/format.h>
 
 #include "../global.hpp"
-#include "../formatters/TESSoulGem.hpp"
-#include "../utilities/soultraputils.hpp"
 #include "FormError.hpp"
 #include "SpecificationError.hpp"
+#include "../formatters/TESSoulGem.hpp"
+#include "../utilities/misc.hpp"
+#include "../utilities/native.hpp"
 
 SoulSize _toContainedSoulSize(
     const SoulGemCapacity capacity,
