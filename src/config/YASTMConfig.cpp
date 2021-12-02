@@ -250,7 +250,7 @@ void _loadGlobalFormsIn(
 {
     for (auto& [key, globalVar] : map) {
         if (globalVar.isConfigLoaded()) {
-            LOG_TRACE_FMT("Loading form for \"{}\"..."sv, key);
+            LOG_INFO_FMT("Loading form for \"{}\"..."sv, key);
             try {
                 globalVar.loadForm(dataHandler);
             } catch (const std::exception& error) {
