@@ -151,7 +151,6 @@ extern "C" DLLEXPORT constinit auto SKSEPlugin_Version = []() {
 
 extern "C" DLLEXPORT bool SKSEPlugin_Load(const SKSE::LoadInterface* skse)
 {
-    using namespace meta;
     setUpLogging();
 
     if (skse->IsEditor()) {
