@@ -37,7 +37,7 @@ namespace internal {
 
         return offset.value;
     }
-}
+} // namespace internal
 
 template <>
 struct InstructionData<Instruction::CALL, 0xe8> {

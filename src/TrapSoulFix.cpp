@@ -94,7 +94,6 @@ bool installTrapSoulFix(const SKSE::LoadInterface* const loadInterface)
     auto& trampoline = SKSE::GetTrampoline();
 
     LOG_INFO("[TRAPSOUL] Installing Papyrus tail call patch..."sv);
-
     // TODO: Dubious benefit?
     // Replace the function called by Papyrus (saves us a jump).
     trampoline.write_branch<5>(
