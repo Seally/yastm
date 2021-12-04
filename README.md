@@ -113,6 +113,7 @@ if you don't have the compiler installed.
             "name": "x64-Debug-SE-MSVC142",
             "inherits": [ "base-vs2022", "se" ],
             "cacheVariables": {
+                "COPY_BUILD": true,
                 "SKYRIM64_DATA_PATH": "D:/Games/MO2 Data/SkyrimSE/mods/YASTM - SKSE Plugin (Debug)"
             }
         },
@@ -120,6 +121,7 @@ if you don't have the compiler installed.
             "name": "x64-Release-SE-MSVC142",
             "inherits": [ "base-vs2022", "se" ],
             "cacheVariables": {
+                "COPY_BUILD": true,
                 "SKYRIM64_DATA_PATH": "D:/Games/MO2 Data/SkyrimSE/mods/YASTM - SKSE Plugin"
             }
         },
@@ -127,6 +129,7 @@ if you don't have the compiler installed.
             "name": "x64-Debug-AE-MSVC142",
             "inherits": [ "base-vs2022", "ae" ],
             "cacheVariables": {
+                "COPY_BUILD": true,
                 "SKYRIM64_DATA_PATH": "D:/Games/MO2 Data/SkyrimAE/mods/YASTM - SKSE Plugin (Debug)"
             }
         },
@@ -134,7 +137,22 @@ if you don't have the compiler installed.
             "name": "x64-Release-AE-MSVC142",
             "inherits": [ "base-vs2022", "ae" ],
             "cacheVariables": {
+                "COPY_BUILD": true,
                 "SKYRIM64_DATA_PATH": "D:/Games/MO2 Data/SkyrimAE/mods/YASTM - SKSE Plugin"
+            }
+        },
+        {
+            "name": "x64-Debug-VR-MSVC142",
+            "inherits": [ "base-vs2022", "vr" ],
+            "cacheVariables": {
+                "COPY_BUILD":  false
+            }
+        },
+        {
+            "name": "x64-Release-VR-MSVC142",
+            "inherits": [ "base-vs2022", "vr" ],
+            "cacheVariables": {
+                "COPY_BUILD": false
             }
         }
     ],
@@ -162,6 +180,18 @@ if you don't have the compiler installed.
             "displayName": "AE Release",
             "configuration": "RelWithDebInfo",
             "configurePreset": "x64-Release-AE-MSVC142"
+        },
+        {
+            "name": "vr-debug",
+            "displayName": "VR Debug",
+            "configuration": "Debug",
+            "configurePreset": "x64-Debug-VR-MSVC142"
+        },
+        {
+            "name": "vr-release",
+            "displayName": "VR Release",
+            "configuration": "RelWithDebInfo",
+            "configurePreset": "x64-Release-VR-MSVC142"
         }
     ]
 }

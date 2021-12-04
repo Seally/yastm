@@ -36,16 +36,24 @@
 #define VERSION_CODE_SECONDARY(in) ((in >> 8) & 0xFFF)
 #define VERSION_CODE_SUB(in) ((in >> 0) & 0xFF)
 
-#if defined(SKYRIM_VERSION_AE)
-#    define AE_ONLY(output) output
-#    define SE_ONLY(output)
-/* Syntax: VERSION_SPECIFIC(SE_OUTPUT, AE_OUTPUT) */
-#    define VERSION_SPECIFIC(se, ae) ae
-#elif defined(SKYRIM_VERSION_SE)
+#if defined(SKYRIM_VERSION_SE)
 #    define AE_ONLY(output)
 #    define SE_ONLY(output) output
-/* Syntax: VERSION_SPECIFIC(SE_OUTPUT, AE_OUTPUT) */
-#    define VERSION_SPECIFIC(se, ae) se
+#    define VR_ONLY(output)
+/* Syntax: VERSION_SPECIFIC(SE_OUTPUT, AE_OUTPUT, VR_OUTPUT) */
+#    define VERSION_SPECIFIC(se, ae, vr) se
+#elif defined(SKYRIM_VERSION_AE)
+#    define AE_ONLY(output) output
+#    define SE_ONLY(output)
+#    define VR_ONLY(output)
+/* Syntax: VERSION_SPECIFIC(SE_OUTPUT, AE_OUTPUT, VR_OUTPUT) */
+#    define VERSION_SPECIFIC(se, ae, vr) ae
+#elif defined(SKYRIM_VERSION_VR)
+#    define AE_ONLY(output)
+#    define SE_ONLY(output)
+#    define VR_ONLY(output) output
+/* Syntax: VERSION_SPECIFIC(SE_OUTPUT, AE_OUTPUT, VR_OUTPUT) */
+#    define VERSION_SPECIFIC(se, ae, vr) vr
 #else
 #    error "SKYRIM_VERSION_<version> is not defined or invalid."
 #endif

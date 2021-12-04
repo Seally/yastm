@@ -1,7 +1,8 @@
+#include "SoulsTrapped.hpp"
+
+#if !defined(SKYRIM_VERSION_VR)
 // From PowerOfThree's decode:
 //     https://github.com/powerof3/CommonLibSSE/blob/dfa73e501c0ced55b8ce6732edc9ea4c531e9229/src/RE/S/SoulsTrapped.cpp
-
-#include "SoulsTrapped.hpp"
 
 #include <memory>
 
@@ -24,3 +25,4 @@ namespace RE {
         }
     }
 } // namespace RE
+#endif

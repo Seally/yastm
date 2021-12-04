@@ -779,7 +779,11 @@ bool trapSoul(RE::Actor* const caster, RE::Actor* const victim)
                 process) {
                 if (process->middleHigh) {
                     LOG_TRACE("Flagging soul trapped victim..."sv);
+#if defined(SKYRIM_VERSION_VR)
+                    process->middleHigh->soulTrapped = true;
+#else
                     process->middleHigh->unk325 = true;
+#endif
                 }
             }
         } else {

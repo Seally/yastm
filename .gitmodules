@@ -4,3 +4,6 @@
 [submodule "extern/CommonLibSSE_SE"]
 	path = extern/CommonLibSSE_SE
 	url = https://github.com/Seally/CommonLibSSE.git
+[submodule "extern/CommonLibVR"]
+	path = extern/CommonLibVR
+	url = https://github.com/alandtse/CommonLibVR.git

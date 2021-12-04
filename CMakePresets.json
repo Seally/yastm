@@ -9,17 +9,17 @@
         {
             "name": "base",
             "hidden": true,
-            "toolset": {
-                "strategy": "set",
-                "value": "v142"
-            },
             "architecture": {
                 "strategy": "set",
                 "value": "x64"
             },
+            "toolset": {
+                "strategy": "set",
+                "value": "v142"
+            },
             "cacheVariables": {
                 "SKSE_SUPPORT_XBYAK": true,
-                "COPY_BUILD": true,
+                "COPY_BUILD": false,
                 "CMAKE_TOOLCHAIN_FILE": {
                     "value": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
                     "type": "FILEPATH"
@@ -52,6 +52,14 @@
             "hidden": true,
             "cacheVariables": {
                 "SKYRIM_VERSION": "AE"
+            }
+        },
+        {
+            "name": "vr",
+            "hidden": true,
+            "cacheVariables": {
+                "SKYRIM_VERSION": "VR",
+                "BUILD_SKYRIMVR": true
             }
         }
     ]

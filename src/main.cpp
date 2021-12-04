@@ -70,6 +70,8 @@ bool installPatch(
 
 bool installPatches(const SKSE::LoadInterface* const skse)
 {
+    using namespace std::literals;
+
     // If any patch succeeds, return true since the executable code is modified.
     bool result = installPatch("ChargeItemFix"sv, installChargeItemFix);
     result |= installPatch("EnchantItemFix"sv, installEnchantItemFix);
@@ -99,7 +101,7 @@ bool installPatches(const SKSE::LoadInterface* const skse)
 //	return true;
 //}
 
-#if defined(SKYRIM_VERSION_SE)
+#if defined(SKYRIM_VERSION_SE) || defined(SKYRIM_VERSION_VR)
 extern "C" DLLEXPORT bool SKSEAPI
     SKSEPlugin_Query(const SKSE::QueryInterface* skse, SKSE::PluginInfo* info)
 {
@@ -113,12 +115,6 @@ extern "C" DLLEXPORT bool SKSEAPI
 
     if (skse->IsEditor()) {
         LOG_CRITICAL("Loaded in editor, marking as incompatible"sv);
-        return false;
-    }
-
-    const auto ver = skse->RuntimeVersion();
-    if (ver < SKSE::RUNTIME_1_5_39) {
-        LOG_CRITICAL_FMT("Unsupported runtime version {}"sv, ver.string());
         return false;
     }
 

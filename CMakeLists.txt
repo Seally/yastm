@@ -31,7 +31,7 @@ set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>" CACHE STR
 
 set(SKYRIM_VERSION "AE" CACHE STRING "Sets the DLL target compile version.")
 
-set_property(CACHE SKYRIM_VERSION PROPERTY STRINGS "AE" "SE")
+set_property(CACHE SKYRIM_VERSION PROPERTY STRINGS "AE" "SE" "VR")
 
 # ---- Project ----
 
@@ -89,6 +89,12 @@ if(SKYRIM_VERSION STREQUAL "SE")
     add_subdirectory("extern/CommonLibSSE_SE" CommonLibSSE)
 elseif(SKYRIM_VERSION STREQUAL "AE")
     add_subdirectory("extern/CommonLibSSE_AE" CommonLibSSE)
+elseif(SKYRIM_VERSION STREQUAL "VR")
+    if (BUILD_SKYRIMVR)
+        add_subdirectory("extern/CommonLibVR" CommonLibVR)
+    else()
+        add_subdirectory("extern/CommonLibVR" CommonLibSSE)
+    endif()
 else()
     message(FATAL_ERROR "Unknown Skyrim version: ${SKYRIM_VERSION}")
 endif()
@@ -203,14 +209,25 @@ target_include_directories(
         ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
 
-target_link_libraries(
-    ${PROJECT_NAME}
-    PRIVATE
-        CommonLibSSE::CommonLibSSE
-        spdlog::spdlog
-        fmt::fmt
-        tomlplusplus::tomlplusplus
-)
+if (SKYRIM_VERSION STREQUAL "VR" AND BUILD_SKYRIMVR)
+    target_link_libraries(
+        ${PROJECT_NAME}
+        PRIVATE
+            CommonLibVR::CommonLibVR
+            spdlog::spdlog
+            fmt::fmt
+            tomlplusplus::tomlplusplus
+    )
+else()
+    target_link_libraries(
+        ${PROJECT_NAME}
+        PRIVATE
+            CommonLibSSE::CommonLibSSE
+            spdlog::spdlog
+            fmt::fmt
+            tomlplusplus::tomlplusplus
+    )
+endif()
 
 if(MSVC)
     target_compile_options(
@@ -276,6 +293,8 @@ if (SKYRIM_VERSION STREQUAL "AE")
     target_compile_definitions(${PROJECT_NAME} PRIVATE SKYRIM_VERSION_AE)
 elseif(SKYRIM_VERSION STREQUAL "SE")
     target_compile_definitions(${PROJECT_NAME} PRIVATE SKYRIM_VERSION_SE)
+elseif(SKYRIM_VERSION STREQUAL "VR")
+    target_compile_definitions(${PROJECT_NAME} PRIVATE SKYRIM_VERSION_VR SKYRIMVR)
 else()
     message(FATAL_ERROR "Unknown Skyrim version: ${SKYRIM_VERSION}")
 endif()
