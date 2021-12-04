@@ -8,6 +8,7 @@
 #include "global.hpp"
 #include "config/YASTMConfig.hpp"
 #include "trapsoul/trapsoul.hpp"
+#include "utilities/assembly.hpp"
 #include "utilities/printerror.hpp"
 
 #include "expectedbytes.hpp"
@@ -26,15 +27,15 @@ void _handleMessage(SKSE::MessagingInterface::Message* const message)
 /**
  * Check if memory has the expected bytes for patching.
  */
-bool _isTrapSoulPatchable()
+bool _isActor_TrapSoulPatchable()
 {
     using namespace re::fix::trapsoul;
 
     if (std::memcmp(
-            reinterpret_cast<std::uint8_t*>(
-                static_cast<std::uintptr_t>(TrapSoul1.address() + patchOffset)),
-            expectedEntryBytes,
-            sizeof expectedEntryBytes) != 0) {
+            reinterpret_cast<std::uint8_t*>(static_cast<std::uintptr_t>(
+                re::Actor::TrapSoul.address() + sigOffset0)),
+            expectedSig0Bytes,
+            sizeof expectedSig0Bytes) != 0) {
         LOG_CRITICAL(
             "[TRAPSOUL] Expected bytes for soul trap handling at call offset not found."sv);
         return false;
@@ -42,15 +43,29 @@ bool _isTrapSoulPatchable()
 
     if (std::memcmp(
             reinterpret_cast<std::uint8_t*>(static_cast<std::uintptr_t>(
-                TrapSoul1.address() + continueOffset)),
-            expectedExitBytes,
-            sizeof expectedExitBytes) != 0) {
+                re::Actor::TrapSoul.address() + sigOffset1)),
+            expectedSig1Bytes,
+            sizeof expectedSig1Bytes) != 0) {
         LOG_CRITICAL(
             "[TRAPSOUL] Expected bytes for soul trap handling at return offset not found."sv);
         return false;
     }
 
     return true;
+}
+
+bool _isPapyrus_Actor_TrapSoulPatchable()
+{
+    using namespace re::fix::trapsoul;
+
+    // Determine the destination of the tail call jump in
+    // papyrus::Actor::TrapSoul() and see if it matches our address for
+    // Actor::TrapSoul().
+    const auto targetAddress =
+        InstructionData<Instruction::JMP, 0xe9>::targetAddress(
+            re::papyrus::Actor::TrapSoul.address() + branchJmpOffset);
+
+    return targetAddress == re::Actor::TrapSoul.address();
 }
 
 bool installTrapSoulFix(const SKSE::LoadInterface* const loadInterface)
@@ -71,46 +86,25 @@ bool installTrapSoulFix(const SKSE::LoadInterface* const loadInterface)
     auto messaging = SKSE::GetMessagingInterface();
     messaging->RegisterListener(_handleMessage);
 
-    if (!_isTrapSoulPatchable()) {
+    if (!_isPapyrus_Actor_TrapSoulPatchable() ||
+        !_isActor_TrapSoulPatchable()) {
         return false;
     }
 
-    // This simply sets up the registers so they will be passed to our
-    // replacement function correctly, and jumps back to our original function's
-    // ending address.
-    struct TrapSoulCall : Xbyak::CodeGenerator {
-        explicit TrapSoulCall()
-        {
-            Xbyak::Label trapSoulLabel;
-            Xbyak::Label returnLabel;
-
-            // Set up the arguments and call our function.
-            mov(rdx, r9); // victim
-            mov(rcx, r8); // caster
-
-            call(ptr[rip + trapSoulLabel]);
-
-            // Jump to original function end.
-            jmp(ptr[rip + returnLabel]);
-
-            L(trapSoulLabel);
-            dq(reinterpret_cast<std::uint64_t>(trapSoul));
-
-            L(returnLabel);
-            dq(TrapSoul1.address() + continueOffset);
-        }
-    };
-
-    TrapSoulCall patch;
-    patch.ready();
-
-    LOG_INFO_FMT("[TRAPSOUL] Patch size: {}"sv, patch.getSize());
-
     auto& trampoline = SKSE::GetTrampoline();
-    SKSE::AllocTrampoline(1 << 7);
+
+    LOG_INFO("[TRAPSOUL] Installing Papyrus tail call patch..."sv);
+
+    // TODO: Dubious benefit?
+    // Replace the function called by Papyrus (saves us a jump).
     trampoline.write_branch<5>(
-        TrapSoul1.address() + patchOffset,
-        trampoline.allocate(patch));
+        re::papyrus::Actor::TrapSoul.address() + branchJmpOffset,
+        trapSoul);
+
+    LOG_INFO("[TRAPSOUL] Installing Actor::TrapSoul hijack jump..."sv);
+    // Hijack the original Actor::TrapSoul() call with ours so everything
+    // else we haven't patched will call it.
+    trampoline.write_branch<5>(re::Actor::TrapSoul.address(), trapSoul);
 
     return true;
 }

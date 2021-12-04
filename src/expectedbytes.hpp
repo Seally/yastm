@@ -57,7 +57,7 @@ namespace re {
         } // end namespace enchantitem
 
         namespace trapsoul {
-            constexpr std::uint8_t expectedEntryBytes[] = {
+            constexpr std::uint8_t expectedSig0Bytes[] = {
                 // clang-format off
                 // [1.5.97.0]  .text:0000000140634917
                 // [1.6.318.0] .text:000000014065A9E7 (bytes are identical)
@@ -72,7 +72,7 @@ namespace re {
                 // clang-format on
             };
 
-            constexpr std::uint8_t expectedExitBytes[] = {
+            constexpr std::uint8_t expectedSig1Bytes[] = {
                 // clang-format off
                 // [1.5.97.0]  .text:0000000140634B56
                 // [1.6.318.0] .text:0000000140634B56 (bytes are identical)

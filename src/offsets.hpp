@@ -38,6 +38,22 @@ namespace re {
         constexpr REL::ID ChargeItem(VERSION_SPECIFIC(50980, 51859));
     } // namespace InventoryMenu
 
+    namespace Actor {
+        // SkyrimSE.exe + 0x634900 [1.5.97.0]  [ADDRLIB:37863]
+        // SkyrimSE.exe + 0x65a9d0 [1.6.318.0] [ADDRLIB:38818]
+        // SkyrimSE.exe + 0x65a740 [1.6.323.0] [ADDRLIB:38818]
+        constexpr REL::ID TrapSoul(VERSION_SPECIFIC(37863, 38818));
+    } // namespace Actor
+
+    namespace papyrus {
+        namespace Actor {
+            // SkyrimSE.exe + 0x94d850 [1.5.97.0]  [ADDRLIB:53948]
+            // SkyrimSE.exe + 0x97a270 [1.6.318.0] [ADDRLIB:54772]
+            // SkyrimSE.exe + 0x97a190 [1.6.323.0] [ADDRLIB:54772]
+            constexpr REL::ID TrapSoul(VERSION_SPECIFIC(53948, 54772));
+        } // namespace Actor
+    } // namespace papyrus
+
     namespace soultraputils {
         namespace Actor {
             // Possibly related to/same as Actor::CalculateCachedOwnerIsNPC()
@@ -119,22 +135,12 @@ namespace re {
         } // namespace enchantitem
 
         namespace trapsoul {
-            // Part 1 of TrapSoul()
-            // SkyrimSE.exe + 0x94d850 [1.5.97.0]  [ADDRLIB:53948]
-            // SkyrimSE.exe + 0x97a270 [1.6.318.0] [ADDRLIB:54772]
-            // SkyrimSE.exe + 0x97a190 [1.6.323.0] [ADDRLIB:54772]
-            constexpr REL::ID TrapSoul0(VERSION_SPECIFIC(53948, 54772));
+            constexpr std::ptrdiff_t branchJmpOffset = 0x6; // Same in AE
 
-            // Part 2 of TrapSoul() (after jump)
-            // SkyrimSE.exe + 0x634900 [1.5.97.0]  [ADDRLIB:37863]
-            // SkyrimSE.exe + 0x65a9d0 [1.6.318.0] [ADDRLIB:38818]
-            // SkyrimSE.exe + 0x65a740 [1.6.323.0] [ADDRLIB:38818]
-            constexpr REL::ID TrapSoul1(VERSION_SPECIFIC(37863, 38818));
-
-            constexpr std::ptrdiff_t patchOffset = 0x17; // Same in AE
+            constexpr std::ptrdiff_t sigOffset0 = 0x17; // Same in AE
             // 0x256 [1.5.97.0]
             // 0x282 [1.6.318/323.0]
-            constexpr std::ptrdiff_t continueOffset =
+            constexpr std::ptrdiff_t sigOffset1 =
                 VERSION_SPECIFIC(0x256, 0x282);
         } // namespace trapsoul
     } // namespace fix

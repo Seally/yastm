@@ -149,6 +149,7 @@ set(SOURCES
     src/trapsoul/Victim.hpp
     src/trapsoul/Victim.cpp
     src/utilities/algorithms.hpp
+    src/utilities/assembly.hpp
     src/utilities/FormType.hpp
     src/utilities/misc.hpp
     src/utilities/misc.cpp
@@ -161,7 +162,7 @@ set(SOURCES
     src/utilities/Timer.hpp
     src/RE/S/SoulsTrapped.hpp
     src/RE/S/SoulsTrapped.cpp
-)
+ )
 
 source_group(
     TREE
