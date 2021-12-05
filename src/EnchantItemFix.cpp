@@ -83,20 +83,13 @@ namespace {
             dataList,
             nullptr);
     }
-} // namespace
 
-bool installEnchantItemFix()
-{
-    using re::CraftingSubMenus::EnchantMenu::EnchantItem;
-    using namespace re::fix::enchantitem;
-
-    if (!_isEnchantItemPatchable()) {
-        return false;
-    }
-
-    struct Patch : Xbyak::CodeGenerator {
-        explicit Patch()
+    struct _Patch : Xbyak::CodeGenerator {
+        explicit _Patch()
         {
+            using re::CraftingSubMenus::EnchantMenu::EnchantItem;
+            using namespace re::fix::enchantitem;
+
             // rcx = ExtraDataList**
             // rdi = TESSoulGem*
             // r13 = 0 (constant for this procedure)
@@ -126,15 +119,25 @@ bool installEnchantItemFix()
             dq(reinterpret_cast<std::uint64_t>(_consumeReusableSoulGem));
         }
     };
+} // namespace
 
-    Patch patch;
+bool installEnchantItemFix()
+{
+    using re::CraftingSubMenus::EnchantMenu::EnchantItem;
+    using namespace re::fix::enchantitem;
+
+    if (!_isEnchantItemPatchable()) {
+        return false;
+    }
+
+    _Patch patch;
     patch.ready();
 
     LOG_INFO_FMT("[ENCHANT] Patch size: {}", patch.getSize());
 
     auto& trampoline = SKSE::GetTrampoline();
     allocateTrampoline();
-    trampoline.write_branch<6>(
+    trampoline.write_branch<5>(
         EnchantItem.address() + patchOffset,
         trampoline.allocate(patch));
 

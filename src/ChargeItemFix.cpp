@@ -106,20 +106,13 @@ namespace {
             dataList,
             nullptr);
     }
-} // namespace
 
-bool installChargeItemFix()
-{
-    using namespace re::fix::chargeitem;
-    using re::InventoryMenu::ChargeItem;
-
-    if (!_isChargeItemPatchable()) {
-        return false;
-    }
-
-    struct Patch : Xbyak::CodeGenerator {
-        explicit Patch()
+    struct _Patch : Xbyak::CodeGenerator {
+        explicit _Patch()
         {
+            using namespace re::fix::chargeitem;
+            using re::InventoryMenu::ChargeItem;
+
             // rax = BSExtraDataList**
             // rbx = TESSoulGem*
             // r12 = 0 (constant for this procedure)
@@ -145,14 +138,24 @@ bool installChargeItemFix()
             dq(reinterpret_cast<std::uint64_t>(_consumeReusableSoulGem));
         }
     };
+} // namespace
 
-    Patch patch;
+bool installChargeItemFix()
+{
+    using namespace re::fix::chargeitem;
+    using re::InventoryMenu::ChargeItem;
+
+    if (!_isChargeItemPatchable()) {
+        return false;
+    }
+
+    _Patch patch;
     patch.ready();
 
     LOG_INFO_FMT("[CHARGE] Patch size: {}", patch.getSize());
     allocateTrampoline();
     auto& trampoline = SKSE::GetTrampoline();
-    trampoline.write_branch<6>(
+    trampoline.write_branch<5>(
         ChargeItem.address() + patchOffset,
         trampoline.allocate(patch));
 
