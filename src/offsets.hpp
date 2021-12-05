@@ -25,6 +25,8 @@ namespace re {
     } // namespace SoulsTrapped
 
     namespace BSExtraDataList {
+        // SkyrimSE.exe + 0x10e960 [1.5.97.0]  [ADDRLIB:11474]
+        // SkyrimSE.exe + 0x11af60 [1.6.323.0] [ADDRLIB:11620]
         RELOCATION_ID(SetSoul, 11474, 11620, 0x126c00);
     }
 
@@ -81,12 +83,8 @@ namespace re {
             RELOCATION_ID(GetRemainingSoulLevelValue, 37861, 38816, 0x63d700);
         } // end namespace Actor
 
-        // These addresses don't point to functions, but rather jmp points.
-        // There is no actual stack being handled, thus it may be risky to call
-        // these as if they were functions.
-        //
-        // Still, they're included here as documentation since they exist as
-        // part of the other calls listed here.
+        // We don't use these addresses directly, though we keep them here
+        // for documentation purposes.
         //
         // Signature: CalculateSoulLevel(uint32_t actorLevel, bool isNPC)
         // SkyrimSE.exe + 0x3c1740 [1.5.97.0]  [ADDRLIB:25933]
