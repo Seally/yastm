@@ -79,16 +79,9 @@ bool installTrapSoulFix(const SKSE::LoadInterface* const loadInterface)
     auto& trampoline = SKSE::GetTrampoline();
     allocateTrampoline();
 
-    LOG_INFO("[TRAPSOUL] Installing Papyrus tail call patch..."sv);
-    // TODO: Dubious benefit?
-    // Replace the function called by Papyrus (saves us a jump).
-    trampoline.write_branch<5>(
-        re::papyrus::Actor::TrapSoul.address() + branchJmpOffset,
-        trapSoul);
-
-    LOG_INFO("[TRAPSOUL] Installing Actor::TrapSoul hijack jump..."sv);
-    // Hijack the original Actor::TrapSoul() call with ours so everything
-    // else we haven't patched will call it.
+    LOG_INFO("[TRAPSOUL] Installing Actor::TrapSoul() hijack jump..."sv);
+    // Hijack the original Actor::TrapSoul() call so everything that calls it
+    // will use our version instead.
     trampoline.write_branch<5>(re::Actor::TrapSoul.address(), trapSoul);
 
     return true;
