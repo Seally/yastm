@@ -1,11 +1,11 @@
 #pragma once
 
 #if defined(SKYRIM_VERSION_VR)
-#include <RE/S/SoulsTrapped.hpp>
+#    include <RE/S/SoulsTrapped.hpp>
 #else
 // From PowerOfThree's decode:
 //     https://github.com/powerof3/CommonLibSSE/blob/dfa73e501c0ced55b8ce6732edc9ea4c531e9229/include/RE/S/SoulsTrapped.h
-#include <RE/B/BSTEvent.h>
+#    include <RE/B/BSTEvent.h>
 
 namespace RE {
     class Actor;

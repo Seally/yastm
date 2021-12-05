@@ -57,29 +57,15 @@ namespace re {
         } // end namespace enchantitem
 
         namespace trapsoul {
-            constexpr std::uint8_t expectedSig0Bytes[] = {
+            constexpr std::uint8_t expectedPapyrusSoulTrapBytes[] = {
                 // clang-format off
-                // [1.5.97.0]  .text:0000000140634917
-                // [1.6.318.0] .text:000000014065A9E7 (bytes are identical)
-                0x48, 0x89, 0x58, 0x10,             // mov  [rax+10h], rbx
-                0x48, 0x89, 0x68, 0x18,             // mov  [rax+18h], rbp
-                0x48, 0x8b, 0xf2,                   // mov  rsi, rdx
-                0x4c, 0x8b, 0xf1,                   // mov  r14, rcx
-                0x40, 0x32, 0xff,                   // xor  dil, dil
-                0x48, 0x8b, 0x01,                   // mov  rax, [rcx]
-                0x33, 0xd2,                         // xor  edx, edx
-                0xff, 0x90, 0xc8, 0x04, 0x00, 0x00, // call qword ptr [rax+4C8h]
-                // clang-format on
-            };
-
-            constexpr std::uint8_t expectedSig1Bytes[] = {
-                // clang-format off
-                // [1.5.97.0]  .text:0000000140634B56
-                // [1.6.318.0] .text:0000000140634B56 (bytes are identical)
-                0x4c, 0x8d, 0x5c, 0x24, 0x70, // lea r11, [rsp+98h+var_28]
-                0x49, 0x8b, 0x5b, 0x38,       // mov rbx, [r11+38h]
-                0x49, 0x8b, 0x6b, 0x40,       // mov rbp, [r11+40h]
-                0x49, 0x8b, 0xe3,             // mov rsp, r11
+                // [1.5.97.0]  .text:000000014094D850
+                // [1.6.323.0] .text:000000014097A190 (bytes are identical)
+                0x49, 0x8b, 0xd1,             // mov     rdx, r9              ; victim 
+                0x49, 0x8b, 0xc8,             // mov     rcx, r8              ; caster
+                // Last line jumps to the Actor::TrapSoul() function, but this
+                // needs to be handled separately since the jump offset can
+                // change so the bytes can't be hardcoded.
                 // clang-format on
             };
         } // end namespace trapsoul

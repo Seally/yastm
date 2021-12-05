@@ -10,6 +10,7 @@
 #include "global.hpp"
 #include "expectedbytes.hpp"
 #include "offsets.hpp"
+#include "trampoline.hpp"
 #include "utilities/native.hpp"
 
 namespace {
@@ -132,7 +133,7 @@ bool installEnchantItemFix()
     LOG_INFO_FMT("[ENCHANT] Patch size: {}", patch.getSize());
 
     auto& trampoline = SKSE::GetTrampoline();
-    SKSE::AllocTrampoline(1 << 7);
+    allocateTrampoline();
     trampoline.write_branch<6>(
         EnchantItem.address() + patchOffset,
         trampoline.allocate(patch));

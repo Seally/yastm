@@ -6,13 +6,13 @@
 #include <SKSE/SKSE.h>
 
 #include "global.hpp"
+#include "expectedbytes.hpp"
+#include "offsets.hpp"
+#include "trampoline.hpp"
 #include "config/YASTMConfig.hpp"
 #include "trapsoul/trapsoul.hpp"
 #include "utilities/assembly.hpp"
 #include "utilities/printerror.hpp"
-
-#include "expectedbytes.hpp"
-#include "offsets.hpp"
 
 using namespace std::literals;
 
@@ -24,39 +24,19 @@ void _handleMessage(SKSE::MessagingInterface::Message* const message)
     }
 }
 
-/**
- * Check if memory has the expected bytes for patching.
- */
-bool _isActor_TrapSoulPatchable()
-{
-    using namespace re::fix::trapsoul;
-
-    if (std::memcmp(
-            reinterpret_cast<std::uint8_t*>(static_cast<std::uintptr_t>(
-                re::Actor::TrapSoul.address() + sigOffset0)),
-            expectedSig0Bytes,
-            sizeof expectedSig0Bytes) != 0) {
-        LOG_CRITICAL(
-            "[TRAPSOUL] Expected bytes for soul trap handling at call offset not found."sv);
-        return false;
-    }
-
-    if (std::memcmp(
-            reinterpret_cast<std::uint8_t*>(static_cast<std::uintptr_t>(
-                re::Actor::TrapSoul.address() + sigOffset1)),
-            expectedSig1Bytes,
-            sizeof expectedSig1Bytes) != 0) {
-        LOG_CRITICAL(
-            "[TRAPSOUL] Expected bytes for soul trap handling at return offset not found."sv);
-        return false;
-    }
-
-    return true;
-}
-
 bool _isPapyrus_Actor_TrapSoulPatchable()
 {
     using namespace re::fix::trapsoul;
+
+    if (std::memcmp(
+            reinterpret_cast<std::uint8_t*>(
+                re::papyrus::Actor::TrapSoul.address()),
+            expectedPapyrusSoulTrapBytes,
+            sizeof(expectedPapyrusSoulTrapBytes)) != 0) {
+        LOG_CRITICAL(
+            "[TRAPSOUL] Expected bytes for papyrus::Actor::TrapSoul() not found."sv);
+        return false;
+    }
 
     // Determine the destination of the tail call jump in
     // papyrus::Actor::TrapSoul() and see if it matches our address for
@@ -65,7 +45,13 @@ bool _isPapyrus_Actor_TrapSoulPatchable()
         InstructionData<Instruction::JMP, 0xe9>::targetAddress(
             re::papyrus::Actor::TrapSoul.address() + branchJmpOffset);
 
-    return targetAddress == re::Actor::TrapSoul.address();
+    if (targetAddress != re::Actor::TrapSoul.address()) {
+        LOG_CRITICAL(
+            "[TRAPSOUL] Unrecognized call to Actor::TrapSoul() in papyrus::Actor::TrapSoul()."sv);
+        return false;
+    }
+
+    return true;
 }
 
 bool installTrapSoulFix(const SKSE::LoadInterface* const loadInterface)
@@ -86,12 +72,12 @@ bool installTrapSoulFix(const SKSE::LoadInterface* const loadInterface)
     auto messaging = SKSE::GetMessagingInterface();
     messaging->RegisterListener(_handleMessage);
 
-    if (!_isPapyrus_Actor_TrapSoulPatchable() ||
-        !_isActor_TrapSoulPatchable()) {
+    if (!_isPapyrus_Actor_TrapSoulPatchable()) {
         return false;
     }
 
     auto& trampoline = SKSE::GetTrampoline();
+    allocateTrampoline();
 
     LOG_INFO("[TRAPSOUL] Installing Papyrus tail call patch..."sv);
     // TODO: Dubious benefit?

@@ -4,9 +4,9 @@
 // From PowerOfThree's decode:
 //     https://github.com/powerof3/CommonLibSSE/blob/dfa73e501c0ced55b8ce6732edc9ea4c531e9229/src/RE/S/SoulsTrapped.cpp
 
-#include <memory>
+#    include <memory>
 
-#include "../../offsets.hpp"
+#    include "../../offsets.hpp"
 
 namespace RE {
     BSTEventSource<SoulsTrapped::Event>* SoulsTrapped::GetEventSource()

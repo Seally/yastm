@@ -11,6 +11,7 @@
 #include "global.hpp"
 #include "expectedbytes.hpp"
 #include "offsets.hpp"
+#include "trampoline.hpp"
 #include "utilities/native.hpp"
 
 namespace {
@@ -149,9 +150,8 @@ bool installChargeItemFix()
     patch.ready();
 
     LOG_INFO_FMT("[CHARGE] Patch size: {}", patch.getSize());
-
+    allocateTrampoline();
     auto& trampoline = SKSE::GetTrampoline();
-    SKSE::AllocTrampoline(1 << 7);
     trampoline.write_branch<6>(
         ChargeItem.address() + patchOffset,
         trampoline.allocate(patch));

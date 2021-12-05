@@ -116,6 +116,7 @@ set(SOURCES
     src/expectedbytes.hpp
     src/offsets.hpp
     src/SoulValue.hpp
+    src/trampoline.hpp
     src/TrapSoulFix.hpp
     src/TrapSoulFix.cpp
     src/config/ConcreteSoulGemGroup.hpp
