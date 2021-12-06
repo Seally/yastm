@@ -82,7 +82,7 @@ bool installTrapSoulFix(const SKSE::LoadInterface* const loadInterface)
     LOG_INFO("[TRAPSOUL] Installing Actor::TrapSoul() hijack jump..."sv);
     // Hijack the original Actor::TrapSoul() call so everything that calls it
     // will use our version instead.
-    trampoline.write_branch<5>(re::Actor::TrapSoul.address(), trapSoul);
+    trampoline.write_branch<6>(re::Actor::TrapSoul.address(), trapSoul);
 
     return true;
 }

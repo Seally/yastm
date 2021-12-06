@@ -155,7 +155,7 @@ bool installChargeItemFix()
     LOG_INFO_FMT("[CHARGE] Patch size: {}", patch.getSize());
     allocateTrampoline();
     auto& trampoline = SKSE::GetTrampoline();
-    trampoline.write_branch<5>(
+    trampoline.write_branch<6>(
         ChargeItem.address() + patchOffset,
         trampoline.allocate(patch));
 

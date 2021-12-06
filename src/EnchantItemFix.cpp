@@ -137,7 +137,7 @@ bool installEnchantItemFix()
 
     auto& trampoline = SKSE::GetTrampoline();
     allocateTrampoline();
-    trampoline.write_branch<5>(
+    trampoline.write_branch<6>(
         EnchantItem.address() + patchOffset,
         trampoline.allocate(patch));
 

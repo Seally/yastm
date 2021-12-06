@@ -120,8 +120,6 @@ namespace re {
             // 0x2af [1.6.318/323.0]
             constexpr std::ptrdiff_t continueOffset =
                 VERSION_SPECIFIC(0x2b9, 0x2af, 0x2b9);
-
-            constexpr std::uintptr_t stackSize = 0xc8; // Same in AE
         } // namespace chargeitem
 
         namespace enchantitem {
@@ -134,18 +132,10 @@ namespace re {
             // 0x234 [1.6.318/323.0]
             constexpr std::ptrdiff_t continueOffset =
                 VERSION_SPECIFIC(0x236, 0x234, 0x236);
-
-            constexpr std::uintptr_t stackSize = 0xb8; // Same in AE
         } // namespace enchantitem
 
         namespace trapsoul {
             constexpr std::ptrdiff_t branchJmpOffset = 0x6; // Same in AE
-
-            constexpr std::ptrdiff_t sigOffset0 = 0x17; // Same in AE
-            // 0x256 [1.5.97.0]
-            // 0x282 [1.6.318/323.0]
-            constexpr std::ptrdiff_t sigOffset1 =
-                VERSION_SPECIFIC(0x256, 0x282, 0x256);
         } // namespace trapsoul
     } // namespace fix
 } // namespace re

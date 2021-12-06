@@ -25,7 +25,7 @@ void printError(const std::exception& error, const std::size_t depth)
 void printErrorToStream(
     const std::exception& error,
     std::stringstream& stream,
-    std::size_t depth)
+    const std::size_t depth)
 {
     stream << std::string(depth * _INDENT_SIZE, ' ') << error.what();
 
