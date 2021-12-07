@@ -28,7 +28,7 @@ namespace re {
         // SkyrimSE.exe + 0x10e960 [1.5.97.0]  [ADDRLIB:11474]
         // SkyrimSE.exe + 0x11af60 [1.6.323.0] [ADDRLIB:11620]
         RELOCATION_ID(SetSoul, 11474, 11620, 0x126c00);
-    }
+    } // namespace BSExtraDataList
 
     namespace CraftingSubMenus {
         namespace EnchantMenu {

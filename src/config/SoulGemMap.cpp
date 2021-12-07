@@ -118,6 +118,8 @@ void SoulGemMap::initializeWith(
     _soulGemMap = std::move(soulGemGroupsByCapacity);
 }
 
+void SoulGemMap::clear() { _soulGemMap.clear(); }
+
 void SoulGemMap::printContents() const
 {
     const auto printSoulGemsWith = [this](

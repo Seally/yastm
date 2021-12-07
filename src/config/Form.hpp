@@ -28,6 +28,7 @@ public:
 
     void setFromToml(const toml::array& arr);
     void loadForm(RE::TESDataHandler* dataHandler);
+    void clear();
 
     const FormId& formId() const { return _formId.value(); }
     T* form() const { return _form; }
@@ -65,4 +66,11 @@ inline void Form<T>::loadForm(RE::TESDataHandler* const dataHandler)
     } else {
         throw UnexpectedFormTypeError(FormType, formType, form->GetName());
     }
+}
+
+template <typename T>
+inline void Form<T>::clear()
+{
+    _formId.reset();
+    _form = nullptr;
 }

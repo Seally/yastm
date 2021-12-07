@@ -167,6 +167,8 @@ public:
         RE::TESDataHandler* dataHandler,
         const std::function<void(Transaction&)>& transaction);
 
+    void clear();
+
     IteratorPair getSoulGemsWith(
         const SoulGemCapacity capacity,
         const SoulSize containedSoulSize) const

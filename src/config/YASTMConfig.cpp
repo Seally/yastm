@@ -70,7 +70,7 @@ void _readGlobalVariableConfigs(
     }
 }
 
-void YASTMConfig::_readYASTMConfig()
+void YASTMConfig::_loadYASTMConfigFile()
 {
     toml::table table;
 
@@ -117,7 +117,7 @@ void YASTMConfig::_readYASTMConfig()
     }
 }
 
-void YASTMConfig::_readIndividualConfigs()
+void YASTMConfig::_loadIndividualConfigFiles()
 {
     std::vector<std::filesystem::path> configPaths;
 
@@ -231,16 +231,32 @@ void YASTMConfig::checkDllDependencies(const SKSE::LoadInterface* loadInterface)
     });
 }
 
-void YASTMConfig::readConfigs()
+void YASTMConfig::loadConfigFiles()
 {
-    _readYASTMConfig();
-    _readIndividualConfigs();
+    LOG_INFO("Loading configuration files...");
+
+    _loadYASTMConfigFile();
+    _loadIndividualConfigFiles();
 }
 
 void YASTMConfig::loadGameForms(RE::TESDataHandler* const dataHandler)
 {
+    LOG_INFO("Loading game forms...");
+
     _loadGlobalForms(dataHandler);
     _createSoulGemMap(dataHandler);
+}
+
+void YASTMConfig::clear()
+{
+    LOG_INFO("Clearing configuration data...");
+
+    for (auto& [key, value] : _globalBools) { value.clear(); }
+    for (auto& [key, value] : _globalEnums) { value.clear(); }
+
+    _soulGemGroupList.clear();
+    _soulGemMap.clear();
+    _dependencies.clear();
 }
 
 template <typename KeyType>

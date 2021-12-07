@@ -42,8 +42,8 @@ private:
 
     explicit YASTMConfig();
 
-    void _readYASTMConfig();
-    void _readIndividualConfigs();
+    void _loadYASTMConfigFile();
+    void _loadIndividualConfigFiles();
     std::size_t _readAndCountSoulGemGroupConfigs(const toml::table& table);
 
     void _loadGlobalForms(RE::TESDataHandler* dataHandler);
@@ -63,10 +63,21 @@ public:
     }
 
     // These three functions needs to be called manually at different times.
-    // loadGameForms() must be run only after readConfig finishes.
     void checkDllDependencies(const SKSE::LoadInterface* loadInterface);
-    void readConfigs();
+    /**
+     * @brief Read and parse configuration files.
+     */
+    void loadConfigFiles();
+    /**
+     * @brief Load game forms according to configuration. Call this *after*
+     * loadConfigFiles().
+     */
     void loadGameForms(RE::TESDataHandler* dataHandler);
+
+    /**
+     * @brief Clears (most) data stored in YASTMConfig. This allows 
+     */
+    void clear();
 
     bool isDllLoaded(const DLLDependencyKey key) const
     {
