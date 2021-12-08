@@ -150,6 +150,7 @@ set(SOURCES
     src/trapsoul/messages.hpp
     src/trapsoul/SearchResult.hpp
     src/trapsoul/SoulTrapData.hpp
+    src/trapsoul/SoulTrapData.cpp
     src/trapsoul/trapsoul.hpp
     src/trapsoul/trapsoul.cpp
     src/trapsoul/types.hpp
@@ -167,7 +168,7 @@ set(SOURCES
     src/utilities/Timer.hpp
     src/RE/S/SoulsTrapped.hpp
     src/RE/S/SoulsTrapped.cpp
- )
+)
 
 source_group(
     TREE

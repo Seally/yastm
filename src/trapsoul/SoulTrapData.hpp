@@ -21,6 +21,10 @@
  * we don't end up with functions needing half a dozen arguments.
  */
 class SoulTrapData {
+public:
+    using InventoryItemMap = UnorderedInventoryItemMap;
+
+private:
     static const std::size_t MAX_NOTIFICATION_COUNT = 1;
     std::size_t _notifyCount = 0;
     bool _isSoulTrapEventSent = false;
@@ -39,8 +43,6 @@ class SoulTrapData {
     void _resetInventoryData();
 
 public:
-    using InventoryItemMap = UnorderedInventoryItemMap;
-
     const YASTMConfig::Snapshot config;
 
     SoulTrapData(RE::Actor* const caster);
@@ -70,62 +72,7 @@ public:
         const Victim& victim);
 };
 
-template <typename MessageKey>
-inline void SoulTrapData::_notify(const MessageKey message)
-{
-    if (_notifyCount < MAX_NOTIFICATION_COUNT &&
-        config[BC::AllowNotifications]) {
-        RE::DebugNotification(getMessage(message));
-        ++_notifyCount;
-    }
-}
-
-inline void SoulTrapData::_sendSoulTrapEvent(RE::Actor* const victim)
-{
-    if (!_isSoulTrapEventSent) {
-        RE::SoulsTrapped::SendEvent(caster(), victim);
-        _isSoulTrapEventSent = true;
-    }
-}
-
-inline void SoulTrapData::_resetInventoryData()
-{
-    std::size_t maxFilledSoulGemsCount = 0;
-
-    // This should be a move.
-    _inventoryMap =
-        getInventoryFor(_caster, [&](const RE::TESBoundObject& obj) {
-            return obj.IsSoulGem();
-        });
-
-    // Counts the number of fully-filled soul gems.
-    //
-    // Note: This ignores the fact that we can still displace white
-    // grand souls from black soul gems and vice versa.
-    //
-    // However, displacing white grand souls from black soul gems only
-    // adds value when there exists a soul gem it can be displaced to,
-    // thus it's preferable that we exit the soul processing anyway.
-    for (const auto& [obj, entryData] : _inventoryMap) {
-        const auto soulGem = obj->As<RE::TESSoulGem>();
-
-        if (soulGem->GetMaximumCapacity() == soulGem->GetContainedSoul()) {
-            ++maxFilledSoulGemsCount;
-        }
-    }
-
-    if (_inventoryMap.size() <= 0) {
-        _casterInventoryStatus = InventoryStatus::NoSoulGemsOwned;
-    } else if (_inventoryMap.size() == maxFilledSoulGemsCount) {
-        _casterInventoryStatus = InventoryStatus::AllSoulGemsFilled;
-    } else {
-        _casterInventoryStatus = InventoryStatus::HasSoulGemsToFill;
-    }
-
-    _isInventoryMapDirty = false;
-}
-
-SoulTrapData::SoulTrapData(RE::Actor* const caster)
+inline SoulTrapData::SoulTrapData(RE::Actor* const caster)
     : _caster(caster)
     , config(YASTMConfig::getInstance())
 {
@@ -141,6 +88,24 @@ SoulTrapData::SoulTrapData(RE::Actor* const caster)
         } else {
             LOG_WARN("Failed to find player reference for soul diversion.");
         }
+    }
+}
+
+template <typename MessageKey>
+inline void SoulTrapData::_notify(const MessageKey message)
+{
+    if (_notifyCount < MAX_NOTIFICATION_COUNT &&
+        config[BC::AllowNotifications]) {
+        RE::DebugNotification(getMessage(message));
+        ++_notifyCount;
+    }
+}
+
+inline void SoulTrapData::_sendSoulTrapEvent(RE::Actor* const victim)
+{
+    if (!_isSoulTrapEventSent) {
+        RE::SoulsTrapped::SendEvent(caster(), victim);
+        _isSoulTrapEventSent = true;
     }
 }
 
