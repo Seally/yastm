@@ -1,6 +1,6 @@
 #include "TrapSoulFix.hpp"
 
-#include <future>
+#include <exception>
 
 #include <cassert>
 #include <cstdint>
@@ -51,7 +51,8 @@ namespace {
         using namespace re::fix::trapsoul;
 
         if (std::memcmp(
-                reinterpret_cast<std::uint8_t*>(re::papyrus::Actor::TrapSoul.address()),
+                reinterpret_cast<std::uint8_t*>(
+                    re::papyrus::Actor::TrapSoul.address()),
                 expectedPapyrusSoulTrapBytes,
                 sizeof(expectedPapyrusSoulTrapBytes)) != 0) {
             LOG_CRITICAL(
@@ -111,26 +112,6 @@ namespace {
     }
 
     _Patcher _patcher;
-    // Used to ensure loadConfigFiles() finishes before starting
-    // loadGameForms().
-    std::promise<void> _yastmConfigPromise;
-
-    /**
-     * @brief Read and parse configuration
-     */
-    void _loadConfigs(const SKSE::LoadInterface* const loadInterface)
-    {
-        try {
-            auto& config = YASTMConfig::getInstance();
-            config.checkDllDependencies(loadInterface);
-            config.loadConfigFiles();
-
-            // Signal that we're ready to go to the next stage.
-            _yastmConfigPromise.set_value();
-        } catch (...) {
-            _yastmConfigPromise.set_exception(std::current_exception());
-        }
-    }
 
     /**
      * @brief Lookup game forms and construct the soul gem map.
@@ -139,16 +120,6 @@ namespace {
     {
         if (message->type == SKSE::MessagingInterface::kDataLoaded) {
             try {
-                auto future = _yastmConfigPromise.get_future();
-
-                // Prevent this from being called multiple times.
-                if (!future.valid()) {
-                    return;
-                }
-
-                // Wait for loadConfigFiles() to finish (if it hasn't already).
-                future.get();
-
                 const auto dataHandler = RE::TESDataHandler::GetSingleton();
                 assert(dataHandler != nullptr);
                 YASTMConfig::getInstance().loadGameForms(dataHandler);
@@ -168,10 +139,20 @@ namespace {
 
 bool installTrapSoulFix(const SKSE::LoadInterface* const loadInterface)
 {
+    auto& config = YASTMConfig::getInstance();
+
+    try {
+        config.checkDllDependencies(loadInterface);
+        config.loadConfigFiles();
+    } catch (const std::exception& error) {
+        LOG_ERROR("Error while loading configuration files:");
+        printError(error, 1);
+        config.clear();
+        return false;
+    }
+
     const auto messaging = SKSE::GetMessagingInterface();
     messaging->RegisterListener(_handleMessage);
-
-    _loadConfigs(loadInterface);
 
     return _patcher.installPatch();
 }
