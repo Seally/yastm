@@ -23,7 +23,7 @@
 class SoulTrapData {
     static const std::size_t MAX_NOTIFICATION_COUNT = 1;
     std::size_t _notifyCount = 0;
-    bool _isStatIncremented = false;
+    bool _isSoulTrapEventSent = false;
     bool _isInventoryMapDirty = true;
 
     RE::Actor* _caster;
@@ -35,7 +35,7 @@ class SoulTrapData {
 
     template <typename MessageKey>
     void _notify(const MessageKey message);
-    void _incrementSoulsTrappedStat(RE::Actor* const victim);
+    void _sendSoulTrapEvent(RE::Actor* const victim);
     void _resetInventoryData();
 
 public:
@@ -80,11 +80,11 @@ inline void SoulTrapData::_notify(const MessageKey message)
     }
 }
 
-inline void SoulTrapData::_incrementSoulsTrappedStat(RE::Actor* const victim)
+inline void SoulTrapData::_sendSoulTrapEvent(RE::Actor* const victim)
 {
-    if (!_isStatIncremented) {
+    if (!_isSoulTrapEventSent) {
         RE::SoulsTrapped::SendEvent(caster(), victim);
-        _isStatIncremented = true;
+        _isSoulTrapEventSent = true;
     }
 }
 
@@ -184,6 +184,6 @@ inline void SoulTrapData::notifySoulTrapSuccess(
 {
     if (_caster->IsPlayerRef() && victim.isPrimarySoul()) {
         _notify(message);
-        _incrementSoulsTrappedStat(victim.actor());
+        _sendSoulTrapEvent(victim.actor());
     }
 }
