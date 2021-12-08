@@ -14,7 +14,7 @@
 #include "Victim.hpp"
 #include "../RE/S/SoulsTrapped.hpp"
 #include "../config/YASTMConfig.hpp"
-#include "../utilities/TESObjectREFR.hpp"
+#include "../utilities/misc.hpp"
 
 /**
  * @brief Stores and bookkeeps the data for various soul trap variables so

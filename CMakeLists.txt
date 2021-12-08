@@ -164,8 +164,6 @@ set(SOURCES
     src/utilities/printerror.hpp
     src/utilities/printerror.cpp
     src/utilities/stringutils.hpp
-    src/utilities/TESObjectREFR.hpp
-    src/utilities/TESObjectREFR.cpp
     src/utilities/Timer.hpp
     src/RE/S/SoulsTrapped.hpp
     src/RE/S/SoulsTrapped.cpp

@@ -12,6 +12,7 @@
 #include "expectedbytes.hpp"
 #include "offsets.hpp"
 #include "trampoline.hpp"
+#include "utilities/misc.hpp"
 #include "utilities/native.hpp"
 
 namespace {
@@ -38,25 +39,6 @@ namespace {
         return true;
     }
 
-    /**
-     * @brief Creates a new ExtraDataList, copying some properties from the
-     * original.
-     */
-    [[nodiscard]] RE::ExtraDataList* _createExtraDataListFromOriginal(
-        RE::ExtraDataList* const originalExtraList)
-    {
-        if (originalExtraList != nullptr) {
-            // Inherit ownership.
-            if (const auto owner = originalExtraList->GetOwner(); owner) {
-                const auto newExtraList = new RE::ExtraDataList();
-                newExtraList->SetOwner(owner);
-                return newExtraList;
-            }
-        }
-
-        return nullptr;
-    }
-
     void _consumeReusableSoulGem(
         RE::TESSoulGem* soulGemToConsume,
         RE::ExtraDataList** dataListPtr)
@@ -69,7 +51,7 @@ namespace {
             return;
         }
 
-        const auto newDataList = _createExtraDataListFromOriginal(dataList);
+        const auto newDataList = createExtraDataListFromOriginal(dataList);
         const auto player = RE::PlayerCharacter::GetSingleton();
 
         player->AddObjectToContainer(

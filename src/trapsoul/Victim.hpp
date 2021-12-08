@@ -1,5 +1,7 @@
 #pragma once
 
+#include <compare>
+
 #include <fmt/format.h>
 
 #include <RE/A/Actor.h>
@@ -49,24 +51,8 @@ public:
     bool isSplitSoul() const { return _isSplit; }
 };
 
-inline bool operator<(const Victim& lhs, const Victim& rhs)
-{
-    return lhs.soulSize() < rhs.soulSize();
-}
-
-inline bool operator<=(const Victim& lhs, const Victim& rhs)
-{
-    return lhs.soulSize() <= rhs.soulSize();
-}
-
-inline bool operator>(const Victim& lhs, const Victim& rhs)
-{
-    return lhs.soulSize() > rhs.soulSize();
-}
-
-inline bool operator>=(const Victim& lhs, const Victim& rhs)
-{
-    return lhs.soulSize() >= rhs.soulSize();
+inline auto operator<=>(const Victim& lhs, const Victim& rhs) {
+    return lhs.soulSize() <=> rhs.soulSize();
 }
 
 template <>

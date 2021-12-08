@@ -11,7 +11,6 @@
 
 #include <RE/A/Actor.h>
 #include <RE/T/TESBoundObject.h>
-#include <RE/T/TESForm.h>
 #include <RE/T/TESObjectREFR.h>
 #include <RE/T/TESSoulGem.h>
 
@@ -19,6 +18,7 @@
 
 #include "../global.hpp"
 #include "../SoulValue.hpp"
+#include "types.hpp"
 #include "InventoryStatus.hpp"
 #include "messages.hpp"
 #include "SearchResult.hpp"
@@ -29,7 +29,6 @@
 #include "../utilities/misc.hpp"
 #include "../utilities/native.hpp"
 #include "../utilities/printerror.hpp"
-#include "../utilities/TESObjectREFR.hpp"
 #include "../utilities/Timer.hpp"
 
 using namespace std::literals;
@@ -68,25 +67,6 @@ namespace {
         }
 
         return extraLists->front();
-    }
-
-    /**
-     * @brief Creates a new ExtraDataList, copying some properties from the
-     * original.
-     */
-    [[nodiscard]] RE::ExtraDataList* _createExtraDataListFromOriginal(
-        RE::ExtraDataList* const originalExtraList)
-    {
-        if (originalExtraList != nullptr) {
-            // Inherit ownership.
-            if (const auto owner = originalExtraList->GetOwner(); owner) {
-                const auto newExtraList = new RE::ExtraDataList();
-                newExtraList->SetOwner(owner);
-                return newExtraList;
-            }
-        }
-
-        return nullptr;
     }
 
     void _replaceSoulGem(
@@ -128,7 +108,7 @@ namespace {
         }
 
         if (d.config[BC::PreserveOwnership]) {
-            newExtraList = _createExtraDataListFromOriginal(oldExtraList);
+            newExtraList = createExtraDataListFromOriginal(oldExtraList);
         }
 
         LOG_TRACE_FMT(
