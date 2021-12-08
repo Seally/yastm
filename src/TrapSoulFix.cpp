@@ -51,8 +51,7 @@ namespace {
         using namespace re::fix::trapsoul;
 
         if (std::memcmp(
-                reinterpret_cast<std::uint8_t*>(
-                    re::papyrus::Actor::TrapSoul.address()),
+                reinterpret_cast<std::uint8_t*>(re::papyrus::Actor::TrapSoul.address()),
                 expectedPapyrusSoulTrapBytes,
                 sizeof(expectedPapyrusSoulTrapBytes)) != 0) {
             LOG_CRITICAL(
@@ -65,7 +64,7 @@ namespace {
         // Actor::TrapSoul().
         const auto targetAddress =
             InstructionData<Instruction::JMP, 0xe9>::targetAddress(
-                patchAddress() + branchJmpOffset);
+                re::papyrus::Actor::TrapSoul.address() + branchJmpOffset);
 
         if (targetAddress != re::Actor::TrapSoul.address()) {
             LOG_CRITICAL(
@@ -108,6 +107,7 @@ namespace {
         // Game seems to crash if we use std::memcpy().
         REL::safe_write(patchAddress(), _originalCode, sizeof(_originalCode));
         _isPatchInstalled = false;
+        LOG_INFO("[TRAPSOUL] Patch uninstalled.");
     }
 
     _Patcher _patcher;
