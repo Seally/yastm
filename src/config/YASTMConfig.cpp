@@ -19,6 +19,74 @@
 
 using namespace std::literals;
 
+namespace {
+    template <typename KeyType>
+    void _readGlobalVariableConfigs(
+        const KeyType key,
+        const toml::node_view<toml::node>& table,
+        YASTMConfig::GlobalVariableMap<KeyType>& map)
+    {
+        const auto keyName = toString(key);
+        const auto tomlKeyName = std::string(keyName) + "Global";
+
+        if (const auto idArray = table[tomlKeyName].as_array(); idArray) {
+            if (map.contains(key)) {
+                try {
+                    map.at(key).setFromToml(*idArray);
+                } catch (const ParseError& error) {
+                    LOG_ERROR_FMT(
+                        "Error while reading configuration for key \"{}\":"sv,
+                        keyName);
+                    printError(error, 1);
+                }
+            } else {
+                LOG_ERROR_FMT(
+                    "Initialized global map does not contain configuration for key \"{}\"."sv,
+                    keyName);
+            }
+        } else {
+            LOG_WARN_FMT(
+                "Form data for configuration key \"{}\" not found."sv,
+                keyName);
+        }
+    }
+
+    template <typename KeyType>
+    void _loadGlobalFormsIn(
+        YASTMConfig::GlobalVariableMap<KeyType>& map,
+        RE::TESDataHandler* const dataHandler)
+    {
+        for (auto& [key, globalVar] : map) {
+            if (globalVar.isConfigLoaded()) {
+                LOG_INFO_FMT("Loading form for \"{}\"..."sv, key);
+                try {
+                    globalVar.loadForm(dataHandler);
+                } catch (const std::exception& error) {
+                    printError(error, 1);
+                }
+            } else {
+                LOG_INFO_FMT(
+                    "Form ID for '{}' not specified in configuration file. Using default of {}"sv,
+                    key,
+                    globalVar.defaultValue());
+            }
+        }
+    }
+
+    template <typename KeyType>
+    void _printLoadedGlobalForms(
+        const YASTMConfig::GlobalVariableMap<KeyType>& map)
+    {
+        for (auto& [key, globalVar] : map) {
+            if (globalVar.isFormLoaded()) {
+                LOG_INFO_FMT("- {}: {}"sv, key, globalVar.formId());
+            } else {
+                LOG_INFO_FMT("- {}: Not loaded."sv, key);
+            }
+        }
+    }
+} // namespace
+
 YASTMConfig::YASTMConfig()
 {
     // Defaults used when no associated configuration key has been set up.
@@ -37,37 +105,6 @@ YASTMConfig::YASTMConfig()
                 std::forward_as_tuple(key),
                 std::forward_as_tuple(key, defaultValue));
         });
-}
-
-template <typename KeyType>
-void _readGlobalVariableConfigs(
-    const KeyType key,
-    const toml::node_view<toml::node>& table,
-    YASTMConfig::GlobalVariableMap<KeyType>& map)
-{
-    const auto keyName = toString(key);
-    const auto tomlKeyName = std::string(keyName) + "Global";
-
-    if (const auto idArray = table[tomlKeyName].as_array(); idArray) {
-        if (map.contains(key)) {
-            try {
-                map.at(key).setFromToml(*idArray);
-            } catch (const ParseError& error) {
-                LOG_ERROR_FMT(
-                    "Error while reading configuration for key \"{}\":"sv,
-                    keyName);
-                printError(error, 1);
-            }
-        } else {
-            LOG_ERROR_FMT(
-                "Initialized global map does not contain configuration for key \"{}\"."sv,
-                keyName);
-        }
-    } else {
-        LOG_WARN_FMT(
-            "Form data for configuration key \"{}\" not found."sv,
-            keyName);
-    }
 }
 
 void YASTMConfig::_loadYASTMConfigFile()
@@ -257,40 +294,6 @@ void YASTMConfig::clear()
     _soulGemGroupList.clear();
     _soulGemMap.clear();
     _dependencies.clear();
-}
-
-template <typename KeyType>
-void _loadGlobalFormsIn(
-    YASTMConfig::GlobalVariableMap<KeyType>& map,
-    RE::TESDataHandler* const dataHandler)
-{
-    for (auto& [key, globalVar] : map) {
-        if (globalVar.isConfigLoaded()) {
-            LOG_INFO_FMT("Loading form for \"{}\"..."sv, key);
-            try {
-                globalVar.loadForm(dataHandler);
-            } catch (const std::exception& error) {
-                printError(error, 1);
-            }
-        } else {
-            LOG_INFO_FMT(
-                "Form ID for '{}' not specified in configuration file. Using default of {}"sv,
-                key,
-                globalVar.defaultValue());
-        }
-    }
-}
-
-template <typename KeyType>
-void _printLoadedGlobalForms(const YASTMConfig::GlobalVariableMap<KeyType>& map)
-{
-    for (auto& [key, globalVar] : map) {
-        if (globalVar.isFormLoaded()) {
-            LOG_INFO_FMT("- {}: {}"sv, key, globalVar.formId());
-        } else {
-            LOG_INFO_FMT("- {}: Not loaded."sv, key);
-        }
-    }
 }
 
 void YASTMConfig::_loadGlobalForms(RE::TESDataHandler* const dataHandler)
