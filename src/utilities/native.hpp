@@ -63,6 +63,15 @@ namespace native {
         }
     } // namespace BSExtraDataList
 
+    namespace Actor {
+        inline bool TrapSoul(RE::Actor* caster, RE::Actor* victim)
+        {
+            using func_t = decltype(&TrapSoul);
+            REL::Relocation<func_t> func(re::Actor::TrapSoul);
+            return func(caster, victim);
+        }
+    } // namespace Actor
+
     inline void updateInventory(
         RE::TESObjectREFR* const ref,
         RE::TESBoundObject* const obj)

@@ -37,7 +37,7 @@ set_property(CACHE SKYRIM_VERSION PROPERTY STRINGS "AE" "SE" "VR")
 
 project(
     YASTM
-    VERSION 1.8.1
+    VERSION 1.9.0
     LANGUAGES CXX
 )
 
@@ -166,9 +166,11 @@ set(SOURCES
     src/utilities/printerror.cpp
     src/utilities/stringutils.hpp
     src/utilities/Timer.hpp
+    src/yastmutils/YASTMUtils.hpp
+    src/yastmutils/YASTMUtils.cpp
     src/RE/S/SoulsTrapped.hpp
     src/RE/S/SoulsTrapped.cpp
-)
+ )
 
 source_group(
     TREE

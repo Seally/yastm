@@ -75,21 +75,7 @@ public:
 inline SoulTrapData::SoulTrapData(RE::Actor* const caster)
     : _caster(caster)
     , config(YASTMConfig::getInstance())
-{
-    if (config[BC::AllowSoulDiversion] &&
-        config[BC::PerformSoulDiversionInDLL] && !caster->IsPlayerRef() &&
-        caster->IsPlayerTeammate()) {
-        const auto playerActor = RE::PlayerCharacter::GetSingleton();
-
-        if (playerActor != nullptr) {
-            _caster = playerActor;
-
-            LOG_TRACE("Soul trap diverted to player."sv);
-        } else {
-            LOG_WARN("Failed to find player reference for soul diversion.");
-        }
-    }
-}
+{}
 
 template <typename MessageKey>
 inline void SoulTrapData::_notify(const MessageKey message)

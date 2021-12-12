@@ -11,7 +11,6 @@ enum class BoolConfigKey {
     AllowSoulRelocation,
     AllowExtraSoulRelocation,
     AllowSoulDiversion,
-    PerformSoulDiversionInDLL,
     PreserveOwnership,
     AllowNotifications,
     AllowProfiling,
@@ -33,8 +32,6 @@ inline constexpr std::string_view toString(const BoolConfigKey key)
         return "allowExtraSoulRelocation"sv;
     case BoolConfigKey::AllowSoulDiversion:
         return "allowSoulDiversion"sv;
-    case BoolConfigKey::PerformSoulDiversionInDLL:
-        return "performSoulDiversionInDLL";
     case BoolConfigKey::PreserveOwnership:
         return "preserveOwnership"sv;
     case BoolConfigKey::AllowNotifications:
@@ -60,7 +57,6 @@ inline void
     fn(BoolConfigKey::AllowSoulRelocation, 1);
     fn(BoolConfigKey::AllowExtraSoulRelocation, 1);
     fn(BoolConfigKey::AllowSoulDiversion, 0);
-    fn(BoolConfigKey::PerformSoulDiversionInDLL, 1);
     fn(BoolConfigKey::PreserveOwnership, 1);
     fn(BoolConfigKey::AllowNotifications, 1);
     fn(BoolConfigKey::AllowProfiling, 0);
@@ -76,7 +72,6 @@ inline void forEachBoolConfigKey(const std::function<void(BoolConfigKey)>& fn)
     fn(BoolConfigKey::AllowSoulRelocation);
     fn(BoolConfigKey::AllowExtraSoulRelocation);
     fn(BoolConfigKey::AllowSoulDiversion);
-    fn(BoolConfigKey::PerformSoulDiversionInDLL);
     fn(BoolConfigKey::PreserveOwnership);
     fn(BoolConfigKey::AllowNotifications);
     fn(BoolConfigKey::AllowProfiling);

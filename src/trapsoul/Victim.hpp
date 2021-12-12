@@ -51,7 +51,8 @@ public:
     bool isSplitSoul() const { return _isSplit; }
 };
 
-inline auto operator<=>(const Victim& lhs, const Victim& rhs) {
+inline auto operator<=>(const Victim& lhs, const Victim& rhs)
+{
     return lhs.soulSize() <=> rhs.soulSize();
 }
 

@@ -8,21 +8,67 @@
 
 #include <xbyak/xbyak.h>
 
-#include <REL/Relocation.h>
+#include <fmt/format.h>
+
 #include <SKSE/SKSE.h>
+#include <REL/Relocation.h>
+#include <RE/M/Misc.h>
 
 #include "global.hpp"
 #include "expectedbytes.hpp"
 #include "offsets.hpp"
 #include "trampoline.hpp"
+#include "config/ConfigKey.hpp"
 #include "config/YASTMConfig.hpp"
 #include "trapsoul/trapsoul.hpp"
+#include "trapsoul/messages.hpp"
 #include "utilities/assembly.hpp"
+#include "utilities/Timer.hpp"
 #include "utilities/printerror.hpp"
+#include "yastmutils/YASTMUtils.hpp"
 
 using namespace std::literals;
 
 namespace {
+    bool _trapSoul(RE::Actor* caster, RE::Actor* const victim)
+    {
+        // This logs the "enter" and "exit" messages upon construction and
+        // destruction, respectively.
+        //
+        // Also prints the time taken to run the function if profiling is
+        // enabled (timer will still run if profiling is disabled, just with no
+        // visible output).
+        class Profiler : public Timer {
+        public:
+            explicit Profiler()
+            {
+                LOG_TRACE("Entering YASTM trapSoul function");
+            }
+
+            virtual ~Profiler()
+            {
+                const auto elapsedTime = elapsed();
+
+                if (YASTMConfig::getInstance().getGlobalBool(
+                        BoolConfigKey::AllowProfiling)) {
+                    LOG_INFO_FMT(
+                        "Time to trap soul: {:.7f} seconds",
+                        elapsedTime);
+                    RE::DebugNotification(
+                        fmt::format(
+                            getMessage(MiscMessage::TimeTakenToTrapSoul),
+                            elapsedTime)
+                            .c_str());
+                }
+
+                LOG_TRACE("Exiting YASTM trapSoul function");
+            }
+        } profiler;
+
+        caster = getProxyCaster(caster);
+        return trapSoul(caster, victim);
+    }
+
     class _Patcher {
         std::uint8_t _originalCode[6];
         bool _isPatchInstalled = false;
@@ -93,7 +139,7 @@ namespace {
         LOG_INFO("[TRAPSOUL] Installing Actor::TrapSoul() hijack jump..."sv);
         // Hijack the original Actor::TrapSoul() call so everything that calls
         // it will use our version instead.
-        trampoline.write_branch<6>(patchAddress(), trapSoul);
+        trampoline.write_branch<6>(patchAddress(), _trapSoul);
         _isPatchInstalled = true;
 
         return true;
@@ -123,6 +169,9 @@ namespace {
                 const auto dataHandler = RE::TESDataHandler::GetSingleton();
                 assert(dataHandler != nullptr);
                 YASTMConfig::getInstance().loadGameForms(dataHandler);
+                registerYASTMUtils(
+                    TrapSoulPatchType::YASTM,
+                    SKSE::GetPapyrusInterface());
             } catch (const std::exception& error) {
                 // If any unrecoverable errors occur, log them then revert the
                 // patch.
@@ -132,6 +181,9 @@ namespace {
                     "Uninstalling TrapSoul patch...");
                 _patcher.uninstallPatch();
                 YASTMConfig::getInstance().clear();
+                registerYASTMUtils(
+                    TrapSoulPatchType::Vanilla,
+                    SKSE::GetPapyrusInterface());
             }
         }
     }

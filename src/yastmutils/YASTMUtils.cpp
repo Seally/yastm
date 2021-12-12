@@ -1,0 +1,133 @@
+#include "YASTMUtils.hpp"
+
+#include <functional>
+#include <sstream>
+
+#include <RE/M/Misc.h>
+#include <RE/V/VirtualMachine.h>
+
+#include "global.hpp"
+#include "../trapsoul/messages.hpp"
+#include "../trapsoul/trapsoul.hpp"
+#include "../utilities/native.hpp"
+#include "../utilities/printerror.hpp"
+#include "../utilities/Timer.hpp"
+
+using namespace std::literals;
+using RE::BSScript::Internal::VirtualMachine;
+
+namespace {
+    template <TrapSoulPatchType P>
+    RE::Actor* TrapSoulAndGetCaster(
+        RE::BSScript::Internal::VirtualMachine* vm,
+        RE::VMStackID stackId,
+        RE::StaticFunctionTag*,
+        RE::Actor* caster,
+        RE::Actor* victim);
+
+    template <>
+    RE::Actor* TrapSoulAndGetCaster<TrapSoulPatchType::Vanilla>(
+        [[maybe_unused]] RE::BSScript::Internal::VirtualMachine* vm,
+        [[maybe_unused]] RE::VMStackID stackId,
+        RE::StaticFunctionTag*,
+        RE::Actor* caster,
+        RE::Actor* victim)
+    {
+        return native::Actor::TrapSoul(caster, victim) ? caster : nullptr;
+    }
+
+    template <>
+    RE::Actor* TrapSoulAndGetCaster<TrapSoulPatchType::YASTM>(
+        [[maybe_unused]] RE::BSScript::Internal::VirtualMachine* vm,
+        [[maybe_unused]] RE::VMStackID stackId,
+        RE::StaticFunctionTag*,
+        RE::Actor* caster,
+        RE::Actor* victim)
+    {
+        // This logs the "enter" and "exit" messages upon construction and
+        // destruction, respectively.
+        //
+        // Also prints the time taken to run the function if profiling is
+        // enabled (timer will still run if profiling is disabled, just with no
+        // visible output).
+        class Profiler : public Timer {
+        public:
+            explicit Profiler()
+            {
+                LOG_TRACE("Entering YASTM trapSoulAndGetCaster function");
+            }
+
+            virtual ~Profiler()
+            {
+                const auto elapsedTime = elapsed();
+
+                if (YASTMConfig::getInstance().getGlobalBool(
+                        BoolConfigKey::AllowProfiling)) {
+                    LOG_INFO_FMT(
+                        "Time to trap soul: {:.7f} seconds",
+                        elapsedTime);
+                    RE::DebugNotification(
+                        fmt::format(
+                            getMessage(MiscMessage::TimeTakenToTrapSoul),
+                            elapsedTime)
+                            .c_str());
+                }
+
+                LOG_TRACE("Exiting YASTM trapSoulAndGetCaster function");
+            }
+        } profiler;
+
+        caster = getProxyCaster(caster);
+        return trapSoul(caster, victim) ? caster : nullptr;
+    }
+
+    class _FunctionRegistry {
+        const std::string _className;
+        VirtualMachine* const _vm;
+
+    public:
+        explicit _FunctionRegistry(
+            std::string_view className,
+            VirtualMachine* const vm)
+            : _className(className)
+            , _vm(vm)
+        {}
+
+        template <typename T>
+        void registerFunction(std::string_view name, T fn)
+        {
+            LOG_INFO_FMT("Registering function: {}.{}()", _className, name);
+            _vm->RegisterFunction(name, _className, fn);
+        }
+    };
+
+    template <TrapSoulPatchType PatchType>
+    bool _registerPapyrusFunctions(VirtualMachine* const vm)
+    {
+        if (vm == nullptr) {
+            LOG_ERROR("Couldn't get VM State"sv);
+            return false;
+        }
+
+        _FunctionRegistry registry("YASTMUtils", vm);
+
+        registry.registerFunction(
+            "TrapSoulAndGetCaster",
+            TrapSoulAndGetCaster<PatchType>);
+
+        return true;
+    }
+} // namespace
+
+bool registerYASTMUtils(
+    const TrapSoulPatchType patchType,
+    const SKSE::PapyrusInterface* const papyrus)
+{
+    if (patchType == TrapSoulPatchType::YASTM) {
+        return papyrus->Register(
+            _registerPapyrusFunctions<TrapSoulPatchType::YASTM>);
+    }
+
+    return papyrus->Register(
+        _registerPapyrusFunctions<TrapSoulPatchType::Vanilla>);
+}
