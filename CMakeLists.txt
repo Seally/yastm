@@ -13,7 +13,6 @@ macro(set_from_environment VARIABLE)
     endif()
 endmacro()
 
-set_from_environment(Skyrim64Path)
 set_from_environment(VCPKG_ROOT)
 
 if(DEFINED VCPKG_ROOT)
