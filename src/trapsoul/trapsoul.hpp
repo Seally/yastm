@@ -9,6 +9,9 @@
 
 bool trapSoul(RE::Actor* caster, RE::Actor* victim);
 
+/**
+ * @brief Returns the caster the soul was diverted to, if any.
+ */
 inline RE::Actor* getProxyCaster(RE::Actor* caster)
 {
     const auto& config = YASTMConfig::getInstance();
