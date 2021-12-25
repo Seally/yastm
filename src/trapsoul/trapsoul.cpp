@@ -596,51 +596,11 @@ namespace {
         }
     }
 
-    /**
-     * @brief This logs the "enter" and "exit" messages upon construction and
-     * destruction, respectively.
-     *
-     * It is also a timer object which will print the lifetime of this wrapper
-     * object if profiling is enabled.
-     */
-    class _TrapSoulWrapper : public Timer {
-    public:
-        explicit _TrapSoulWrapper()
-        {
-            LOG_TRACE("Entering YASTM trap soul function"sv);
-        }
-
-        virtual ~_TrapSoulWrapper()
-        {
-            const auto elapsedTime = elapsed();
-
-            if (YASTMConfig::getInstance().getGlobalBool(
-                    BoolConfigKey::AllowProfiling)) {
-                LOG_INFO_FMT("Time to trap soul: {:.7f} seconds", elapsedTime);
-                RE::DebugNotification(
-                    fmt::format(
-                        getMessage(MiscMessage::TimeTakenToTrapSoul),
-                        elapsedTime)
-                        .c_str());
-            }
-
-            LOG_TRACE("Exiting YASTM trap soul function"sv);
-        }
-    };
-
     std::mutex _trapSoulMutex; /* Process only one soul trap at a time. */
 } // namespace
 
 bool trapSoul(RE::Actor* const caster, RE::Actor* const victim)
 {
-    // This logs the "enter" and "exit" messages upon construction and
-    // destruction, respectively.
-    //
-    // Also prints the time taken to run the function if profiling is enabled
-    // (timer will still run if profiling is disabled, just with no visible
-    // output).
-    _TrapSoulWrapper wrapper;
-
     if (caster == nullptr) {
         LOG_TRACE("Caster is null."sv);
         return false;
