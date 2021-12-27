@@ -79,7 +79,7 @@ the path of Vcpkg.
   to be set to `ON` for the project to build.
 * `SKYRIM_VERSION` - Specifies the version of Skyrim to compile for.
 
-  Valid values: `SE`, `AE`
+  Valid values: `SE`, `AE`, `VR`
 
 #### Optional
 
