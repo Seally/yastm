@@ -23,12 +23,12 @@ FormId::FormId(const toml::array& arr)
             "Plugin name is missing or invalid");
     }
 
-    _id = static_cast<std::uint32_t>(formIdValue->get());
+    _id = static_cast<RE::FormID>(formIdValue->get());
     _pluginName = pluginNameValue->get();
     toLowerString(_pluginName, _pluginNameLower);
 }
 
-FormId::FormId(const std::uint32_t id, std::string_view pluginName)
+FormId::FormId(const RE::FormID id, std::string_view pluginName)
     : _id(id)
     , _pluginName(pluginName)
 {

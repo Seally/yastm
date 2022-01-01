@@ -11,19 +11,21 @@
 #include <fmt/format.h>
 #include <toml++/toml.h>
 
+#include <RE/B/BSCoreTypes.h>
+
 class FormId {
-    std::uint32_t _id;
+    RE::FormID _id;
     std::string _pluginName;
     /** Lowercase-only version of the plugin name. Used for comparison. **/
     std::string _pluginNameLower;
 
 public:
     explicit FormId(const toml::array& arr);
-    explicit FormId(std::uint32_t id, std::string_view pluginName);
+    explicit FormId(RE::FormID id, std::string_view pluginName);
     FormId(const FormId&) = default;
     FormId(FormId&&) = default;
 
-    std::uint32_t id() const { return _id; }
+    RE::FormID id() const { return _id; }
     const std::string& pluginName() const { return _pluginName; }
 
     friend bool operator==(const FormId& lhs, const FormId& rhs)
