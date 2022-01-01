@@ -374,7 +374,8 @@ namespace {
             // infinite loop from black souls displacing white souls and white
             // souls displacing black souls.
             //
-            // "Future me" note: We've already checked for soul relocation.
+            // "Future me" note: We've already checked for soul relocation. This
+            //                   part only runs when that is enabled.
             if (d.config[BC::AllowSoulDisplacement] &&
                 (d.config[BC::AllowPartiallyFillingSoulGems] ||
                  d.victim().soulSize() == SoulSize::Grand)) {
@@ -529,10 +530,27 @@ namespace {
 
         const auto& soulGemMap = YASTMConfig::getInstance().soulGemMap();
 
+        // Don't look up non-empty soul gems if we can't displace souls.
+        //
+        // NOTE: Loop range is end-EXclusive.
         const SoulSize maxContainedSoulSizeToSearch =
             d.config[BC::AllowSoulDisplacement] ? d.victim().soulSize()
                                                 : SoulSize::Petty;
 
+        // This part is an optimized version of the soul shrinking process.
+        //
+        // Like soul shrinking, if soul splitting happens, we do not need to
+        // search "upwards" (i.e. look up soul gems larger than the size of the
+        // split soul) since souls are only split if the search for vacant soul
+        // gems greater or equal to the current soul size fails.
+        //
+        // Unlike soul shrinking, when trapping a split soul fails, it can break
+        // into two smaller souls. This is better handled by the victims queue,
+        // so we do not handle the actual shrinking and just figure out if there
+        // are any suitable soul gems for the *current* soul size.
+        //
+        // Also, the displayed notification messages are different so we handle
+        // this in a different function.
         for (SoulSizeValue containedSoulSize = SoulSize::None;
              containedSoulSize < maxContainedSoulSizeToSearch;
              ++containedSoulSize) {
