@@ -282,6 +282,9 @@ void YASTMConfig::loadGameForms(RE::TESDataHandler* const dataHandler)
 
     _loadGlobalForms(dataHandler);
     _createSoulGemMap(dataHandler);
+
+    // We don't need this anymore.
+    _soulGemGroupList.clear();
 }
 
 void YASTMConfig::clear()
