@@ -104,11 +104,6 @@ public:
         return EnumConfigKeyTypeMap<key>()(getGlobalValue(key));
     }
 
-    const SoulGemGroupList& getSoulGemGroups() const
-    {
-        return _soulGemGroupList;
-    }
-
     const SoulGemMap& soulGemMap() const { return _soulGemMap; }
 
     /**
