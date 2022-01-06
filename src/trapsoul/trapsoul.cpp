@@ -76,7 +76,7 @@ namespace {
         SoulTrapData& d)
     {
         RE::ExtraDataList* oldExtraList = nullptr;
-        RE::ExtraDataList* newExtraList = nullptr;
+        std::unique_ptr<RE::ExtraDataList> newExtraList;
 
         if (d.config[BC::AllowExtraSoulRelocation] ||
             d.config[BC::PreserveOwnership]) {
@@ -117,8 +117,11 @@ namespace {
         LOG_TRACE_FMT("- from: {}"sv, *soulGemToRemove);
         LOG_TRACE_FMT("- to: {}"sv, *soulGemToAdd);
 
-        d.caster()
-            ->AddObjectToContainer(soulGemToAdd, newExtraList, 1, nullptr);
+        d.caster()->AddObjectToContainer(
+            soulGemToAdd,
+            newExtraList.release(), // Transfer ownership to the engine.
+            1,
+            nullptr);
         d.caster()->RemoveItem(
             soulGemToRemove,
             1,

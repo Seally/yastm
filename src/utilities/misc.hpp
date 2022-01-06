@@ -46,17 +46,19 @@ using UnorderedInventoryItemMap = std::unordered_map<
  * function and MUST be deleted or managed manually otherwise you WILL have
  * a memory leak.
  */
-[[nodiscard]] inline RE::ExtraDataList*
+[[nodiscard]] inline std::unique_ptr<RE::ExtraDataList>
     createExtraDataListFromOriginal(RE::ExtraDataList* const originalExtraList)
 {
+    std::unique_ptr<RE::ExtraDataList> newExtraList;
+
     if (originalExtraList != nullptr) {
         // Inherit ownership.
         if (const auto owner = originalExtraList->GetOwner(); owner) {
-            const auto newExtraList = new RE::ExtraDataList();
+            newExtraList.reset(new RE::ExtraDataList());
             newExtraList->SetOwner(owner);
             return newExtraList;
         }
     }
 
-    return nullptr;
+    return newExtraList;
 }

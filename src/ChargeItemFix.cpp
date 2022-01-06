@@ -51,12 +51,12 @@ namespace {
             return;
         }
 
-        const auto newDataList = createExtraDataListFromOriginal(dataList);
+        auto newDataList = createExtraDataListFromOriginal(dataList);
         const auto player = RE::PlayerCharacter::GetSingleton();
 
         player->AddObjectToContainer(
             soulGemToConsume->linkedSoulGem,
-            newDataList,
+            newDataList.release(), // Transfer ownership to the engine.
             1,
             nullptr);
 
