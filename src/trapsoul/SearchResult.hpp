@@ -10,29 +10,29 @@ namespace RE {
 } // namespace RE
 
 class SearchResult {
-    const SoulGemMap::Iterator _it;
-    const RE::TESObjectREFR::Count _itemCount;
-    RE::InventoryEntryData* const _entryData;
+    const SoulGemMap::Iterator it_;
+    const RE::TESObjectREFR::Count itemCount_;
+    RE::InventoryEntryData* const entryData_;
 
 public:
     explicit SearchResult(
         const SoulGemMap::Iterator it,
         const RE::TESObjectREFR::Count itemCount,
         RE::InventoryEntryData* const entryData)
-        : _it(it)
-        , _itemCount(itemCount)
-        , _entryData(entryData)
+        : it_(it)
+        , itemCount_(itemCount)
+        , entryData_(entryData)
     {}
 
-    RE::TESObjectREFR::Count itemCount() const { return _itemCount; }
-    RE::InventoryEntryData* entryData() const { return _entryData; }
+    RE::TESObjectREFR::Count itemCount() const { return itemCount_; }
+    RE::InventoryEntryData* entryData() const { return entryData_; }
 
-    const ConcreteSoulGemGroup& group() const { return _it.group(); }
-    const SoulSize containedSoulSize() const { return _it.containedSoulSize(); }
+    const ConcreteSoulGemGroup& group() const { return it_.group(); }
+    const SoulSize containedSoulSize() const { return it_.containedSoulSize(); }
 
-    RE::TESSoulGem* soulGem() const { return _it.get(); }
+    RE::TESSoulGem* soulGem() const { return it_.get(); }
     RE::TESSoulGem* soulGemAt(const SoulSize containedSoulSize) const
     {
-        return _it.group().at(containedSoulSize);
+        return it_.group().at(containedSoulSize);
     }
 };

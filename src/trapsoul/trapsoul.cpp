@@ -34,7 +34,7 @@
 using namespace std::literals;
 
 namespace {
-    std::optional<SearchResult> _findFirstOwnedObjectInList(
+    std::optional<SearchResult> findFirstOwnedObjectInList_(
         const SoulTrapData::InventoryItemMap& inventoryMap,
         const SoulGemMap::IteratorPair& objectsToSearch)
     {
@@ -58,7 +58,7 @@ namespace {
     }
 
     [[nodiscard]] RE::ExtraDataList*
-        _getFirstExtraDataList(RE::InventoryEntryData* const entryData)
+        getFirstExtraDataList_(RE::InventoryEntryData* const entryData)
     {
         const auto extraLists = entryData->extraLists;
 
@@ -69,7 +69,7 @@ namespace {
         return extraLists->front();
     }
 
-    void _replaceSoulGem(
+    void replaceSoulGem_(
         RE::TESSoulGem* const soulGemToAdd,
         RE::TESSoulGem* const soulGemToRemove,
         RE::InventoryEntryData* const soulGemToRemoveEntryData,
@@ -80,7 +80,7 @@ namespace {
 
         if (d.config[BC::AllowExtraSoulRelocation] ||
             d.config[BC::PreserveOwnership]) {
-            oldExtraList = _getFirstExtraDataList(soulGemToRemoveEntryData);
+            oldExtraList = getFirstExtraDataList_(soulGemToRemoveEntryData);
         }
 
         if (d.config[BC::AllowExtraSoulRelocation] && oldExtraList != nullptr) {
@@ -128,13 +128,13 @@ namespace {
         d.setInventoryHasChanged();
     }
 
-    bool _fillSoulGem(
+    bool fillSoulGem_(
         const SoulGemMap::IteratorPair& sourceSoulGems,
         const SoulSize targetContainedSoulSize,
         SoulTrapData& d)
     {
         const auto maybeFirstOwned =
-            _findFirstOwnedObjectInList(d.inventoryMap(), sourceSoulGems);
+            findFirstOwnedObjectInList_(d.inventoryMap(), sourceSoulGems);
 
         if (maybeFirstOwned.has_value()) {
             const auto& firstOwned = maybeFirstOwned.value();
@@ -143,7 +143,7 @@ namespace {
                 firstOwned.soulGemAt(targetContainedSoulSize);
             const auto soulGemToRemove = firstOwned.soulGem();
 
-            _replaceSoulGem(
+            replaceSoulGem_(
                 soulGemToAdd,
                 soulGemToRemove,
                 firstOwned.entryData(),
@@ -155,7 +155,7 @@ namespace {
         return false;
     }
 
-    bool _fillWhiteSoulGem(
+    bool fillWhiteSoulGem_(
         const SoulGemCapacity capacity,
         const SoulSize sourceContainedSoulSize,
         const SoulSize targetContainedSoulSize,
@@ -166,19 +166,19 @@ namespace {
         const auto& sourceSoulGems =
             soulGemMap.getSoulGemsWith(capacity, sourceContainedSoulSize);
 
-        return _fillSoulGem(sourceSoulGems, targetContainedSoulSize, d);
+        return fillSoulGem_(sourceSoulGems, targetContainedSoulSize, d);
     }
 
-    bool _fillBlackSoulGem(SoulTrapData& d)
+    bool fillBlackSoulGem_(SoulTrapData& d)
     {
         const auto& soulGemMap = YASTMConfig::getInstance().soulGemMap();
         const auto& sourceSoulGems =
             soulGemMap.getSoulGemsWith(SoulGemCapacity::Black, SoulSize::None);
 
-        return _fillSoulGem(sourceSoulGems, SoulSize::Black, d);
+        return fillSoulGem_(sourceSoulGems, SoulSize::Black, d);
     }
 
-    bool _tryReplaceBlackSoulInDualSoulGemWithWhiteSoul(SoulTrapData& d)
+    bool tryReplaceBlackSoulInDualSoulGemWithWhiteSoul_(SoulTrapData& d)
     {
         const auto& soulGemMap = YASTMConfig::getInstance().soulGemMap();
 
@@ -187,19 +187,19 @@ namespace {
             soulGemMap.getSoulGemsWith(SoulGemCapacity::Dual, SoulSize::Black);
 
         const auto maybeFirstOwned =
-            _findFirstOwnedObjectInList(d.inventoryMap(), sourceSoulGems);
+            findFirstOwnedObjectInList_(d.inventoryMap(), sourceSoulGems);
 
         // If the black-filled dual soul exists in the inventory and we can fill
         // an empty pure black soul gem, fill the dual soul gem with our white
         // soul.
-        if (maybeFirstOwned.has_value() && _fillBlackSoulGem(d)) {
+        if (maybeFirstOwned.has_value() && fillBlackSoulGem_(d)) {
             const auto& firstOwned = maybeFirstOwned.value();
 
             const auto soulGemToAdd =
                 firstOwned.soulGemAt(d.victim().soulSize());
             const auto soulGemToRemove = firstOwned.soulGem();
 
-            _replaceSoulGem(
+            replaceSoulGem_(
                 soulGemToAdd,
                 soulGemToRemove,
                 firstOwned.entryData(),
@@ -211,12 +211,12 @@ namespace {
         return false;
     }
 
-    bool _trapBlackSoul(SoulTrapData& d)
+    bool trapBlackSoul_(SoulTrapData& d)
     {
         LOG_TRACE("Trapping black soul..."sv);
 
         LOG_TRACE("Looking up pure empty black soul gems"sv);
-        const bool isSoulTrapped = _fillBlackSoulGem(d);
+        const bool isSoulTrapped = fillBlackSoulGem_(d);
 
         if (isSoulTrapped) {
             d.notifySoulTrapSuccess(
@@ -249,7 +249,7 @@ namespace {
                 containedSoulSize);
 
             const bool result =
-                _fillSoulGem(sourceSoulGems, d.victim().soulSize(), d);
+                fillSoulGem_(sourceSoulGems, d.victim().soulSize(), d);
 
             if (result) {
                 if (d.config[BC::AllowSoulRelocation] &&
@@ -272,7 +272,7 @@ namespace {
         return false;
     }
 
-    bool _trapFullSoul(SoulTrapData& d)
+    bool trapFullSoul_(SoulTrapData& d)
     {
         LOG_TRACE("Trapping full white soul..."sv);
 
@@ -344,7 +344,7 @@ namespace {
                         soulGemMap.getSoulGemsWith(capacity, containedSoulSize);
 
                     const bool result =
-                        _fillSoulGem(sourceSoulGems, d.victim().soulSize(), d);
+                        fillSoulGem_(sourceSoulGems, d.victim().soulSize(), d);
 
                     if (result) {
                         // We've checked for soul relocation already. No need to
@@ -383,7 +383,7 @@ namespace {
                     "Looking up dual soul filled gems with a black soul"sv);
 
                 const bool result =
-                    _tryReplaceBlackSoulInDualSoulGemWithWhiteSoul(d);
+                    tryReplaceBlackSoulInDualSoulGemWithWhiteSoul_(d);
 
                 if (result) {
                     d.notifySoulTrapSuccess(
@@ -421,7 +421,7 @@ namespace {
                         capacity,
                         containedSoulSize);
 
-                    const bool result = _fillWhiteSoulGem(
+                    const bool result = fillWhiteSoulGem_(
                         capacity,
                         containedSoulSize,
                         d.victim().soulSize(),
@@ -450,7 +450,7 @@ namespace {
     }
 
     template <bool AllowSoulDisplacement>
-    bool _trapShrunkSoul(SoulTrapData& d)
+    bool trapShrunkSoul_(SoulTrapData& d)
     {
         LOG_TRACE("Trapping shrunk white soul..."sv);
 
@@ -497,7 +497,7 @@ namespace {
                     soulGemMap.getSoulGemsWith(capacity, containedSoulSize);
 
                 const bool isFillSuccessful =
-                    _fillSoulGem(sourceSoulGems, toSoulSize(capacity), d);
+                    fillSoulGem_(sourceSoulGems, toSoulSize(capacity), d);
 
                 if (isFillSuccessful) {
                     d.notifySoulTrapSuccess(
@@ -518,13 +518,13 @@ namespace {
         return false;
     }
 
-    bool _trapShrunkSoul(SoulTrapData& d)
+    bool trapShrunkSoul_(SoulTrapData& d)
     {
-        return d.config[BC::AllowSoulDisplacement] ? _trapShrunkSoul<true>(d)
-                                                   : _trapShrunkSoul<false>(d);
+        return d.config[BC::AllowSoulDisplacement] ? trapShrunkSoul_<true>(d)
+                                                   : trapShrunkSoul_<false>(d);
     }
 
-    bool _trapSplitSoul(SoulTrapData& d)
+    bool trapSplitSoul_(SoulTrapData& d)
     {
         LOG_TRACE("Trapping split white soul...");
 
@@ -564,7 +564,7 @@ namespace {
                 containedSoulSize);
 
             const bool result =
-                _fillSoulGem(sourceSoulGems, d.victim().soulSize(), d);
+                fillSoulGem_(sourceSoulGems, d.victim().soulSize(), d);
 
             if (result) {
                 d.notifySoulTrapSuccess(
@@ -584,7 +584,7 @@ namespace {
         return false;
     }
 
-    void _splitSoul(const Victim& victim, VictimsQueue& victimQueue)
+    void splitSoul_(const Victim& victim, VictimsQueue& victimQueue)
     {
         // Raw Soul Sizes:
         // - Grand   = 3000 = Greater + Common
@@ -614,7 +614,7 @@ namespace {
         }
     }
 
-    std::mutex _trapSoulMutex; /* Process only one soul trap at a time. */
+    std::mutex trapSoulMutex_; /* Process only one soul trap at a time. */
 } // namespace
 
 bool trapSoul(RE::Actor* const caster, RE::Actor* const victim)
@@ -640,7 +640,7 @@ bool trapSoul(RE::Actor* const caster, RE::Actor* const victim)
     }
 
     // We begin the mutex here since we're checking isSoulTrapped status next.
-    std::lock_guard<std::mutex> guard(_trapSoulMutex);
+    std::lock_guard<std::mutex> guard(trapSoulMutex_);
 
     if (native::getRemainingSoulLevelValue(victim) == SoulLevelValue::None) {
         LOG_TRACE("Victim has already been soul trapped."sv);
@@ -687,7 +687,7 @@ bool trapSoul(RE::Actor* const caster, RE::Actor* const victim)
             }
 
             if (d.victim().soulSize() == SoulSize::Black) {
-                if (_trapBlackSoul(d)) {
+                if (trapBlackSoul_(d)) {
                     isSoulTrapSuccessful = true;
                     continue; // Process next soul.
                 }
@@ -696,15 +696,15 @@ bool trapSoul(RE::Actor* const caster, RE::Actor* const victim)
                     d.config.get<EC::SoulShrinkingTechnique>() ==
                     SoulShrinkingTechnique::Split);
 
-                if (_trapSplitSoul(d)) {
+                if (trapSplitSoul_(d)) {
                     isSoulTrapSuccessful = true;
                     continue; // Process next soul.
                 }
 
-                _splitSoul(d.victim(), d.victims());
+                splitSoul_(d.victim(), d.victims());
                 continue; // Process next soul.
             } else {
-                if (_trapFullSoul(d)) {
+                if (trapFullSoul_(d)) {
                     isSoulTrapSuccessful = true;
                     continue; // Process next soul.
                 }
@@ -718,13 +718,13 @@ bool trapSoul(RE::Actor* const caster, RE::Actor* const victim)
                     d.config.get<EC::SoulShrinkingTechnique>();
 
                 if (soulShrinkingTechnique == SoulShrinkingTechnique::Shrink) {
-                    if (_trapShrunkSoul(d)) {
+                    if (trapShrunkSoul_(d)) {
                         isSoulTrapSuccessful = true;
                         continue; // Process next soul.
                     }
                 } else if (
                     soulShrinkingTechnique == SoulShrinkingTechnique::Split) {
-                    _splitSoul(d.victim(), d.victims());
+                    splitSoul_(d.victim(), d.victims());
                     continue; // Process next soul.
                 }
             }

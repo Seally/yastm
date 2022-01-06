@@ -12,7 +12,7 @@
 #include "../utilities/native.hpp"
 
 namespace {
-    SoulSize _toContainedSoulSize(
+    SoulSize toContainedSoulSize_(
         const SoulGemCapacity capacity,
         const std::size_t index)
     {
@@ -46,14 +46,14 @@ namespace {
             capacity));
     }
 
-    void _checkFormIsNotNull(RE::TESForm* form, const FormId& formId)
+    void checkFormIsNotNull_(RE::TESForm* form, const FormId& formId)
     {
         if (form == nullptr) {
             throw MissingFormError(formId);
         }
     }
 
-    void _checkFormIsSoulGem(RE::TESForm* form)
+    void checkFormIsSoulGem_(RE::TESForm* form)
     {
         if (!form->IsSoulGem()) {
             throw UnexpectedFormTypeError(
@@ -63,7 +63,7 @@ namespace {
         }
     }
 
-    void _checkGroupCapacityMatchesSoulGemFormCapacity(
+    void checkGroupCapacityMatchesSoulGemFormCapacity_(
         RE::TESSoulGem* form,
         const FormId& formId,
         const SoulGemGroup& group)
@@ -80,7 +80,7 @@ namespace {
         }
     }
 
-    bool _checkSoulGemReusability(
+    bool checkSoulGemReusability_(
         RE::TESSoulGem* const soulGemForm,
         const SoulGemGroup& group)
     {
@@ -108,7 +108,7 @@ namespace {
         return isReusable;
     }
 
-    void _checkReusableSoulGemFields(
+    void checkReusableSoulGemFields_(
         RE::TESSoulGem* const soulGemForm,
         const SoulGemGroup& group)
     {
@@ -140,7 +140,7 @@ namespace {
         }
     }
 
-    void _checkIndexMatchesContainedSoulSize(
+    void checkIndexMatchesContainedSoulSize_(
         const std::size_t index,
         RE::TESSoulGem* const soulGemForm,
         const SoulGemGroup& group)
@@ -180,11 +180,11 @@ namespace {
     }
 } // namespace
 
-void ConcreteSoulGemGroup::_initializeFromPrimaryBasis(
+void ConcreteSoulGemGroup::initializeFromPrimaryBasis_(
     const SoulGemGroup& sourceGroup,
     RE::TESDataHandler* dataHandler)
 {
-    _capacity = sourceGroup.capacity();
+    capacity_ = sourceGroup.capacity();
 
     for (std::size_t i = 0; i < sourceGroup.members().size(); ++i) {
         const auto& formId = sourceGroup.members().at(i);
@@ -192,29 +192,29 @@ void ConcreteSoulGemGroup::_initializeFromPrimaryBasis(
         const auto form =
             dataHandler->LookupForm(formId.id(), formId.pluginName());
 
-        _checkFormIsNotNull(form, formId);
-        _checkFormIsSoulGem(form);
+        checkFormIsNotNull_(form, formId);
+        checkFormIsSoulGem_(form);
 
         RE::TESSoulGem* const soulGemForm = form->As<RE::TESSoulGem>();
 
-        _checkGroupCapacityMatchesSoulGemFormCapacity(
+        checkGroupCapacityMatchesSoulGemFormCapacity_(
             soulGemForm,
             formId,
             sourceGroup);
 
         const bool isReusable =
-            _checkSoulGemReusability(soulGemForm, sourceGroup);
+            checkSoulGemReusability_(soulGemForm, sourceGroup);
         if (isReusable) {
-            _checkReusableSoulGemFields(soulGemForm, sourceGroup);
+            checkReusableSoulGemFields_(soulGemForm, sourceGroup);
         }
 
-        _forms.emplace(
-            _toContainedSoulSize(sourceGroup.capacity(), i),
+        forms_.emplace(
+            toContainedSoulSize_(sourceGroup.capacity(), i),
             soulGemForm);
     }
 }
 
-void ConcreteSoulGemGroup::_initializeFromSecondaryBasis(
+void ConcreteSoulGemGroup::initializeFromSecondaryBasis_(
     const ConcreteSoulGemGroup& blackSoulGemGroup)
 {
     if (at(SoulSize::None) != blackSoulGemGroup.at(SoulSize::None)) {
@@ -232,14 +232,14 @@ void ConcreteSoulGemGroup::_initializeFromSecondaryBasis(
             blackSoulGemGroup));
     }
 
-    if (_forms.contains(SoulSize::Black)) {
+    if (forms_.contains(SoulSize::Black)) {
         throw std::runtime_error(fmt::format(
             FMT_STRING("{:c} already contains a black soul gem member."),
             *this));
     }
 
-    _forms.emplace(SoulSize::Black, blackSoulGemGroup.at(SoulSize::Black));
-    _capacity = SoulGemCapacity::Dual;
+    forms_.emplace(SoulSize::Black, blackSoulGemGroup.at(SoulSize::Black));
+    capacity_ = SoulGemCapacity::Dual;
 }
 
 ConcreteSoulGemGroup::ConcreteSoulGemGroup(
@@ -247,7 +247,7 @@ ConcreteSoulGemGroup::ConcreteSoulGemGroup(
     RE::TESDataHandler* dataHandler)
 {
     try {
-        _initializeFromPrimaryBasis(sourceGroup, dataHandler);
+        initializeFromPrimaryBasis_(sourceGroup, dataHandler);
     } catch (...) {
         std::throw_with_nested(ConcreteSoulGemGroupError(fmt::format(
             FMT_STRING("Error while creating concrete soul gem group from {}:"),
@@ -275,10 +275,10 @@ ConcreteSoulGemGroup::ConcreteSoulGemGroup(
                 blackSoulGemGroup));
         }
 
-        _initializeFromPrimaryBasis(whiteGrandSoulGemGroup, dataHandler);
-        _initializeFromSecondaryBasis(blackSoulGemGroup);
+        initializeFromPrimaryBasis_(whiteGrandSoulGemGroup, dataHandler);
+        initializeFromSecondaryBasis_(blackSoulGemGroup);
 
-        assert(_capacity == SoulGemCapacity::Dual);
+        assert(capacity_ == SoulGemCapacity::Dual);
     } catch (...) {
         std::throw_with_nested(ConcreteSoulGemGroupError(fmt::format(
             FMT_STRING(

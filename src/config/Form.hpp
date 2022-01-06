@@ -17,8 +17,8 @@ namespace RE {
 template <typename T>
 class Form {
 protected:
-    std::optional<FormId> _formId;
-    T* _form = nullptr;
+    std::optional<FormId> formId_;
+    T* form_ = nullptr;
 
 public:
     static constexpr auto FormType = T::FORMTYPE;
@@ -30,17 +30,17 @@ public:
     void loadForm(RE::TESDataHandler* dataHandler);
     void clear();
 
-    const FormId& formId() const { return _formId.value(); }
-    T* form() const { return _form; }
+    const FormId& formId() const { return formId_.value(); }
+    T* form() const { return form_; }
 
-    bool isConfigLoaded() const { return _formId.has_value(); }
-    bool isFormLoaded() const { return _form != nullptr; }
+    bool isConfigLoaded() const { return formId_.has_value(); }
+    bool isFormLoaded() const { return form_ != nullptr; }
 };
 
 template <typename T>
 inline void Form<T>::setFromToml(const toml::array& arr)
 {
-    _formId.emplace(arr);
+    formId_.emplace(arr);
 }
 
 template <typename T>
@@ -48,11 +48,11 @@ inline void Form<T>::loadForm(RE::TESDataHandler* const dataHandler)
 {
     using namespace std::literals;
 
-    if (!_formId.has_value()) {
+    if (!formId_.has_value()) {
         return;
     }
 
-    const auto& formId = _formId.value();
+    const auto& formId = formId_.value();
     auto form = dataHandler->LookupForm(formId.id(), formId.pluginName());
 
     if (form == nullptr) {
@@ -62,7 +62,7 @@ inline void Form<T>::loadForm(RE::TESDataHandler* const dataHandler)
     const auto formType = form->GetFormType();
 
     if (formType == FormType) {
-        _form = form->As<T>();
+        form_ = form->As<T>();
     } else {
         throw UnexpectedFormTypeError(FormType, formType, form->GetName());
     }
@@ -71,6 +71,6 @@ inline void Form<T>::loadForm(RE::TESDataHandler* const dataHandler)
 template <typename T>
 inline void Form<T>::clear()
 {
-    _formId.reset();
-    _form = nullptr;
+    formId_.reset();
+    form_ = nullptr;
 }

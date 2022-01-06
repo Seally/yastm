@@ -5,8 +5,8 @@
 #include <toml++/toml.h>
 
 class Config {
-    toml::table _data;
-    mutable std::shared_mutex _mutex;
+    toml::table data_;
+    mutable std::shared_mutex mutex_;
 
 public:
     Config() {}
@@ -14,24 +14,24 @@ public:
 
     bool has(std::string_view key) const
     {
-        std::shared_lock lock(_mutex);
-        return _data.contains(key);
+        std::shared_lock lock(mutex_);
+        return data_.contains(key);
     }
 
     template <typename T>
     T get(std::string_view key, const T& defaultValue) const
     {
-        std::shared_lock lock(_mutex);
+        std::shared_lock lock(mutex_);
 
-        return _data[key].value_or(defaultValue);
+        return data_[key].value_or(defaultValue);
     }
 
     template <typename T>
     void set(std::string_view key, const T value)
     {
-        std::unique_lock lock(_mutex);
+        std::unique_lock lock(mutex_);
 
-        _data.insert(key, value);
+        data_.insert(key, value);
     }
 
     bool writeToDisk(const std::filesystem::path& filePath) const;

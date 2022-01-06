@@ -43,7 +43,7 @@ void SoulGemMap::initializeWith(
     // Black soul gem groups are added first since we need to construct a map to
     // identify dual soul gem groups.
     forEachLoadPriority([&, this](const LoadPriority priority) {
-        for (const auto& group : t._groupsToAdd) {
+        for (const auto& group : t.groupsToAdd_) {
             try {
                 if (group.get().priority() == priority) {
                     LOG_INFO_FMT("- Loading soul gems for {:c}", group.get());
@@ -69,7 +69,7 @@ void SoulGemMap::initializeWith(
 
     LOG_INFO("Loading other soul gem groups");
     forEachLoadPriority([&, this](const LoadPriority priority) {
-        for (const auto& group : t._groupsToAdd) {
+        for (const auto& group : t.groupsToAdd_) {
             try {
                 if (group.get().priority() == priority) {
                     const auto capacity = group.get().capacity();
@@ -115,10 +115,10 @@ void SoulGemMap::initializeWith(
 
     // Assign it if we reach this point so we don't end in a half-initialized
     // state.
-    _soulGemMap = std::move(soulGemGroupsByCapacity);
+    soulGemMap_ = std::move(soulGemGroupsByCapacity);
 }
 
-void SoulGemMap::clear() { _soulGemMap.clear(); }
+void SoulGemMap::clear() { soulGemMap_.clear(); }
 
 void SoulGemMap::printContents() const
 {

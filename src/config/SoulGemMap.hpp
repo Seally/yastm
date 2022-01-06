@@ -29,13 +29,13 @@ private:
         std::vector<std::unique_ptr<ConcreteSoulGemGroup>>;
     using FormMap =
         std::unordered_map<SoulGemCapacity, ConcreteSoulGemGroupList>;
-    FormMap _soulGemMap;
+    FormMap soulGemMap_;
 
     friend class Iterator;
 
 public:
     class Transaction {
-        std::vector<std::reference_wrapper<const SoulGemGroup>> _groupsToAdd;
+        std::vector<std::reference_wrapper<const SoulGemGroup>> groupsToAdd_;
 
         friend class SoulGemMap;
 
@@ -48,7 +48,7 @@ public:
     public:
         void addSoulGemGroup(const SoulGemGroup& group)
         {
-            _groupsToAdd.emplace_back(group);
+            groupsToAdd_.emplace_back(group);
         }
     };
 
@@ -61,17 +61,17 @@ public:
         using reference = value_type&;
 
     private:
-        SoulSize _containedSoulSize;
-        std::size_t _index;
-        const ConcreteSoulGemGroupList* _soulGemsAtCapacity;
+        SoulSize containedSoulSize_;
+        std::size_t index_;
+        const ConcreteSoulGemGroupList* soulGemsAtCapacity_;
 
         explicit Iterator(
             const ConcreteSoulGemGroupList& soulGemsAtCapacity,
             const SoulSize containedSoulSize,
             const std::size_t index)
-            : _soulGemsAtCapacity(&soulGemsAtCapacity)
-            , _containedSoulSize(containedSoulSize)
-            , _index(index)
+            : soulGemsAtCapacity_(&soulGemsAtCapacity)
+            , containedSoulSize_(containedSoulSize)
+            , index_(index)
         {}
 
         friend class SoulGemMap;
@@ -84,82 +84,82 @@ public:
 
         const ConcreteSoulGemGroup& group() const
         {
-            return *_soulGemsAtCapacity->at(_index);
+            return *soulGemsAtCapacity_->at(index_);
         }
 
-        const SoulSize containedSoulSize() const { return _containedSoulSize; }
-        pointer get() const { return group().at(_containedSoulSize); }
+        const SoulSize containedSoulSize() const { return containedSoulSize_; }
+        pointer get() const { return group().at(containedSoulSize_); }
 
-        reference operator*() const { return *group().at(_containedSoulSize); }
+        reference operator*() const { return *group().at(containedSoulSize_); }
         pointer operator->() const { return get(); }
 
         Iterator& operator++()
         {
-            ++_index;
+            ++index_;
             return *this;
         }
 
         Iterator operator++(int)
         {
             Iterator tmp(*this);
-            ++_index;
+            ++index_;
             return tmp;
         }
 
         Iterator& operator--()
         {
-            --_index;
+            --index_;
             return *this;
         }
 
         Iterator operator--(int)
         {
             Iterator tmp = *this;
-            --_index;
+            --index_;
             return tmp;
         }
 
         Iterator& operator+=(const difference_type n)
         {
-            _index += n;
+            index_ += n;
             return *this;
         }
 
         friend Iterator operator+(const Iterator& it, const difference_type n)
         {
             Iterator tmp = it;
-            tmp._index += n;
+            tmp.index_ += n;
             return tmp;
         }
 
         Iterator& operator-=(const difference_type n)
         {
-            _index -= n;
+            index_ -= n;
             return *this;
         }
 
         friend Iterator operator-(const Iterator& it, const difference_type n)
         {
             Iterator tmp = it;
-            tmp._index -= n;
+            tmp.index_ -= n;
             return tmp;
         }
 
         difference_type operator-(const Iterator& it)
         {
-            return static_cast<difference_type>(_index - it._index);
+            return static_cast<difference_type>(index_ - it.index_);
         }
 
         reference operator[](const difference_type n) { return *(*this + n); }
 
         friend bool operator==(const Iterator& a, const Iterator& b)
         {
-            return a._index == b._index;
+            return a.index_ == b.index_;
         }
 
         friend auto operator<=>(const Iterator& a, const Iterator& b)
         {
-            return a._index <=> b._index;
+            return a.index_ <=> b.index_;
         }
     };
 
@@ -173,7 +173,7 @@ public:
         const SoulGemCapacity capacity,
         const SoulSize containedSoulSize) const
     {
-        const auto& soulGemsAtCapacity = _soulGemMap.at(capacity);
+        const auto& soulGemsAtCapacity = soulGemMap_.at(capacity);
 
         return {
             Iterator(soulGemsAtCapacity, containedSoulSize, 0),

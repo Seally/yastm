@@ -1,12 +1,12 @@
 #include "SoulTrapData.hpp"
 
-void SoulTrapData::_resetInventoryData()
+void SoulTrapData::resetInventoryData_()
 {
     std::size_t maxFilledSoulGemsCount = 0;
 
     // This should be a move.
-    _inventoryMap =
-        getInventoryFor(_caster, [&](const RE::TESBoundObject& obj) {
+    inventoryMap_ =
+        getInventoryFor(caster_, [&](const RE::TESBoundObject& obj) {
             return obj.IsSoulGem();
         });
 
@@ -18,7 +18,7 @@ void SoulTrapData::_resetInventoryData()
     // However, displacing white grand souls from black soul gems only
     // adds value when there exists a soul gem it can be displaced to,
     // thus it's preferable that we exit the soul processing anyway.
-    for (const auto& [obj, entryData] : _inventoryMap) {
+    for (const auto& [obj, entryData] : inventoryMap_) {
         const auto soulGem = obj->As<RE::TESSoulGem>();
 
         if (soulGem->GetMaximumCapacity() == soulGem->GetContainedSoul()) {
@@ -26,13 +26,13 @@ void SoulTrapData::_resetInventoryData()
         }
     }
 
-    if (_inventoryMap.size() <= 0) {
-        _casterInventoryStatus = InventoryStatus::NoSoulGemsOwned;
-    } else if (_inventoryMap.size() == maxFilledSoulGemsCount) {
-        _casterInventoryStatus = InventoryStatus::AllSoulGemsFilled;
+    if (inventoryMap_.size() <= 0) {
+        casterInventoryStatus_ = InventoryStatus::NoSoulGemsOwned;
+    } else if (inventoryMap_.size() == maxFilledSoulGemsCount) {
+        casterInventoryStatus_ = InventoryStatus::AllSoulGemsFilled;
     } else {
-        _casterInventoryStatus = InventoryStatus::HasSoulGemsToFill;
+        casterInventoryStatus_ = InventoryStatus::HasSoulGemsToFill;
     }
 
-    _isInventoryMapDirty = false;
+    isInventoryMapDirty_ = false;
 }

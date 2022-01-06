@@ -26,24 +26,24 @@ public:
     using MemberList = std::vector<FormId>;
 
 private:
-    IdType _id;
-    bool _isReusable;
-    SoulGemCapacity _capacity;
-    LoadPriority _priority;
-    MemberList _members;
+    IdType id_;
+    bool isReusable_;
+    SoulGemCapacity capacity_;
+    LoadPriority priority_;
+    MemberList members_;
 
 public:
     explicit SoulGemGroup(const toml::table& table);
 
-    [[nodiscard]] const IdType& id() const { return _id; }
-    [[nodiscard]] bool isReusable() const { return _isReusable; }
+    [[nodiscard]] const IdType& id() const { return id_; }
+    [[nodiscard]] bool isReusable() const { return isReusable_; }
 
     /**
      * @brief Returns the soul capacity of the soul gems in this group. Note
      * that this should never return SoulGemCapacity::Dual since we don't
      * support explicitly setting that value in the configuration files.
      */
-    [[nodiscard]] SoulGemCapacity capacity() const { return _capacity; }
+    [[nodiscard]] SoulGemCapacity capacity() const { return capacity_; }
     /**
      * @brief Returns the "effective" soul gem capacity, used to match against
      * the values reported by the game soul gem forms.
@@ -53,7 +53,7 @@ public:
         return toSoulLevel(capacity());
     }
 
-    [[nodiscard]] LoadPriority rawPriority() const { return _priority; }
+    [[nodiscard]] LoadPriority rawPriority() const { return priority_; }
     [[nodiscard]] LoadPriority priority() const
     {
         if (rawPriority() == LoadPriority::Auto) {
@@ -63,7 +63,7 @@ public:
         return rawPriority();
     }
 
-    [[nodiscard]] const MemberList& members() const { return _members; }
+    [[nodiscard]] const MemberList& members() const { return members_; }
     [[nodiscard]] const FormId& emptyMember() const
     {
         return members().front();
@@ -92,10 +92,10 @@ private:
         FirstUpper,
     };
 
-    bool _showReusability = false;
-    bool _showCapacity = false;
-    bool _showPriority = false;
-    Capitalization _capitalization = Capitalization::AllLower;
+    bool showReusability_ = false;
+    bool showCapacity_ = false;
+    bool showPriority_ = false;
+    Capitalization capitalization_ = Capitalization::AllLower;
 
 public:
     // Presentation format (in case of conflict, last format character wins):
@@ -132,19 +132,19 @@ public:
         for (; it != ctx.end() && *it != '}'; ++it) {
             switch (*it) {
             case 'L':
-                _capitalization = Capitalization::AllLower;
+                capitalization_ = Capitalization::AllLower;
                 break;
             case 'u':
-                _capitalization = Capitalization::FirstUpper;
+                capitalization_ = Capitalization::FirstUpper;
                 break;
             case 'r':
-                _showReusability = true;
+                showReusability_ = true;
                 break;
             case 'c':
-                _showCapacity = true;
+                showCapacity_ = true;
                 break;
             case 'p':
-                _showPriority = true;
+                showPriority_ = true;
                 break;
             default:
                 throw format_error("invalid format");
@@ -164,26 +164,26 @@ public:
         // ctx.out() is an output iterator to write to.
         std::string formatString;
 
-        if (_showReusability) {
+        if (showReusability_) {
             formatString.append(
                 group.isReusable() ? "reusable " : "non-reusable ");
         }
 
-        if (_showCapacity) {
+        if (showCapacity_) {
             formatString.append(
                 fmt::format(FMT_STRING("{} "), toString(group.capacity())));
         }
 
         formatString.append("soul gem group \"{}\"");
 
-        if (_showPriority) {
+        if (showPriority_) {
             formatString.append(fmt::format(
                 FMT_STRING(" (priority={}, rawPriority={})"),
                 group.priority(),
                 group.rawPriority()));
         }
 
-        if (_capitalization == Capitalization::FirstUpper) {
+        if (capitalization_ == Capitalization::FirstUpper) {
             capitalizeFirstChar(formatString, formatString);
         }
 

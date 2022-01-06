@@ -19,7 +19,7 @@ namespace {
     /**
      * @brief Check if memory has the expected bytes for patching.
      */
-    bool _isChargeItemPatchable()
+    bool isChargeItemPatchable_()
     {
         using namespace re::fix::chargeitem;
         using re::InventoryMenu::ChargeItem;
@@ -39,7 +39,7 @@ namespace {
         return true;
     }
 
-    void _consumeReusableSoulGem(
+    void consumeReusableSoulGem_(
         RE::TESSoulGem* soulGemToConsume,
         RE::ExtraDataList** dataListPtr)
     {
@@ -89,8 +89,8 @@ namespace {
             nullptr);
     }
 
-    struct _Patch : Xbyak::CodeGenerator {
-        explicit _Patch()
+    struct Patch_ : Xbyak::CodeGenerator {
+        explicit Patch_()
         {
             using namespace re::fix::chargeitem;
             using re::InventoryMenu::ChargeItem;
@@ -117,7 +117,7 @@ namespace {
             dq(ChargeItem.address() + continueOffset);
 
             L(consumeReusableSoulGemLabel);
-            dq(reinterpret_cast<std::uint64_t>(_consumeReusableSoulGem));
+            dq(reinterpret_cast<std::uint64_t>(consumeReusableSoulGem_));
         }
     };
 } // namespace
@@ -127,11 +127,11 @@ bool installChargeItemFix()
     using namespace re::fix::chargeitem;
     using re::InventoryMenu::ChargeItem;
 
-    if (!_isChargeItemPatchable()) {
+    if (!isChargeItemPatchable_()) {
         return false;
     }
 
-    _Patch patch;
+    Patch_ patch;
     patch.ready();
 
     LOG_INFO_FMT("[CHARGE] Patch size: {}", patch.getSize());

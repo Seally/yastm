@@ -13,15 +13,15 @@
 using namespace std::literals;
 
 namespace {
-    std::string_view _ID_KEY("id");
-    std::string_view _ISREUSABLE_KEY("isReusable");
-    std::string_view _CAPACITY_KEY("capacity");
-    std::string_view _PRIORITY_KEY("priority");
-    std::string_view _MEMBERS_KEY("members");
+    std::string_view ID_KEY_("id");
+    std::string_view ISREUSABLE_KEY_("isReusable");
+    std::string_view CAPACITY_KEY_("capacity");
+    std::string_view PRIORITY_KEY_("priority");
+    std::string_view MEMBERS_KEY_("members");
 
     template <typename T>
     requires std::integral<T> constexpr SoulGemCapacity
-        _toSoulGemCapacityFromConfig(const T capacity)
+        toSoulGemCapacityFromConfig_(const T capacity)
     {
         switch (capacity) {
         case 1:
@@ -39,13 +39,13 @@ namespace {
         }
 
         throw EntryValueOutOfRangeError(
-            _CAPACITY_KEY.data(),
+            CAPACITY_KEY_.data(),
             EntryRange(1, 6),
             "Invalid value for entry 'capacity'");
     }
 
     std::size_t
-        _getExpectedMemberCountForCapacity(const SoulGemCapacity capacity)
+        getExpectedMemberCountForCapacity_(const SoulGemCapacity capacity)
     {
         switch (capacity) {
         case SoulGemCapacity::Dual:
@@ -57,13 +57,13 @@ namespace {
         return capacity + 2;
     }
 
-    std::string _parseId(const toml::table& table)
+    std::string parseId_(const toml::table& table)
     {
-        const auto value = table[_ID_KEY].as_string();
+        const auto value = table[ID_KEY_].as_string();
 
         if (value == nullptr) {
             throw InvalidEntryValueTypeError(
-                _ID_KEY.data(),
+                ID_KEY_.data(),
                 ValueType::String,
                 "Expected string entry named 'id'");
         }
@@ -71,38 +71,38 @@ namespace {
         return value->get();
     }
 
-    SoulGemCapacity _parseCapacity(const toml::table& table)
+    SoulGemCapacity parseCapacity_(const toml::table& table)
     {
-        const auto value = table[_CAPACITY_KEY].as_integer();
+        const auto value = table[CAPACITY_KEY_].as_integer();
 
         if (value == nullptr) {
             throw InvalidEntryValueTypeError(
-                _CAPACITY_KEY.data(),
+                CAPACITY_KEY_.data(),
                 ValueType::Integer,
                 "Expected integer entry named 'capacity'");
         }
 
-        const auto capacity = _toSoulGemCapacityFromConfig(value->get());
+        const auto capacity = toSoulGemCapacityFromConfig_(value->get());
 
         assert(capacity != SoulGemCapacity::Dual);
 
         return capacity;
     }
 
-    bool _parseIsReusable(const toml::table& table)
+    bool parseIsReusable_(const toml::table& table)
     {
-        return table[_ISREUSABLE_KEY].value_or(false);
+        return table[ISREUSABLE_KEY_].value_or(false);
     }
 
-    LoadPriority _parsePriority(const toml::table& table)
+    LoadPriority parsePriority_(const toml::table& table)
     {
-        const auto value = table[_PRIORITY_KEY].value_or("auto"sv);
+        const auto value = table[PRIORITY_KEY_].value_or("auto"sv);
 
         const LoadPriority priority = fromLoadPriorityString(value);
 
         if (priority == LoadPriority::Invalid) {
             throw EntryValueOutOfRangeError(
-                _PRIORITY_KEY.data(),
+                PRIORITY_KEY_.data(),
                 EntryRange{"auto", "low", "normal", "high"},
                 "Invalid value for entry 'priority'");
         }
@@ -111,13 +111,13 @@ namespace {
     }
 
     SoulGemGroup::MemberList
-        _parseMembers(const toml::table& table, const SoulGemCapacity capacity)
+        parseMembers_(const toml::table& table, const SoulGemCapacity capacity)
     {
-        const auto value = table[_MEMBERS_KEY].as_array();
+        const auto value = table[MEMBERS_KEY_].as_array();
 
         if (value == nullptr || value->empty()) {
             throw InvalidEntryValueTypeError(
-                _MEMBERS_KEY.data(),
+                MEMBERS_KEY_.data(),
                 ValueType::Array,
                 "Expected non-empty array entry named 'members'");
         }
@@ -150,15 +150,15 @@ namespace {
 
         if (!areAllUnique(members.cbegin(), members.cend())) {
             throw ArrayDuplicateEntriesError(
-                _MEMBERS_KEY.data(),
+                MEMBERS_KEY_.data(),
                 "Duplicate values in 'members' array");
         }
 
         if (const auto expectedMemberCount =
-                _getExpectedMemberCountForCapacity(capacity);
+                getExpectedMemberCountForCapacity_(capacity);
             expectedMemberCount != members.size()) {
             throw ArrayInvalidSizeError(
-                _MEMBERS_KEY.data(),
+                MEMBERS_KEY_.data(),
                 EntryRange(static_cast<int>(expectedMemberCount)),
                 "Invalid number of members in 'members' array");
         }
@@ -171,16 +171,16 @@ SoulGemGroup::SoulGemGroup(const toml::table& table)
 {
     // The nested error includes the ID value, which isn't present if this
     // fails, so we do this before the try...catch.
-    _id = _parseId(table);
+    id_ = parseId_(table);
 
     try {
-        _capacity = _parseCapacity(table);
-        _isReusable = _parseIsReusable(table);
-        _priority = _parsePriority(table);
-        _members = _parseMembers(table, _capacity);
+        capacity_ = parseCapacity_(table);
+        isReusable_ = parseIsReusable_(table);
+        priority_ = parsePriority_(table);
+        members_ = parseMembers_(table, capacity_);
     } catch (...) {
         std::throw_with_nested(SoulGemGroupError(fmt::format(
             FMT_STRING("Error while parsing soul gem group \"{}\":"sv),
-            _id)));
+            id_)));
     }
 }

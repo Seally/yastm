@@ -21,7 +21,7 @@ using namespace std::literals;
 
 namespace {
     template <typename KeyType>
-    void _readGlobalVariableConfigs(
+    void readGlobalVariableConfigs_(
         const KeyType key,
         const toml::node_view<toml::node>& table,
         YASTMConfig::GlobalVariableMap<KeyType>& map)
@@ -52,7 +52,7 @@ namespace {
     }
 
     template <typename KeyType>
-    void _loadGlobalFormsIn(
+    void loadGlobalFormsIn_(
         YASTMConfig::GlobalVariableMap<KeyType>& map,
         RE::TESDataHandler* const dataHandler)
     {
@@ -74,7 +74,7 @@ namespace {
     }
 
     template <typename KeyType>
-    void _printLoadedGlobalForms(
+    void printLoadedGlobalForms_(
         const YASTMConfig::GlobalVariableMap<KeyType>& map)
     {
         for (auto& [key, globalVar] : map) {
@@ -92,7 +92,7 @@ YASTMConfig::YASTMConfig()
     // Defaults used when no associated configuration key has been set up.
     forEachBoolConfigKey(
         [this](const BoolConfigKey key, const float defaultValue) {
-            _globalBools.emplace(
+            globalBools_.emplace(
                 std::piecewise_construct,
                 std::forward_as_tuple(key),
                 std::forward_as_tuple(key, defaultValue));
@@ -100,14 +100,14 @@ YASTMConfig::YASTMConfig()
 
     forEachEnumConfigKey(
         [this](const EnumConfigKey key, const float defaultValue) {
-            _globalEnums.emplace(
+            globalEnums_.emplace(
                 std::piecewise_construct,
                 std::forward_as_tuple(key),
                 std::forward_as_tuple(key, defaultValue));
         });
 }
 
-void YASTMConfig::_loadYASTMConfigFile()
+void YASTMConfig::loadYASTMConfigFile_()
 {
     toml::table table;
 
@@ -124,11 +124,11 @@ void YASTMConfig::_loadYASTMConfigFile()
         const auto yastmTable = table["YASTM"];
 
         forEachBoolConfigKey([&, this](const BoolConfigKey key) {
-            _readGlobalVariableConfigs(key, yastmTable, _globalBools);
+            readGlobalVariableConfigs_(key, yastmTable, globalBools_);
         });
 
         forEachEnumConfigKey([&, this](const EnumConfigKey key) {
-            _readGlobalVariableConfigs(key, yastmTable, _globalEnums);
+            readGlobalVariableConfigs_(key, yastmTable, globalEnums_);
         });
     } catch (const toml::parse_error& error) {
         LOG_WARN_FMT(
@@ -141,20 +141,20 @@ void YASTMConfig::_loadYASTMConfigFile()
     // Game hasn't fully initialized.)
     LOG_INFO("Loaded configuration from TOML:"sv);
 
-    for (const auto& [key, globalVar] : _globalBools) {
+    for (const auto& [key, globalVar] : globalBools_) {
         if (globalVar.isConfigLoaded()) {
             LOG_INFO_FMT("- {} = {}"sv, key, globalVar.formId());
         }
     }
 
-    for (const auto& [key, globalVar] : _globalEnums) {
+    for (const auto& [key, globalVar] : globalEnums_) {
         if (globalVar.isConfigLoaded()) {
             LOG_INFO_FMT("- {} = {}"sv, key, globalVar.formId());
         }
     }
 }
 
-void YASTMConfig::_loadIndividualConfigFiles()
+void YASTMConfig::loadIndividualConfigFiles_()
 {
     std::vector<std::filesystem::path> configPaths;
 
@@ -191,7 +191,7 @@ void YASTMConfig::_loadIndividualConfigFiles()
                 "Reading individual configuration file: {}"sv,
                 configPathStr);
 
-            validSoulGemGroupsCount += _readAndCountSoulGemGroupConfigs(table);
+            validSoulGemGroupsCount += readAndCountSoulGemGroupConfigs_(table);
         } catch (const toml::parse_error& error) {
             LOG_WARN_FMT(
                 "Error while parsing individual configuration file \"{}\": {}"sv,
@@ -204,7 +204,7 @@ void YASTMConfig::_loadIndividualConfigFiles()
     // Game hasn't fully initialized.)
     LOG_INFO("Loaded soul gem configuration from TOML:"sv);
 
-    for (const auto& soulGemGroup : _soulGemGroupList) {
+    for (const auto& soulGemGroup : soulGemGroupList_) {
         LOG_INFO_FMT(
             "    {} (isReusable={}, capacity={}, priority={})"sv,
             soulGemGroup.id(),
@@ -223,7 +223,7 @@ void YASTMConfig::_loadIndividualConfigFiles()
 }
 
 std::size_t
-    YASTMConfig::_readAndCountSoulGemGroupConfigs(const toml::table& table)
+    YASTMConfig::readAndCountSoulGemGroupConfigs_(const toml::table& table)
 {
     std::size_t validSoulGemGroupsCount = 0;
 
@@ -233,7 +233,7 @@ std::size_t
             try {
                 elem.visit([&, this](auto&& el) {
                     if constexpr (toml::is_table<decltype(el)>) {
-                        _soulGemGroupList.emplace_back(el);
+                        soulGemGroupList_.emplace_back(el);
                         // We've found a valid soul gem group!
                         ++validSoulGemGroupsCount;
                     } else {
@@ -259,7 +259,7 @@ void YASTMConfig::checkDllDependencies(const SKSE::LoadInterface* loadInterface)
                                 const char* name,
                                 const char* issueIfMissing) {
         const auto pluginInfo = loadInterface->GetPluginInfo(name);
-        _dependencies.emplace(key, pluginInfo);
+        dependencies_.emplace(key, pluginInfo);
 
         if (pluginInfo == nullptr) {
             // Bypass LOG_WARN(issueIfMissing) not compiling.
@@ -271,15 +271,15 @@ void YASTMConfig::checkDllDependencies(const SKSE::LoadInterface* loadInterface)
 void YASTMConfig::loadConfigFiles_()
 {
     LOG_INFO("Loading configuration files...");
-    _loadYASTMConfigFile();
-    _loadIndividualConfigFiles();
+    loadYASTMConfigFile_();
+    loadIndividualConfigFiles_();
 }
 
 void YASTMConfig::loadGameForms_(RE::TESDataHandler* const dataHandler)
 {
     LOG_INFO("Loading game forms...");
-    _loadGlobalForms(dataHandler);
-    _createSoulGemMap(dataHandler);
+    loadGlobalForms_(dataHandler);
+    createSoulGemMap_(dataHandler);
 }
 
 void YASTMConfig::loadConfig(RE::TESDataHandler* const dataHandler)
@@ -302,35 +302,35 @@ void YASTMConfig::clear()
 
     // Clear the loaded data (form ID and game form) and leave the default
     // values intact.
-    for (auto& [key, globalBool] : _globalBools) { globalBool.clear(); }
-    for (auto& [key, globalEnum] : _globalEnums) { globalEnum.clear(); }
+    for (auto& [key, globalBool] : globalBools_) { globalBool.clear(); }
+    for (auto& [key, globalEnum] : globalEnums_) { globalEnum.clear(); }
 
-    _soulGemGroupList.clear();
-    _soulGemMap.clear();
+    soulGemGroupList_.clear();
+    soulGemMap_.clear();
     // This doesn't need to be cleared.
-    // _dependencies.clear();
+    // dependencies_.clear();
 }
 
-void YASTMConfig::_loadGlobalForms(RE::TESDataHandler* const dataHandler)
+void YASTMConfig::loadGlobalForms_(RE::TESDataHandler* const dataHandler)
 {
     using namespace std::literals;
 
     LOG_INFO("Loading global variable forms..."sv);
-    _loadGlobalFormsIn(_globalBools, dataHandler);
-    _loadGlobalFormsIn(_globalEnums, dataHandler);
+    loadGlobalFormsIn_(globalBools_, dataHandler);
+    loadGlobalFormsIn_(globalEnums_, dataHandler);
 
     LOG_INFO("Listing loaded global variable forms:"sv);
-    _printLoadedGlobalForms(_globalBools);
-    _printLoadedGlobalForms(_globalEnums);
+    printLoadedGlobalForms_(globalBools_);
+    printLoadedGlobalForms_(globalEnums_);
 }
 
-void YASTMConfig::_createSoulGemMap(RE::TESDataHandler* const dataHandler)
+void YASTMConfig::createSoulGemMap_(RE::TESDataHandler* const dataHandler)
 {
-    _soulGemMap.initializeWith(dataHandler, [this](SoulGemMap::Transaction& t) {
-        for (const auto& group : _soulGemGroupList) {
+    soulGemMap_.initializeWith(dataHandler, [this](SoulGemMap::Transaction& t) {
+        for (const auto& group : soulGemGroupList_) {
             t.addSoulGemGroup(group);
         }
     });
 
-    _soulGemMap.printContents();
+    soulGemMap_.printContents();
 }

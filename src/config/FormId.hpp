@@ -14,10 +14,10 @@
 #include <RE/B/BSCoreTypes.h>
 
 class FormId {
-    RE::FormID _id;
-    std::string _pluginName;
+    RE::FormID id_;
+    std::string pluginName_;
     /** Lowercase-only version of the plugin name. Used for comparison. **/
-    std::string _pluginNameLower;
+    std::string pluginNameLower_;
 
 public:
     explicit FormId(const toml::array& arr);
@@ -25,13 +25,13 @@ public:
     FormId(const FormId&) = default;
     FormId(FormId&&) = default;
 
-    RE::FormID id() const { return _id; }
-    const std::string& pluginName() const { return _pluginName; }
+    RE::FormID id() const { return id_; }
+    const std::string& pluginName() const { return pluginName_; }
 
     friend bool operator==(const FormId& lhs, const FormId& rhs)
     {
-        return lhs._id == rhs._id &&
-               lhs._pluginNameLower == rhs._pluginNameLower;
+        return lhs.id_ == rhs.id_ &&
+               lhs.pluginNameLower_ == rhs.pluginNameLower_;
     }
 
     friend std::hash<FormId>;
@@ -45,8 +45,8 @@ namespace std {
         {
             std::size_t seed = 0;
 
-            boost::hash_combine(seed, formId._id);
-            boost::hash_combine(seed, formId._pluginNameLower);
+            boost::hash_combine(seed, formId.id_);
+            boost::hash_combine(seed, formId.pluginNameLower_);
 
             return seed;
         }

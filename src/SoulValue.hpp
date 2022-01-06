@@ -17,22 +17,22 @@ public:
     using UnderlyingValueType = std::underlying_type_t<ValueType>;
 
 private:
-    UnderlyingValueType _value;
+    UnderlyingValueType value_;
 
     constexpr SoulSizeValue(const UnderlyingValueType soulSize)
-        : _value(soulSize)
+        : value_(soulSize)
     {}
 
 public:
     constexpr SoulSizeValue(const ValueType soulSize)
-        : _value(static_cast<UnderlyingValueType>(soulSize))
+        : value_(static_cast<UnderlyingValueType>(soulSize))
     {}
 
-    constexpr UnderlyingValueType raw() const { return _value; }
+    constexpr UnderlyingValueType raw() const { return value_; }
 
     constexpr SoulSizeValue& operator=(const ValueType soulSize)
     {
-        _value = static_cast<UnderlyingValueType>(soulSize);
+        value_ = static_cast<UnderlyingValueType>(soulSize);
 
         return *this;
     }
@@ -43,7 +43,7 @@ public:
     case static_cast<UnderlyingValueType>(ValueType::Value): \
         return ValueType::Value
 
-        switch (_value) {
+        switch (value_) {
             CONV_CASE(None);
             CONV_CASE(Petty);
             CONV_CASE(Lesser);
@@ -55,50 +55,50 @@ public:
 #undef CONV_CASE
 
         throw std::runtime_error(
-            fmt::format("Cannot convert {} to SoulSize", _value));
+            fmt::format("Cannot convert {} to SoulSize", value_));
     }
 
     constexpr bool isValid() const
     {
-        return static_cast<UnderlyingValueType>(ValueType::First) <= _value &&
-               _value <= static_cast<UnderlyingValueType>(ValueType::Last);
+        return static_cast<UnderlyingValueType>(ValueType::First) <= value_ &&
+               value_ <= static_cast<UnderlyingValueType>(ValueType::Last);
     }
 
     constexpr SoulSizeValue& operator++()
     {
-        _value += 1;
+        value_ += 1;
         return *this;
     }
 
     constexpr SoulSizeValue operator++(int)
     {
         SoulSizeValue tmp = *this;
-        _value += 1;
+        value_ += 1;
         return tmp;
     }
 
     constexpr SoulSizeValue& operator--()
     {
-        _value -= 1;
+        value_ -= 1;
         return *this;
     }
 
     constexpr SoulSizeValue operator--(int)
     {
         SoulSizeValue tmp = *this;
-        _value -= 1;
+        value_ -= 1;
         return tmp;
     }
 
     constexpr std::strong_ordering operator<=>(const SoulSize soulSize)
     {
-        return _value <=>
+        return value_ <=>
                static_cast<SoulSizeValue::UnderlyingValueType>(soulSize);
     }
 
     constexpr std::strong_ordering operator<=>(const SoulSizeValue& other)
     {
-        return _value <=> other._value;
+        return value_ <=> other.value_;
     }
 
     friend constexpr std::strong_ordering operator<=>(
@@ -115,22 +115,22 @@ public:
     using UnderlyingValueType = std::underlying_type_t<ValueType>;
 
 private:
-    UnderlyingValueType _value;
+    UnderlyingValueType value_;
 
 public:
     constexpr SoulGemCapacityValue(const UnderlyingValueType capacity)
-        : _value(capacity)
+        : value_(capacity)
     {}
 
     constexpr SoulGemCapacityValue(const ValueType capacity)
         : SoulGemCapacityValue(static_cast<UnderlyingValueType>(capacity))
     {}
 
-    constexpr UnderlyingValueType raw() const { return _value; }
+    constexpr UnderlyingValueType raw() const { return value_; }
 
     constexpr SoulGemCapacityValue& operator=(const ValueType capacity)
     {
-        _value = static_cast<UnderlyingValueType>(capacity);
+        value_ = static_cast<UnderlyingValueType>(capacity);
 
         return *this;
     }
@@ -141,7 +141,7 @@ public:
     case static_cast<UnderlyingValueType>(ValueType::Value): \
         return ValueType::Value
 
-        switch (_value) {
+        switch (value_) {
             CONV_CASE(Petty);
             CONV_CASE(Lesser);
             CONV_CASE(Common);
@@ -153,50 +153,50 @@ public:
 #undef CONV_CASE
 
         throw std::runtime_error(
-            fmt::format("Cannot convert {} to SoulGemCapacity", _value));
+            fmt::format("Cannot convert {} to SoulGemCapacity", value_));
     }
 
     constexpr bool isValid() const
     {
-        return static_cast<UnderlyingValueType>(ValueType::First) <= _value &&
-               _value <= static_cast<UnderlyingValueType>(ValueType::Last);
+        return static_cast<UnderlyingValueType>(ValueType::First) <= value_ &&
+               value_ <= static_cast<UnderlyingValueType>(ValueType::Last);
     }
 
     constexpr SoulGemCapacityValue& operator++()
     {
-        _value += 1;
+        value_ += 1;
         return *this;
     }
 
     constexpr SoulGemCapacityValue operator++(int)
     {
         SoulGemCapacityValue tmp = *this;
-        _value += 1;
+        value_ += 1;
         return tmp;
     }
 
     constexpr SoulGemCapacityValue& operator--()
     {
-        _value -= 1;
+        value_ -= 1;
         return *this;
     }
 
     constexpr SoulGemCapacityValue operator--(int)
     {
         SoulGemCapacityValue tmp = *this;
-        _value -= 1;
+        value_ -= 1;
         return tmp;
     }
 
     constexpr std::strong_ordering operator<=>(const SoulGemCapacity capacity)
     {
-        return _value <=> static_cast<UnderlyingValueType>(capacity);
+        return value_ <=> static_cast<UnderlyingValueType>(capacity);
     }
 
     constexpr std::strong_ordering
         operator<=>(const SoulGemCapacityValue& other)
     {
-        return _value <=> other._value;
+        return value_ <=> other.value_;
     }
 
     friend constexpr std::strong_ordering operator<=>(
@@ -223,10 +223,10 @@ constexpr std::strong_ordering operator<=>(
     // Grand=5    Grand=4, Dual=5
     // Black=6    Black=6
     if (capacity >= SoulGemCapacity::Dual) {
-        return soulSize._value <=> capacity._value;
+        return soulSize.value_ <=> capacity.value_;
     }
 
-    return soulSize._value <=> capacity._value + 1;
+    return soulSize.value_ <=> capacity.value_ + 1;
 }
 
 constexpr bool operator==(
@@ -245,10 +245,10 @@ constexpr bool operator==(
     // Grand=5    Grand=4, Dual=5
     // Black=6    Black=6
     if (capacity >= SoulGemCapacity::Dual) {
-        return soulSize._value == capacity._value;
+        return soulSize.value_ == capacity.value_;
     }
 
-    return soulSize._value == capacity._value + 1;
+    return soulSize.value_ == capacity.value_ + 1;
 }
 
 template <>

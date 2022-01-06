@@ -325,8 +325,8 @@ private:
         Text,
     };
 
-    Capitalization _capitalization = Capitalization::AllLower;
-    OutputFormat _outputFormat = OutputFormat::RawNumber;
+    Capitalization capitalization_ = Capitalization::AllLower;
+    OutputFormat outputFormat_ = OutputFormat::RawNumber;
 
 public:
     // Presentation format (in case of conflict, last format character wins):
@@ -358,16 +358,16 @@ public:
         for (; it != ctx.end() && *it != '}'; ++it) {
             switch (*it) {
             case 'L':
-                _capitalization = Capitalization::AllLower;
+                capitalization_ = Capitalization::AllLower;
                 break;
             case 'u':
-                _capitalization = Capitalization::FirstUpper;
+                capitalization_ = Capitalization::FirstUpper;
                 break;
             case 'n':
-                _outputFormat = OutputFormat::RawNumber;
+                outputFormat_ = OutputFormat::RawNumber;
                 break;
             case 't':
-                _outputFormat = OutputFormat::Text;
+                outputFormat_ = OutputFormat::Text;
                 break;
             default:
                 throw format_error("invalid format");
@@ -384,13 +384,13 @@ public:
         // ctx.out() is an output iterator to write to.
         std::string formatString;
 
-        if (_outputFormat == OutputFormat::RawNumber) {
+        if (outputFormat_ == OutputFormat::RawNumber) {
             formatString = std::to_string(
                 static_cast<std::underlying_type_t<SoulSize>>(soulSize));
         } else {
             formatString = toString(soulSize);
 
-            if (_capitalization == Capitalization::FirstUpper) {
+            if (capitalization_ == Capitalization::FirstUpper) {
                 capitalizeFirstChar(formatString, formatString);
             }
         }
@@ -422,8 +422,8 @@ private:
         Text,
     };
 
-    Capitalization _capitalization = Capitalization::AllLower;
-    OutputFormat _outputFormat = OutputFormat::RawNumber;
+    Capitalization capitalization_ = Capitalization::AllLower;
+    OutputFormat outputFormat_ = OutputFormat::RawNumber;
 
 public:
     // Presentation format (in case of conflict, last format character wins):
@@ -455,16 +455,16 @@ public:
         for (; it != ctx.end() && *it != '}'; ++it) {
             switch (*it) {
             case 'L':
-                _capitalization = Capitalization::AllLower;
+                capitalization_ = Capitalization::AllLower;
                 break;
             case 'u':
-                _capitalization = Capitalization::FirstUpper;
+                capitalization_ = Capitalization::FirstUpper;
                 break;
             case 'n':
-                _outputFormat = OutputFormat::RawNumber;
+                outputFormat_ = OutputFormat::RawNumber;
                 break;
             case 't':
-                _outputFormat = OutputFormat::Text;
+                outputFormat_ = OutputFormat::Text;
                 break;
             default:
                 throw format_error("invalid format");
@@ -482,13 +482,13 @@ public:
         // ctx.out() is an output iterator to write to.
         std::string formatString;
 
-        if (_outputFormat == OutputFormat::RawNumber) {
+        if (outputFormat_ == OutputFormat::RawNumber) {
             formatString = std::to_string(
                 static_cast<std::underlying_type_t<SoulGemCapacity>>(capacity));
         } else {
             formatString = toString(capacity);
 
-            if (_capitalization == Capitalization::FirstUpper) {
+            if (capitalization_ == Capitalization::FirstUpper) {
                 capitalizeFirstChar(formatString, formatString);
             }
         }

@@ -344,7 +344,7 @@ namespace {
         }
     }
 
-    bool _registerPapyrusFunctions(VirtualMachine* const vm)
+    bool registerPapyrusFunctions_(VirtualMachine* const vm)
     {
         if (vm == nullptr) {
             LOG_ERROR("Couldn't get VM State"sv);
@@ -381,5 +381,5 @@ namespace {
 
 bool registerFSUtils(const SKSE::PapyrusInterface* const papyrus)
 {
-    return papyrus->Register(_registerPapyrusFunctions);
+    return papyrus->Register(registerPapyrusFunctions_);
 }

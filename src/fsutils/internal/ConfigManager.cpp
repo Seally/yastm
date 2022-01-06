@@ -10,21 +10,21 @@ using HandleType = ConfigManager::HandleType;
 
 HandleType ConfigManager::openConfig(const std::filesystem::path& filePath)
 {
-    std::unique_lock lock(_mutex);
+    std::unique_lock lock(mutex_);
 
     // Do NOT use the public function otherwise we'll end up in a deadlock.
-    const auto handle = _getNextHandle();
-    _configs.emplace(handle, filePath.string());
+    const auto handle = getNextHandle_();
+    configs_.emplace(handle, filePath.string());
     return handle;
 }
 
 HandleType ConfigManager::createConfig()
 {
-    std::unique_lock lock(_mutex);
+    std::unique_lock lock(mutex_);
 
     // Do NOT use the public function otherwise we'll end up in a deadlock.
-    const auto handle = _getNextHandle();
-    _configs.emplace(
+    const auto handle = getNextHandle_();
+    configs_.emplace(
         std::piecewise_construct,
         std::forward_as_tuple(handle),
         std::tuple<>());
@@ -34,20 +34,20 @@ HandleType ConfigManager::createConfig()
 
 void ConfigManager::closeConfig(const HandleType handle)
 {
-    std::unique_lock lock(_mutex);
+    std::unique_lock lock(mutex_);
 
-    _configs.erase(handle);
+    configs_.erase(handle);
 }
 
 bool ConfigManager::saveConfig(
     const HandleType handle,
     const std::filesystem::path& filePath) const
 {
-    std::shared_lock lock(_mutex);
+    std::shared_lock lock(mutex_);
 
-    auto it = _configs.find(handle);
+    auto it = configs_.find(handle);
 
-    if (it == _configs.end()) {
+    if (it == configs_.end()) {
         // Handle does not exist.
         return false;
     }
@@ -60,11 +60,11 @@ bool ConfigManager::saveConfig(
 std::optional<std::reference_wrapper<Config>>
     ConfigManager::getConfig(const HandleType handle)
 {
-    std::shared_lock lock(_mutex);
+    std::shared_lock lock(mutex_);
 
-    auto it = _configs.find(handle);
+    auto it = configs_.find(handle);
 
-    if (it == _configs.end()) {
+    if (it == configs_.end()) {
         return std::nullopt;
     }
 
@@ -73,6 +73,6 @@ std::optional<std::reference_wrapper<Config>>
 
 void ConfigManager::closeAllConfigs()
 {
-    std::unique_lock handle(_mutex);
-    _configs.clear();
+    std::unique_lock handle(mutex_);
+    configs_.clear();
 }

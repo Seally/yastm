@@ -21,15 +21,15 @@ public:
 private:
     using FormMap = std::unordered_map<SoulSize, RE::TESSoulGem*>;
 
-    IdType _id;
-    SoulGemCapacity _capacity;
+    IdType id_;
+    SoulGemCapacity capacity_;
 
-    FormMap _forms;
+    FormMap forms_;
 
-    void _initializeFromPrimaryBasis(
+    void initializeFromPrimaryBasis_(
         const SoulGemGroup& sourceGroup,
         RE::TESDataHandler* dataHandler);
-    void _initializeFromSecondaryBasis(
+    void initializeFromSecondaryBasis_(
         const ConcreteSoulGemGroup& blackSoulGemGroup);
 
 public:
@@ -41,22 +41,22 @@ public:
         const ConcreteSoulGemGroup& blackSoulGemGroup,
         RE::TESDataHandler* dataHandler);
 
-    [[nodiscard]] const IdType& id() const { return _id; }
-    [[nodiscard]] SoulGemCapacity capacity() const { return _capacity; }
+    [[nodiscard]] const IdType& id() const { return id_; }
+    [[nodiscard]] SoulGemCapacity capacity() const { return capacity_; }
 
     RE::TESSoulGem* at(const SoulSize containedSoulSize) const
     {
-        const auto result = _forms.find(containedSoulSize);
+        const auto result = forms_.find(containedSoulSize);
 
-        if (result != _forms.end()) {
+        if (result != forms_.end()) {
             return result->second;
         }
 
         return nullptr;
     }
 
-    [[nodiscard]] auto begin() const { return _forms.begin(); }
-    [[nodiscard]] auto end() const { return _forms.end(); }
+    [[nodiscard]] auto begin() const { return forms_.begin(); }
+    [[nodiscard]] auto end() const { return forms_.end(); }
 };
 
 class ConcreteSoulGemGroupError : public std::runtime_error {
@@ -77,9 +77,9 @@ private:
         FirstUpper,
     };
 
-    bool _showReusability = false;
-    bool _showCapacity = false;
-    Capitalization _capitalization = Capitalization::AllLower;
+    bool showReusability_ = false;
+    bool showCapacity_ = false;
+    Capitalization capitalization_ = Capitalization::AllLower;
 
 public:
     // Presentation format (in case of conflict, last format character wins):
@@ -109,13 +109,13 @@ public:
         for (; it != ctx.end() && *it != '}'; ++it) {
             switch (*it) {
             case 'L':
-                _capitalization = Capitalization::AllLower;
+                capitalization_ = Capitalization::AllLower;
                 break;
             case 'u':
-                _capitalization = Capitalization::FirstUpper;
+                capitalization_ = Capitalization::FirstUpper;
                 break;
             case 'c':
-                _showCapacity = true;
+                showCapacity_ = true;
                 break;
             default:
                 throw format_error("invalid format");
@@ -134,14 +134,14 @@ public:
     {
         std::string formatString;
 
-        if (_showCapacity) {
+        if (showCapacity_) {
             formatString.append(
                 fmt::format(FMT_STRING("{} "), toString(group.capacity())));
         }
 
         formatString.append("soul gem group \"{}\"");
 
-        if (_capitalization == Capitalization::FirstUpper) {
+        if (capitalization_ == Capitalization::FirstUpper) {
             capitalizeFirstChar(formatString, formatString);
         }
 

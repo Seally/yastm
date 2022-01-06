@@ -23,8 +23,8 @@ private:
     ConfigManager& operator=(const ConfigManager&) = delete;
     ConfigManager& operator=(ConfigManager&) = delete;
 
-    std::map<HandleType, Config> _configs;
-    mutable std::shared_mutex _mutex;
+    std::map<HandleType, Config> configs_;
+    mutable std::shared_mutex mutex_;
 
     /**
      * Returns the largest handle that currently exists. Or 0 if there are no
@@ -33,11 +33,11 @@ private:
      * Does not lock mutex. All internal users should use this instead of the
      * public version.
      */
-    HandleType _getLargestHandle() const
+    HandleType getLargestHandle_() const
     {
-        const auto largestKey = _configs.rbegin();
+        const auto largestKey = configs_.rbegin();
 
-        if (largestKey != _configs.rend()) {
+        if (largestKey != configs_.rend()) {
             return largestKey->first;
         }
 
@@ -50,7 +50,7 @@ private:
      * Does not lock mutex. All internal users should use this instead of the
      * public version.
      */
-    HandleType _getNextHandle() const { return _getLargestHandle() + 1; }
+    HandleType getNextHandle_() const { return getLargestHandle_() + 1; }
 
 public:
     static ConfigManager& getInstance()
@@ -66,7 +66,7 @@ public:
     bool saveConfig(HandleType handle, const std::filesystem::path& path) const;
     void closeAllConfigs();
 
-    std::size_t size() const { return _configs.size(); }
+    std::size_t size() const { return configs_.size(); }
 
     /**
      * Returns the largest handle that currently exists. Or 0 if there are no
@@ -74,8 +74,8 @@ public:
      */
     HandleType getLargestHandle() const
     {
-        std::shared_lock lock(_mutex);
-        return _getLargestHandle();
+        std::shared_lock lock(mutex_);
+        return getLargestHandle_();
     }
 
     /**
@@ -83,8 +83,8 @@ public:
      */
     HandleType getNextHandle() const
     {
-        std::shared_lock lock(_mutex);
-        return _getNextHandle();
+        std::shared_lock lock(mutex_);
+        return getNextHandle_();
     }
 
     std::optional<std::reference_wrapper<Config>> getConfig(HandleType handle);

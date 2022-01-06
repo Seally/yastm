@@ -5,14 +5,14 @@
 #include "../global.hpp"
 
 namespace {
-    constexpr std::size_t _INDENT_SIZE = 4;
+    constexpr std::size_t INDENT_SIZE_ = 4;
 }
 
 void printError(const std::exception& error, const std::size_t depth)
 {
     LOG_ERROR_FMT(
         "{}{}"sv,
-        std::string(depth * _INDENT_SIZE, ' '),
+        std::string(depth * INDENT_SIZE_, ' '),
         error.what());
 
     try {
@@ -27,7 +27,7 @@ void printErrorToStream(
     std::stringstream& stream,
     const std::size_t depth)
 {
-    stream << std::string(depth * _INDENT_SIZE, ' ') << error.what();
+    stream << std::string(depth * INDENT_SIZE_, ' ') << error.what();
 
     try {
         std::rethrow_if_nested(error);

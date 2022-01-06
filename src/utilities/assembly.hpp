@@ -15,7 +15,7 @@ struct InstructionData;
 
 namespace internal {
     template <std::uint8_t InstructionCode>
-    std::optional<std::int32_t> _getRawOffset(const std::uintptr_t address)
+    std::optional<std::int32_t> getRawOffset_(const std::uintptr_t address)
     {
         const std::uint8_t* const ptr =
             reinterpret_cast<std::uint8_t*>(address);
@@ -45,16 +45,16 @@ struct InstructionData<Instruction::CALL, 0xe8> {
 
     static std::optional<std::int32_t> arg0(const std::uintptr_t address)
     {
-        return internal::_getRawOffset<0xe8>(address);
+        return internal::getRawOffset_<0xe8>(address);
     }
 
     static constexpr auto rawOffset = InstructionData::arg0;
 
     static std::optional<std::ptrdiff_t> offset(const std::uintptr_t address)
     {
-        if (const auto _rawOffset = rawOffset(address);
-            _rawOffset.has_value()) {
-            return *_rawOffset + size;
+        if (const auto rawOffset_ = rawOffset(address);
+            rawOffset_.has_value()) {
+            return *rawOffset_ + size;
         }
 
         return std::nullopt;
@@ -63,8 +63,8 @@ struct InstructionData<Instruction::CALL, 0xe8> {
     static std::optional<std::uintptr_t>
         targetAddress(const std::uintptr_t address)
     {
-        if (const auto _offset = offset(address); _offset.has_value()) {
-            return address + *_offset;
+        if (const auto offset_ = offset(address); offset_.has_value()) {
+            return address + *offset_;
         }
 
         return std::nullopt;
@@ -77,16 +77,16 @@ struct InstructionData<Instruction::JMP, 0xe9> {
 
     static std::optional<std::int32_t> arg0(const std::uintptr_t address)
     {
-        return internal::_getRawOffset<0xe9>(address);
+        return internal::getRawOffset_<0xe9>(address);
     }
 
     static constexpr auto rawOffset = InstructionData::arg0;
 
     static std::optional<std::ptrdiff_t> offset(const std::uintptr_t address)
     {
-        if (const auto _rawOffset = rawOffset(address);
-            _rawOffset.has_value()) {
-            return *_rawOffset + size;
+        if (const auto rawOffset_ = rawOffset(address);
+            rawOffset_.has_value()) {
+            return *rawOffset_ + size;
         }
 
         return std::nullopt;
@@ -95,8 +95,8 @@ struct InstructionData<Instruction::JMP, 0xe9> {
     static std::optional<std::uintptr_t>
         targetAddress(const std::uintptr_t address)
     {
-        if (const auto _offset = offset(address); _offset.has_value()) {
-            return address + *_offset;
+        if (const auto offset_ = offset(address); offset_.has_value()) {
+            return address + *offset_;
         }
 
         return std::nullopt;

@@ -4,7 +4,7 @@
 
 #include "../utilities/native.hpp"
 
-SoulSize _getActorSoulSize(RE::Actor* const actor)
+SoulSize getActorSoulSize_(RE::Actor* const actor)
 {
     assert(actor != nullptr);
 
@@ -16,19 +16,19 @@ SoulSize _getActorSoulSize(RE::Actor* const actor)
 }
 
 Victim::Victim(RE::Actor* const actor)
-    : _actor(actor)
-    , _soulSize(_getActorSoulSize(actor))
-    , _isSplit(false)
+    : actor_(actor)
+    , soulSize_(getActorSoulSize_(actor))
+    , isSplit_(false)
 {}
 
 Victim::Victim(const SoulSize soulSize)
-    : _actor(nullptr)
-    , _soulSize(soulSize)
-    , _isSplit(false)
+    : actor_(nullptr)
+    , soulSize_(soulSize)
+    , isSplit_(false)
 {}
 
 Victim::Victim(RE::Actor* const actor, const SoulSize soulSize)
-    : _actor(actor)
-    , _soulSize(soulSize)
-    , _isSplit(true)
+    : actor_(actor)
+    , soulSize_(soulSize)
+    , isSplit_(true)
 {}

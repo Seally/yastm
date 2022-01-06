@@ -29,7 +29,7 @@
 using namespace std::literals;
 
 namespace {
-    bool _trapSoul(RE::Actor* caster, RE::Actor* const victim)
+    bool trapSoul_(RE::Actor* caster, RE::Actor* const victim)
     {
         // This logs the "enter" and "exit" messages upon construction and
         // destruction, respectively.
@@ -110,7 +110,7 @@ namespace {
         LOG_INFO("[TRAPSOUL] Installing Actor::TrapSoul() hijack jump..."sv);
         // Hijack the original Actor::TrapSoul() call so everything that calls
         // it will use our version instead.
-        trampoline.write_branch<6>(re::Actor::TrapSoul.address(), _trapSoul);
+        trampoline.write_branch<6>(re::Actor::TrapSoul.address(), trapSoul_);
 
         return true;
     }
@@ -118,7 +118,7 @@ namespace {
     /**
      * @brief Lookup game forms and construct the soul gem map.
      */
-    void _handleMessage(SKSE::MessagingInterface::Message* const message)
+    void handleMessage_(SKSE::MessagingInterface::Message* const message)
     {
         if (message->type == SKSE::MessagingInterface::kDataLoaded) {
             try {
@@ -147,7 +147,7 @@ bool installTrapSoulFix(const SKSE::LoadInterface* const loadInterface)
     }
 
     const auto messaging = SKSE::GetMessagingInterface();
-    messaging->RegisterListener(_handleMessage);
+    messaging->RegisterListener(handleMessage_);
 
     return installPatch();
 }

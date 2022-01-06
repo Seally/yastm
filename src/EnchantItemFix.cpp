@@ -18,7 +18,7 @@ namespace {
     /**
      * Check if memory has the expected bytes for patching.
      */
-    bool _isEnchantItemPatchable()
+    bool isEnchantItemPatchable_()
     {
         using re::CraftingSubMenus::EnchantMenu::EnchantItem;
         using namespace re::fix::enchantitem;
@@ -38,7 +38,7 @@ namespace {
         return true;
     }
 
-    void _consumeReusableSoulGem(
+    void consumeReusableSoulGem_(
         RE::TESSoulGem* soulGemToConsume,
         RE::ExtraDataList** dataListPtr)
     {
@@ -66,8 +66,8 @@ namespace {
             nullptr);
     }
 
-    struct _Patch : Xbyak::CodeGenerator {
-        explicit _Patch()
+    struct Patch_ : Xbyak::CodeGenerator {
+        explicit Patch_()
         {
             using re::CraftingSubMenus::EnchantMenu::EnchantItem;
             using namespace re::fix::enchantitem;
@@ -98,7 +98,7 @@ namespace {
             dq(EnchantItem.address() + continueOffset);
 
             L(consumeReusableSoulGemLabel);
-            dq(reinterpret_cast<std::uint64_t>(_consumeReusableSoulGem));
+            dq(reinterpret_cast<std::uint64_t>(consumeReusableSoulGem_));
         }
     };
 } // namespace
@@ -108,11 +108,11 @@ bool installEnchantItemFix()
     using re::CraftingSubMenus::EnchantMenu::EnchantItem;
     using namespace re::fix::enchantitem;
 
-    if (!_isEnchantItemPatchable()) {
+    if (!isEnchantItemPatchable_()) {
         return false;
     }
 
-    _Patch patch;
+    Patch_ patch;
     patch.ready();
 
     LOG_INFO_FMT("[ENCHANT] Patch size: {}", patch.getSize());

@@ -7,15 +7,15 @@
 //                    Papyrus VM context for logging.
 
 Config::Config(std::string_view path)
-    : _data(toml::parse_file(path))
+    : data_(toml::parse_file(path))
 {}
 
 bool Config::writeToDisk(const std::filesystem::path& filePath) const
 {
-    std::shared_lock lock(_mutex);
+    std::shared_lock lock(mutex_);
 
     std::ofstream configFile(filePath);
-    configFile << _data;
+    configFile << data_;
 
     return true;
 }

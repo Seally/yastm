@@ -33,13 +33,13 @@ public:
         std::unordered_map<KeyType, GlobalVariable<KeyType>>;
 
 private:
-    GlobalVariableMap<BoolConfigKey> _globalBools;
-    GlobalVariableMap<EnumConfigKey> _globalEnums;
+    GlobalVariableMap<BoolConfigKey> globalBools_;
+    GlobalVariableMap<EnumConfigKey> globalEnums_;
 
-    SoulGemGroupList _soulGemGroupList;
-    SoulGemMap _soulGemMap;
+    SoulGemGroupList soulGemGroupList_;
+    SoulGemMap soulGemMap_;
 
-    std::unordered_map<DLLDependencyKey, const SKSE::PluginInfo*> _dependencies;
+    std::unordered_map<DLLDependencyKey, const SKSE::PluginInfo*> dependencies_;
     mutable std::mutex mutex_;
 
     explicit YASTMConfig();
@@ -54,12 +54,12 @@ private:
      */
     void loadGameForms_(RE::TESDataHandler* dataHandler);
 
-    void _loadYASTMConfigFile();
-    void _loadIndividualConfigFiles();
-    std::size_t _readAndCountSoulGemGroupConfigs(const toml::table& table);
+    void loadYASTMConfigFile_();
+    void loadIndividualConfigFiles_();
+    std::size_t readAndCountSoulGemGroupConfigs_(const toml::table& table);
 
-    void _loadGlobalForms(RE::TESDataHandler* dataHandler);
-    void _createSoulGemMap(RE::TESDataHandler* dataHandler);
+    void loadGlobalForms_(RE::TESDataHandler* dataHandler);
+    void createSoulGemMap_(RE::TESDataHandler* dataHandler);
 
 public:
     YASTMConfig(const YASTMConfig&) = delete;
@@ -86,16 +86,16 @@ public:
 
     bool isDllLoaded(const DLLDependencyKey key) const
     {
-        return _dependencies.contains(key) && _dependencies.at(key) != nullptr;
+        return dependencies_.contains(key) && dependencies_.at(key) != nullptr;
     }
 
     float getGlobalValue(const EnumConfigKey key) const
     {
-        return _globalEnums.at(key).value();
+        return globalEnums_.at(key).value();
     }
     float getGlobalValue(const BoolConfigKey key) const
     {
-        return _globalBools.at(key).value();
+        return globalBools_.at(key).value();
     }
 
     bool getGlobalBool(const BoolConfigKey key) const
@@ -109,7 +109,7 @@ public:
         return EnumConfigKeyTypeMap<key>()(getGlobalValue(key));
     }
 
-    const SoulGemMap& soulGemMap() const { return _soulGemMap; }
+    const SoulGemMap& soulGemMap() const { return soulGemMap_; }
 
     /**
      * @brief Represents a snapshot of the configuration at a certain point in
@@ -117,9 +117,9 @@ public:
      */
     class Snapshot {
         std::bitset<static_cast<std::size_t>(BoolConfigKey::Count)>
-            _configBools;
+            configBools_;
         std::unordered_map<EnumConfigKey, EnumConfigUnderlyingType>
-            _configEnums;
+            configEnums_;
 
     public:
         explicit Snapshot(const YASTMConfig& config);
@@ -134,11 +134,11 @@ public:
 inline YASTMConfig::Snapshot::Snapshot(const YASTMConfig& config)
 {
     forEachBoolConfigKey([&, this](const BoolConfigKey key) {
-        _configBools[static_cast<std::size_t>(key)] = config.getGlobalBool(key);
+        configBools_[static_cast<std::size_t>(key)] = config.getGlobalBool(key);
     });
 
     forEachEnumConfigKey([&, this](const EnumConfigKey key) {
-        _configEnums.emplace(
+        configEnums_.emplace(
             key,
             static_cast<EnumConfigUnderlyingType>(config.getGlobalValue(key)));
     });
@@ -146,13 +146,13 @@ inline YASTMConfig::Snapshot::Snapshot(const YASTMConfig& config)
 
 inline bool YASTMConfig::Snapshot::operator[](const BoolConfigKey key) const
 {
-    return _configBools[static_cast<std::size_t>(key)];
+    return configBools_[static_cast<std::size_t>(key)];
 }
 
 template <EnumConfigKey K>
 inline auto YASTMConfig::Snapshot::get() const
 {
-    return static_cast<EnumConfigKeyTypeMap<K>::type>(_configEnums.at(K));
+    return static_cast<EnumConfigKeyTypeMap<K>::type>(configEnums_.at(K));
 }
 
 class YASTMConfigLoadError : public std::runtime_error {

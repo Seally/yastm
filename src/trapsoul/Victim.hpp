@@ -9,9 +9,9 @@
 #include "../config/SoulSize.hpp"
 
 class Victim {
-    RE::Actor* _actor;
-    SoulSize _soulSize;
-    bool _isSplit;
+    RE::Actor* actor_;
+    SoulSize soulSize_;
+    bool isSplit_;
 
 public:
     /**
@@ -31,8 +31,8 @@ public:
      */
     explicit Victim(RE::Actor* actor, SoulSize soulSize);
 
-    RE::Actor* actor() const { return _actor; }
-    SoulSize soulSize() const { return _soulSize; }
+    RE::Actor* actor() const { return actor_; }
+    SoulSize soulSize() const { return soulSize_; }
 
     /**
      * @brief Primary souls are souls that we're currently capturing. These
@@ -48,7 +48,7 @@ public:
      * These souls have no actor associated with them.
      */
     bool isSecondarySoul() const { return actor() == nullptr; }
-    bool isSplitSoul() const { return _isSplit; }
+    bool isSplitSoul() const { return isSplit_; }
 };
 
 inline auto operator<=>(const Victim& lhs, const Victim& rhs)
