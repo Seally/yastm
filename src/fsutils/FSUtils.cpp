@@ -7,6 +7,7 @@
 
 #include "global.hpp"
 #include "internal/ConfigManager.hpp"
+#include "../utilities/PapyrusFunctionRegistry.hpp"
 #include "../utilities/printerror.hpp"
 
 using namespace std::literals;
@@ -14,7 +15,7 @@ using RE::BSScript::Internal::VirtualMachine;
 
 namespace {
     bool FileExists(
-        RE::BSScript::Internal::VirtualMachine* vm,
+        VirtualMachine* vm,
         RE::VMStackID stackId,
         RE::StaticFunctionTag*,
         RE::BSFixedString path)
@@ -343,26 +344,6 @@ namespace {
         }
     }
 
-    class _FunctionRegistry {
-        const std::string _className;
-        VirtualMachine* const _vm;
-
-    public:
-        explicit _FunctionRegistry(
-            std::string_view className,
-            VirtualMachine* const vm)
-            : _className(className)
-            , _vm(vm)
-        {}
-
-        template <typename T>
-        void registerFunction(std::string_view name, T fn)
-        {
-            LOG_INFO_FMT("Registering function: {}.{}()", _className, name);
-            _vm->RegisterFunction(name, _className, fn);
-        }
-    };
-
     bool _registerPapyrusFunctions(VirtualMachine* const vm)
     {
         if (vm == nullptr) {
@@ -370,7 +351,7 @@ namespace {
             return false;
         }
 
-        _FunctionRegistry registry("YASTMFSUtils", vm);
+        PapyrusFunctionRegistry registry("YASTMFSUtils", vm);
 
         // General file system functions
         registry.registerFunction("FileExists", FileExists);

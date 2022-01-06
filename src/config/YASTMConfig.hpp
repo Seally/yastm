@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <mutex>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
@@ -39,8 +40,19 @@ private:
     SoulGemMap _soulGemMap;
 
     std::unordered_map<DLLDependencyKey, const SKSE::PluginInfo*> _dependencies;
+    mutable std::mutex mutex_;
 
     explicit YASTMConfig();
+
+    /**
+     * @brief Read and parse configuration files.
+     */
+    void loadConfigFiles_();
+    /**
+     * @brief Load game forms according to configuration. Call this *after*
+     * loadConfigFiles_().
+     */
+    void loadGameForms_(RE::TESDataHandler* dataHandler);
 
     void _loadYASTMConfigFile();
     void _loadIndividualConfigFiles();
@@ -64,18 +76,11 @@ public:
 
     // These three functions needs to be called manually at different times.
     void checkDllDependencies(const SKSE::LoadInterface* loadInterface);
-    /**
-     * @brief Read and parse configuration files.
-     */
-    void loadConfigFiles();
-    /**
-     * @brief Load game forms according to configuration. Call this *after*
-     * loadConfigFiles().
-     */
-    void loadGameForms(RE::TESDataHandler* dataHandler);
+
+    void loadConfig(RE::TESDataHandler* dataHandler);
 
     /**
-     * @brief Clears (most) data stored in YASTMConfig. This allows 
+     * @brief Clears (most) data stored in YASTMConfig. 
      */
     void clear();
 

@@ -161,6 +161,7 @@ set(SOURCES
     src/utilities/misc.hpp
     src/utilities/misc.cpp
     src/utilities/native.hpp
+    src/utilities/PapyrusFunctionRegistry.hpp
     src/utilities/printerror.hpp
     src/utilities/printerror.cpp
     src/utilities/stringutils.hpp
@@ -169,7 +170,7 @@ set(SOURCES
     src/yastmutils/YASTMUtils.cpp
     src/RE/S/SoulsTrapped.hpp
     src/RE/S/SoulsTrapped.cpp
- )
+)
 
 source_group(
     TREE

@@ -25,7 +25,6 @@
 #include "utilities/assembly.hpp"
 #include "utilities/Timer.hpp"
 #include "utilities/printerror.hpp"
-#include "yastmutils/YASTMUtils.hpp"
 
 using namespace std::literals;
 
@@ -69,30 +68,7 @@ namespace {
         return trapSoul(caster, victim);
     }
 
-    class _Patcher {
-        std::uint8_t _originalCode[6];
-        bool _isPatchInstalled = false;
-
-    public:
-        explicit _Patcher() = default;
-        _Patcher(const _Patcher&) = delete;
-        _Patcher(_Patcher&&) = default;
-        _Patcher& operator=(const _Patcher&) = delete;
-        _Patcher& operator=(_Patcher&&) = default;
-
-        std::uintptr_t patchAddress() const
-        {
-            return re::Actor::TrapSoul.address();
-        }
-
-        bool isPatchInstalled() const { return _isPatchInstalled; }
-
-        bool isPatchable() const;
-        bool installPatch();
-        void uninstallPatch();
-    };
-
-    bool _Patcher::isPatchable() const
+    bool isPatchable_()
     {
         using namespace re::fix::trapsoul;
 
@@ -122,16 +98,11 @@ namespace {
         return true;
     }
 
-    bool _Patcher::installPatch()
+    bool installPatch()
     {
-        if (!isPatchable()) {
+        if (!isPatchable_()) {
             return false;
         }
-
-        std::memcpy(
-            _originalCode,
-            reinterpret_cast<std::uint8_t*>(patchAddress()),
-            sizeof(_originalCode));
 
         auto& trampoline = SKSE::GetTrampoline();
         allocateTrampoline();
@@ -139,25 +110,10 @@ namespace {
         LOG_INFO("[TRAPSOUL] Installing Actor::TrapSoul() hijack jump..."sv);
         // Hijack the original Actor::TrapSoul() call so everything that calls
         // it will use our version instead.
-        trampoline.write_branch<6>(patchAddress(), _trapSoul);
-        _isPatchInstalled = true;
+        trampoline.write_branch<6>(re::Actor::TrapSoul.address(), _trapSoul);
 
         return true;
     }
-
-    void _Patcher::uninstallPatch()
-    {
-        if (!_isPatchInstalled) {
-            return;
-        }
-
-        // Game seems to crash if we use std::memcpy().
-        REL::safe_write(patchAddress(), _originalCode, sizeof(_originalCode));
-        _isPatchInstalled = false;
-        LOG_INFO("[TRAPSOUL] Patch uninstalled.");
-    }
-
-    _Patcher _patcher;
 
     /**
      * @brief Lookup game forms and construct the soul gem map.
@@ -168,22 +124,11 @@ namespace {
             try {
                 const auto dataHandler = RE::TESDataHandler::GetSingleton();
                 assert(dataHandler != nullptr);
-                YASTMConfig::getInstance().loadGameForms(dataHandler);
-                registerYASTMUtils(
-                    TrapSoulPatchType::YASTM,
-                    SKSE::GetPapyrusInterface());
+                YASTMConfig::getInstance().loadConfig(dataHandler);
             } catch (const std::exception& error) {
-                // If any unrecoverable errors occur, log them then revert the
-                // patch.
+                // If any unrecoverable errors occur, log them.
                 printError(error);
-                LOG_ERROR(
-                    "[TRAPSOUL] Configuration initialization failed. "
-                    "Uninstalling TrapSoul patch...");
-                _patcher.uninstallPatch();
-                YASTMConfig::getInstance().clear();
-                registerYASTMUtils(
-                    TrapSoulPatchType::Vanilla,
-                    SKSE::GetPapyrusInterface());
+                LOG_ERROR("[TRAPSOUL] Configuration initialization failed.");
             }
         }
     }
@@ -195,16 +140,14 @@ bool installTrapSoulFix(const SKSE::LoadInterface* const loadInterface)
 
     try {
         config.checkDllDependencies(loadInterface);
-        config.loadConfigFiles();
     } catch (const std::exception& error) {
-        LOG_ERROR("Error while loading configuration files:");
+        LOG_ERROR("Error while checking DLL dependencies:");
         printError(error, 1);
-        config.clear();
         return false;
     }
 
     const auto messaging = SKSE::GetMessagingInterface();
     messaging->RegisterListener(_handleMessage);
 
-    return _patcher.installPatch();
+    return installPatch();
 }

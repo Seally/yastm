@@ -10,6 +10,7 @@
 #include "../trapsoul/messages.hpp"
 #include "../trapsoul/trapsoul.hpp"
 #include "../utilities/native.hpp"
+#include "../utilities/PapyrusFunctionRegistry.hpp"
 #include "../utilities/printerror.hpp"
 #include "../utilities/Timer.hpp"
 
@@ -17,28 +18,8 @@ using namespace std::literals;
 using RE::BSScript::Internal::VirtualMachine;
 
 namespace {
-    template <TrapSoulPatchType P>
     RE::Actor* TrapSoulAndGetCaster(
-        RE::BSScript::Internal::VirtualMachine* vm,
-        RE::VMStackID stackId,
-        RE::StaticFunctionTag*,
-        RE::Actor* caster,
-        RE::Actor* victim);
-
-    template <>
-    RE::Actor* TrapSoulAndGetCaster<TrapSoulPatchType::Vanilla>(
-        [[maybe_unused]] RE::BSScript::Internal::VirtualMachine* vm,
-        [[maybe_unused]] RE::VMStackID stackId,
-        RE::StaticFunctionTag*,
-        RE::Actor* caster,
-        RE::Actor* victim)
-    {
-        return native::Actor::TrapSoul(caster, victim) ? caster : nullptr;
-    }
-
-    template <>
-    RE::Actor* TrapSoulAndGetCaster<TrapSoulPatchType::YASTM>(
-        [[maybe_unused]] RE::BSScript::Internal::VirtualMachine* vm,
+        [[maybe_unused]] VirtualMachine* vm,
         [[maybe_unused]] RE::VMStackID stackId,
         RE::StaticFunctionTag*,
         RE::Actor* caster,
@@ -81,27 +62,6 @@ namespace {
         return trapSoul(caster, victim) ? caster : nullptr;
     }
 
-    class _FunctionRegistry {
-        const std::string _className;
-        VirtualMachine* const _vm;
-
-    public:
-        explicit _FunctionRegistry(
-            std::string_view className,
-            VirtualMachine* const vm)
-            : _className(className)
-            , _vm(vm)
-        {}
-
-        template <typename T>
-        void registerFunction(std::string_view name, T fn)
-        {
-            LOG_INFO_FMT("Registering function: {}.{}()", _className, name);
-            _vm->RegisterFunction(name, _className, fn);
-        }
-    };
-
-    template <TrapSoulPatchType PatchType>
     bool _registerPapyrusFunctions(VirtualMachine* const vm)
     {
         if (vm == nullptr) {
@@ -109,25 +69,15 @@ namespace {
             return false;
         }
 
-        _FunctionRegistry registry("YASTMUtils", vm);
+        PapyrusFunctionRegistry registry("YASTMUtils", vm);
 
-        registry.registerFunction(
-            "TrapSoulAndGetCaster",
-            TrapSoulAndGetCaster<PatchType>);
+        registry.registerFunction("TrapSoulAndGetCaster", TrapSoulAndGetCaster);
 
         return true;
     }
 } // namespace
 
-bool registerYASTMUtils(
-    const TrapSoulPatchType patchType,
-    const SKSE::PapyrusInterface* const papyrus)
+bool registerYASTMUtils(const SKSE::PapyrusInterface* const papyrus)
 {
-    if (patchType == TrapSoulPatchType::YASTM) {
-        return papyrus->Register(
-            _registerPapyrusFunctions<TrapSoulPatchType::YASTM>);
-    }
-
-    return papyrus->Register(
-        _registerPapyrusFunctions<TrapSoulPatchType::Vanilla>);
+    return papyrus->Register(_registerPapyrusFunctions);
 }

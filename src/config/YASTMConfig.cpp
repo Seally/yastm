@@ -268,35 +268,47 @@ void YASTMConfig::checkDllDependencies(const SKSE::LoadInterface* loadInterface)
     });
 }
 
-void YASTMConfig::loadConfigFiles()
+void YASTMConfig::loadConfigFiles_()
 {
     LOG_INFO("Loading configuration files...");
-
     _loadYASTMConfigFile();
     _loadIndividualConfigFiles();
 }
 
-void YASTMConfig::loadGameForms(RE::TESDataHandler* const dataHandler)
+void YASTMConfig::loadGameForms_(RE::TESDataHandler* const dataHandler)
 {
     LOG_INFO("Loading game forms...");
-
     _loadGlobalForms(dataHandler);
     _createSoulGemMap(dataHandler);
+}
 
-    // We don't need this anymore.
-    _soulGemGroupList.clear();
+void YASTMConfig::loadConfig(RE::TESDataHandler* const dataHandler)
+{
+    static bool isFirstRun = true;
+    std::lock_guard lock(mutex_);
+
+    if (!isFirstRun) {
+        clear();
+    }
+
+    isFirstRun = false;
+    loadConfigFiles_();
+    loadGameForms_(dataHandler);
 }
 
 void YASTMConfig::clear()
 {
     LOG_INFO("Clearing configuration data...");
 
-    for (auto& [key, value] : _globalBools) { value.clear(); }
-    for (auto& [key, value] : _globalEnums) { value.clear(); }
+    // Clear the loaded data (form ID and game form) and leave the default
+    // values intact.
+    for (auto& [key, globalBool] : _globalBools) { globalBool.clear(); }
+    for (auto& [key, globalEnum] : _globalEnums) { globalEnum.clear(); }
 
     _soulGemGroupList.clear();
     _soulGemMap.clear();
-    _dependencies.clear();
+    // This doesn't need to be cleared.
+    // _dependencies.clear();
 }
 
 void YASTMConfig::_loadGlobalForms(RE::TESDataHandler* const dataHandler)

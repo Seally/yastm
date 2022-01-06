@@ -12,6 +12,7 @@
 #include "EnchantItemFix.hpp"
 #include "TrapSoulFix.hpp"
 #include "fsutils/FSUtils.hpp"
+#include "yastmutils/YASTMUtils.hpp"
 
 bool setUpLogging()
 {
@@ -80,6 +81,10 @@ bool installPatches(const SKSE::LoadInterface* const skse)
     result |= installPatch(
         "YASTMFSUtils"sv,
         registerFSUtils,
+        SKSE::GetPapyrusInterface());
+    result |= installPatch(
+        "YASTMUtils"sv,
+        registerYASTMUtils,
         SKSE::GetPapyrusInterface());
     return result;
 }

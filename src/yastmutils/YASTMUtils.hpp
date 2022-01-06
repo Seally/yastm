@@ -4,11 +4,4 @@ namespace SKSE {
     class PapyrusInterface;
 }
 
-enum class TrapSoulPatchType {
-    Vanilla,
-    YASTM,
-};
-
-bool registerYASTMUtils(
-    TrapSoulPatchType patchType,
-    const SKSE::PapyrusInterface* papyrus);
+bool registerYASTMUtils(const SKSE::PapyrusInterface* papyrus);
