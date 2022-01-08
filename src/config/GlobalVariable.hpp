@@ -1,18 +1,9 @@
 #pragma once
 
-#include <optional>
-#include <string>
-
-#include <toml++/toml.h>
-#include <RE/F/FormTypes.h>
-#include <RE/T/TESForm.h>
-#include <RE/T/TESDataHandler.h>
+#include <RE/T/TESGlobal.h>
 
 #include "../global.hpp"
-#include "ConfigKey.hpp"
-#include "FormId.hpp"
 #include "Form.hpp"
-#include "FormError.hpp"
 
 namespace RE {
     class TESDataHandler;
