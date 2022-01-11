@@ -40,8 +40,8 @@ namespace {
     }
 
     void consumeReusableSoulGem_(
-        RE::TESSoulGem* soulGemToConsume,
-        RE::ExtraDataList** dataListPtr)
+        RE::TESSoulGem* const soulGemToConsume,
+        RE::ExtraDataList* const* const dataListPtr)
     {
         const auto dataList = dataListPtr ? *dataListPtr : nullptr;
 

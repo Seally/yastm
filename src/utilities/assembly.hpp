@@ -15,7 +15,8 @@ struct InstructionData;
 
 namespace internal {
     template <std::uint8_t InstructionCode>
-    std::optional<std::int32_t> getRawOffset_(const std::uintptr_t address)
+    inline std::optional<std::int32_t>
+        getRawOffset_(const std::uintptr_t address)
     {
         const std::uint8_t* const ptr =
             reinterpret_cast<std::uint8_t*>(address);
