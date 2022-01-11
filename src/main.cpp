@@ -89,24 +89,6 @@ bool installPatches(const SKSE::LoadInterface* const skse)
     return result;
 }
 
-//#include "versiondb.hpp"
-
-//bool DumpOffsets() {
-//	VersionDb db;
-//
-//	if (!db.Load()) {
-//		LOG_CRITICAL("Failed to load offset database."sv);
-//		return false;
-//	}
-//
-//	const std::string& version(db.GetLoadedVersionString());
-//
-//	db.Dump("offsets-" + version + ".txt");
-//	LOG_INFO_FMT("Dumped offsets for {}", version);
-//
-//	return true;
-//}
-
 #if defined(SKYRIM_VERSION_SE) || defined(SKYRIM_VERSION_VR)
 extern "C" DLLEXPORT bool SKSEAPI
     SKSEPlugin_Query(const SKSE::QueryInterface* skse, SKSE::PluginInfo* info)
