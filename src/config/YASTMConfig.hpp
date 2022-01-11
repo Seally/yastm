@@ -13,7 +13,7 @@
 
 #include "ConfigKey.hpp"
 #include "DllDependencyKey.hpp"
-#include "GlobalVariable.hpp"
+#include "GlobalVarForm.hpp"
 #include "SoulGemGroup.hpp"
 #include "SoulSize.hpp"
 #include "SoulGemMap.hpp"
@@ -29,12 +29,11 @@ public:
     class Snapshot;
     using SoulGemGroupList = std::vector<SoulGemGroup>;
     template <typename KeyType>
-    using GlobalVariableMap =
-        std::unordered_map<KeyType, GlobalVariable<KeyType>>;
+    using GlobalVarMap = std::unordered_map<KeyType, GlobalVarForm<KeyType>>;
 
 private:
-    GlobalVariableMap<BoolConfigKey> globalBools_;
-    GlobalVariableMap<EnumConfigKey> globalEnums_;
+    GlobalVarMap<BoolConfigKey> globalBools_;
+    GlobalVarMap<EnumConfigKey> globalEnums_;
 
     SoulGemGroupList soulGemGroupList_;
     SoulGemMap soulGemMap_;

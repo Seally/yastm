@@ -24,7 +24,7 @@ namespace {
     void readGlobalVariableConfigs_(
         const KeyType key,
         const toml::node_view<toml::node>& table,
-        YASTMConfig::GlobalVariableMap<KeyType>& map)
+        YASTMConfig::GlobalVarMap<KeyType>& map)
     {
         const auto keyName = toString(key);
         const auto tomlKeyName = std::string(keyName) + "Global";
@@ -53,7 +53,7 @@ namespace {
 
     template <typename KeyType>
     void loadGlobalFormsIn_(
-        YASTMConfig::GlobalVariableMap<KeyType>& map,
+        YASTMConfig::GlobalVarMap<KeyType>& map,
         RE::TESDataHandler* const dataHandler)
     {
         for (auto& [key, globalVar] : map) {
@@ -74,8 +74,7 @@ namespace {
     }
 
     template <typename KeyType>
-    void printLoadedGlobalForms_(
-        const YASTMConfig::GlobalVariableMap<KeyType>& map)
+    void printLoadedGlobalForms_(const YASTMConfig::GlobalVarMap<KeyType>& map)
     {
         for (auto& [key, globalVar] : map) {
             if (globalVar.isFormLoaded()) {

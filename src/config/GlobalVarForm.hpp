@@ -11,12 +11,12 @@ namespace RE {
 } // namespace RE
 
 template <typename KeyType>
-class GlobalVariable : public Form<RE::TESGlobal> {
+class GlobalVarForm : public Form<RE::TESGlobal> {
     const KeyType key_;
     const float defaultValue_;
 
 public:
-    explicit GlobalVariable(const KeyType key, const float defaultValue)
+    explicit GlobalVarForm(const KeyType key, const float defaultValue)
         : key_(key)
         , defaultValue_(defaultValue)
     {}
@@ -28,7 +28,7 @@ public:
 };
 
 template <typename KeyType>
-inline float GlobalVariable<KeyType>::value() const
+inline float GlobalVarForm<KeyType>::value() const
 {
     using namespace std::literals;
 

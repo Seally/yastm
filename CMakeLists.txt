@@ -127,7 +127,7 @@ set(SOURCES
     src/config/FormError.cpp
     src/config/FormId.hpp
     src/config/FormId.cpp
-    src/config/GlobalVariable.hpp
+    src/config/GlobalVarForm.hpp
     src/config/LoadPriority.hpp
     src/config/ParseError.hpp
     src/config/SoulGemGroup.hpp
