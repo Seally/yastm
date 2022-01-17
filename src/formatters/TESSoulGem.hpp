@@ -1,5 +1,8 @@
 #pragma once
 
+#include <string_view>
+#include <type_traits>
+
 #include <fmt/format.h>
 
 #include <RE/B/BGSDefaultObjectManager.h>
