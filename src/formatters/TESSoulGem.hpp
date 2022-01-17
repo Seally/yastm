@@ -2,9 +2,25 @@
 
 #include <fmt/format.h>
 
-#include <RE/T/TESSoulGem.h>
 #include <RE/B/BGSDefaultObjectManager.h>
+#include <RE/S/SoulLevels.h>
+#include <RE/T/TESSoulGem.h>
+
 #include "../utilities/misc.hpp"
+
+template <>
+struct fmt::formatter<RE::SOUL_LEVEL> :
+    fmt::formatter<std::underlying_type_t<RE::SOUL_LEVEL>> {
+    template <typename FormatContext>
+    auto format(const RE::SOUL_LEVEL soulLevel, FormatContext& ctx)
+    {
+        using EnumType = std::underlying_type_t<RE::SOUL_LEVEL>;
+
+        return fmt::formatter<EnumType>::format(
+            static_cast<EnumType>(soulLevel),
+            ctx);
+    }
+};
 
 template <>
 struct fmt::formatter<RE::TESSoulGem> {
