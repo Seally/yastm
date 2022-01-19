@@ -10,7 +10,7 @@ template <
         std::hash<typename std::iterator_traits<iterator>::value_type>,
     typename KeyEqual =
         std::equal_to<typename std::iterator_traits<iterator>::value_type>>
-bool areAllUnique(iterator begin, iterator end)
+inline bool areAllUnique(iterator begin, iterator end)
 {
     using T = std::iterator_traits<iterator>::value_type;
 
