@@ -128,7 +128,8 @@ public:
             return *this;
         }
 
-        friend Iterator operator+(const Iterator& it, const difference_type n) noexcept
+        friend Iterator
+            operator+(const Iterator& it, const difference_type n) noexcept
         {
             Iterator tmp = it;
             tmp.index_ += n;
@@ -141,7 +142,8 @@ public:
             return *this;
         }
 
-        friend Iterator operator-(const Iterator& it, const difference_type n) noexcept
+        friend Iterator
+            operator-(const Iterator& it, const difference_type n) noexcept
         {
             Iterator tmp = it;
             tmp.index_ -= n;

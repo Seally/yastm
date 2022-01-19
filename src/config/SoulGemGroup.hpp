@@ -43,7 +43,10 @@ public:
      * that this should never return SoulGemCapacity::Dual since we don't
      * support explicitly setting that value in the configuration files.
      */
-    [[nodiscard]] SoulGemCapacity capacity() const noexcept { return capacity_; }
+    [[nodiscard]] SoulGemCapacity capacity() const noexcept
+    {
+        return capacity_;
+    }
     /**
      * @brief Returns the "effective" soul gem capacity, used to match against
      * the values reported by the game soul gem forms.
@@ -53,7 +56,10 @@ public:
         return toSoulLevel(capacity());
     }
 
-    [[nodiscard]] LoadPriority rawPriority() const noexcept { return priority_; }
+    [[nodiscard]] LoadPriority rawPriority() const noexcept
+    {
+        return priority_;
+    }
     [[nodiscard]] LoadPriority priority() const noexcept
     {
         if (rawPriority() == LoadPriority::Auto) {
@@ -63,7 +69,10 @@ public:
         return rawPriority();
     }
 
-    [[nodiscard]] const MemberList& members() const noexcept { return members_; }
+    [[nodiscard]] const MemberList& members() const noexcept
+    {
+        return members_;
+    }
     [[nodiscard]] const FormId& emptyMember() const
     {
         return members().front();
