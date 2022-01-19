@@ -55,7 +55,7 @@ specs. We use certain constructs that are only valid in v1.0+.
    * The CMake script uses the `VCPKG_ROOT` environment variable to locate
      Vcpkg. Make sure this is set before starting your IDE. You may need to kill
      and restart `explorer.exe` for this to apply properly.
-   * The build configuration is currently set up to use MSVS 14.2 (from VS2019) 
+   * The build configuration is currently set up to use MSVC 14.2 (from VS2019) 
      as the compiler so to replicate the build you'll need to also install that
      version of the compiler from the installer if you're using VS2022.
 2. Clone the project _and_ its submodules using
