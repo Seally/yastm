@@ -20,15 +20,3 @@ Victim::Victim(RE::Actor* const actor)
     , soulSize_(getActorSoulSize_(actor))
     , isSplit_(false)
 {}
-
-Victim::Victim(const SoulSize soulSize)
-    : actor_(nullptr)
-    , soulSize_(soulSize)
-    , isSplit_(false)
-{}
-
-Victim::Victim(RE::Actor* const actor, const SoulSize soulSize)
-    : actor_(actor)
-    , soulSize_(soulSize)
-    , isSplit_(true)
-{}

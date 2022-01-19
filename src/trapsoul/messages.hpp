@@ -43,7 +43,8 @@ enum class MiscMessage {
     TimeTakenToTrapSoul
 };
 
-inline constexpr const char* getMessage(const SoulTrapFailureMessage key)
+inline constexpr const char*
+    getMessage(const SoulTrapFailureMessage key) noexcept
 {
     switch (key) {
     case SoulTrapFailureMessage::NoSoulGemsOwned:
@@ -59,7 +60,8 @@ inline constexpr const char* getMessage(const SoulTrapFailureMessage key)
     return "";
 }
 
-inline constexpr const char* getMessage(const SoulTrapSuccessMessage key)
+inline constexpr const char*
+    getMessage(const SoulTrapSuccessMessage key) noexcept
 {
     switch (key) {
     case SoulTrapSuccessMessage::SoulCaptured:

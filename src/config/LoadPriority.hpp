@@ -30,7 +30,7 @@ enum class LoadPriority {
     Invalid,
 };
 
-inline std::string_view toString(const LoadPriority priority)
+inline std::string_view toString(const LoadPriority priority) noexcept
 {
     switch (priority) {
     case LoadPriority::Auto:

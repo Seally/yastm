@@ -41,8 +41,11 @@ public:
         const ConcreteSoulGemGroup& blackSoulGemGroup,
         RE::TESDataHandler* dataHandler);
 
-    [[nodiscard]] const IdType& id() const { return id_; }
-    [[nodiscard]] SoulGemCapacity capacity() const { return capacity_; }
+    [[nodiscard]] const IdType& id() const noexcept { return id_; }
+    [[nodiscard]] SoulGemCapacity capacity() const noexcept
+    {
+        return capacity_;
+    }
 
     RE::TESSoulGem* at(const SoulSize containedSoulSize) const
     {
@@ -55,8 +58,8 @@ public:
         return nullptr;
     }
 
-    [[nodiscard]] auto begin() const { return forms_.begin(); }
-    [[nodiscard]] auto end() const { return forms_.end(); }
+    [[nodiscard]] auto begin() const noexcept { return forms_.begin(); }
+    [[nodiscard]] auto end() const noexcept { return forms_.end(); }
 };
 
 class ConcreteSoulGemGroupError : public std::runtime_error {

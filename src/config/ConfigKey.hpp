@@ -17,7 +17,7 @@ enum class BoolConfigKey {
     Count,
 };
 
-inline constexpr std::string_view toString(const BoolConfigKey key)
+inline constexpr std::string_view toString(const BoolConfigKey key) noexcept
 {
     using namespace std::literals;
 
@@ -91,7 +91,7 @@ enum class SoulShrinkingTechnique : EnumConfigUnderlyingType {
     Split,
 };
 
-inline constexpr std::string_view toString(const EnumConfigKey key)
+inline constexpr std::string_view toString(const EnumConfigKey key) noexcept
 {
     using namespace std::literals;
 
@@ -117,7 +117,8 @@ inline void forEachEnumConfigKey(const std::function<void(EnumConfigKey)>& fn)
     fn(EnumConfigKey::SoulShrinkingTechnique);
 }
 
-inline constexpr std::string_view toString(const SoulShrinkingTechnique key)
+inline constexpr std::string_view
+    toString(const SoulShrinkingTechnique key) noexcept
 {
     using namespace std::literals;
 
@@ -140,7 +141,7 @@ template <>
 struct EnumConfigKeyTypeMap<EnumConfigKey::SoulShrinkingTechnique> {
     using type = SoulShrinkingTechnique;
 
-    type operator()(const float value)
+    type operator()(const float value) noexcept
     {
         if (value == static_cast<float>(type::Shrink)) {
             return type::Shrink;

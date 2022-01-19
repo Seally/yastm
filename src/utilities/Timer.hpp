@@ -9,14 +9,14 @@ class Timer {
     std::chrono::time_point<clock_type> begin_;
 
 public:
-    explicit Timer()
+    explicit Timer() noexcept
         : begin_(clock_type::now())
     {}
     virtual ~Timer() {}
 
-    void reset() { begin_ = clock_type::now(); }
+    void reset() noexcept { begin_ = clock_type::now(); }
 
-    double elapsed() const
+    double elapsed() const noexcept
     {
         return std::chrono::duration_cast<second_type>(
                    clock_type::now() - begin_)
@@ -38,7 +38,7 @@ class AccumulatingTimer {
     std::chrono::time_point<clock_type> begin_;
 
 public:
-    explicit AccumulatingTimer()
+    explicit AccumulatingTimer() noexcept
         : totalDuration_(second_type::zero())
     {}
     virtual ~AccumulatingTimer() {}
@@ -46,17 +46,17 @@ public:
     /**
      * @brief Sets the total duration to zero.
      */
-    void reset() { totalDuration_ = second_type::zero(); }
+    void reset() noexcept { totalDuration_ = second_type::zero(); }
 
     /**
      * @brief Starts a timer period.
      */
-    void startPeriod() { begin_ = clock_type::now(); }
+    void startPeriod() noexcept { begin_ = clock_type::now(); }
 
     /**
      * @brief Adds the time from the last timer start to the total duration.
      */
-    void stopPeriod()
+    void stopPeriod() noexcept
     {
         totalDuration_ +=
             std::chrono::duration_cast<second_type>(clock_type::now() - begin_);
@@ -66,5 +66,5 @@ public:
      * @brief Returns the accumulated time. Does not include the time from the
      * current period. 
      */
-    double elapsed() const { return totalDuration_.count(); }
+    double elapsed() const noexcept { return totalDuration_.count(); }
 };

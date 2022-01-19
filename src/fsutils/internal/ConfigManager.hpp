@@ -33,7 +33,7 @@ private:
      * Does not lock mutex. All internal users should use this instead of the
      * public version.
      */
-    HandleType getLargestHandle_() const
+    HandleType getLargestHandle_() const noexcept
     {
         const auto largestKey = configs_.rbegin();
 
@@ -50,7 +50,10 @@ private:
      * Does not lock mutex. All internal users should use this instead of the
      * public version.
      */
-    HandleType getNextHandle_() const { return getLargestHandle_() + 1; }
+    HandleType getNextHandle_() const noexcept
+    {
+        return getLargestHandle_() + 1;
+    }
 
 public:
     static ConfigManager& getInstance()
@@ -66,7 +69,7 @@ public:
     bool saveConfig(HandleType handle, const std::filesystem::path& path) const;
     void closeAllConfigs();
 
-    std::size_t size() const { return configs_.size(); }
+    std::size_t size() const noexcept { return configs_.size(); }
 
     /**
      * Returns the largest handle that currently exists. Or 0 if there are no

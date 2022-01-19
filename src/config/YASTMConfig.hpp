@@ -108,7 +108,7 @@ public:
         return EnumConfigKeyTypeMap<key>()(getGlobalValue(key));
     }
 
-    const SoulGemMap& soulGemMap() const { return soulGemMap_; }
+    const SoulGemMap& soulGemMap() const noexcept { return soulGemMap_; }
 
     /**
      * @brief Represents a snapshot of the configuration at a certain point in

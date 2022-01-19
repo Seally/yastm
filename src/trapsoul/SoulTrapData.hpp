@@ -52,16 +52,16 @@ public:
     SoulTrapData& operator=(const SoulTrapData&) = delete;
     SoulTrapData& operator=(SoulTrapData&&) = delete;
 
-    void setInventoryHasChanged() { isInventoryMapDirty_ = true; }
+    void setInventoryHasChanged() noexcept { isInventoryMapDirty_ = true; }
 
     void updateLoopVariables();
 
-    RE::Actor* caster() const { return caster_; }
+    RE::Actor* caster() const noexcept { return caster_; }
     InventoryStatus casterInventoryStatus() const;
     const InventoryItemMap& inventoryMap() const;
 
-    VictimsQueue& victims() { return victims_; }
-    const VictimsQueue& victims() const { return victims_; }
+    VictimsQueue& victims() noexcept { return victims_; }
+    const VictimsQueue& victims() const noexcept { return victims_; }
 
     const Victim& victim() const { return victim_.value(); }
 

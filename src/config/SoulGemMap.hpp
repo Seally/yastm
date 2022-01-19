@@ -68,7 +68,7 @@ public:
         explicit Iterator(
             const ConcreteSoulGemGroupList& soulGemsAtCapacity,
             const SoulSize containedSoulSize,
-            const std::size_t index)
+            const std::size_t index) noexcept
             : soulGemsAtCapacity_(&soulGemsAtCapacity)
             , containedSoulSize_(containedSoulSize)
             , index_(index)
@@ -87,77 +87,80 @@ public:
             return *soulGemsAtCapacity_->at(index_);
         }
 
-        const SoulSize containedSoulSize() const { return containedSoulSize_; }
+        const SoulSize containedSoulSize() const noexcept
+        {
+            return containedSoulSize_;
+        }
         pointer get() const { return group().at(containedSoulSize_); }
 
         reference operator*() const { return *group().at(containedSoulSize_); }
         pointer operator->() const { return get(); }
 
-        Iterator& operator++()
+        Iterator& operator++() noexcept
         {
             ++index_;
             return *this;
         }
 
-        Iterator operator++(int)
+        Iterator operator++(int) noexcept
         {
             Iterator tmp(*this);
             ++index_;
             return tmp;
         }
 
-        Iterator& operator--()
+        Iterator& operator--() noexcept
         {
             --index_;
             return *this;
         }
 
-        Iterator operator--(int)
+        Iterator operator--(int) noexcept
         {
             Iterator tmp = *this;
             --index_;
             return tmp;
         }
 
-        Iterator& operator+=(const difference_type n)
+        Iterator& operator+=(const difference_type n) noexcept
         {
             index_ += n;
             return *this;
         }
 
-        friend Iterator operator+(const Iterator& it, const difference_type n)
+        friend Iterator operator+(const Iterator& it, const difference_type n) noexcept
         {
             Iterator tmp = it;
             tmp.index_ += n;
             return tmp;
         }
 
-        Iterator& operator-=(const difference_type n)
+        Iterator& operator-=(const difference_type n) noexcept
         {
             index_ -= n;
             return *this;
         }
 
-        friend Iterator operator-(const Iterator& it, const difference_type n)
+        friend Iterator operator-(const Iterator& it, const difference_type n) noexcept
         {
             Iterator tmp = it;
             tmp.index_ -= n;
             return tmp;
         }
 
-        difference_type operator-(const Iterator& it)
+        difference_type operator-(const Iterator& it) noexcept
         {
             return static_cast<difference_type>(index_ - it.index_);
         }
 
         reference operator[](const difference_type n) { return *(*this + n); }
 
-        friend bool operator==(const Iterator& a, const Iterator& b)
+        friend bool operator==(const Iterator& a, const Iterator& b) noexcept
         {
             return a.index_ == b.index_;
         }
 
-        friend auto operator<=>(const Iterator& a, const Iterator& b)
+        friend auto operator<=>(const Iterator& a, const Iterator& b) noexcept
         {
             return a.index_ <=> b.index_;
         }

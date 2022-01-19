@@ -21,10 +21,10 @@ public:
         , defaultValue_(defaultValue)
     {}
 
-    KeyType key() const { return key_; }
+    KeyType key() const noexcept { return key_; }
     float value() const;
     bool valueAsBool() const { return value() != 0; }
-    float defaultValue() const { return defaultValue_; }
+    float defaultValue() const noexcept { return defaultValue_; }
 };
 
 template <typename KeyType>

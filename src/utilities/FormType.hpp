@@ -4,7 +4,7 @@
 
 #include <RE/F/FormTypes.h>
 
-constexpr const char* toFullString(const RE::FormType type) noexcept
+inline constexpr const char* toFullString(const RE::FormType type) noexcept
 {
     switch (type) {
     case RE::FormType::None:
@@ -194,7 +194,7 @@ constexpr const char* toFullString(const RE::FormType type) noexcept
     return "<invalid_form_type>";
 }
 
-constexpr const char* toString(const RE::FormType type) noexcept
+inline constexpr const char* toString(const RE::FormType type) noexcept
 {
     switch (type) {
     case RE::FormType::None:

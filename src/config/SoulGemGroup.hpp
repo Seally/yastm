@@ -35,15 +35,15 @@ private:
 public:
     explicit SoulGemGroup(const toml::table& table);
 
-    [[nodiscard]] const IdType& id() const { return id_; }
-    [[nodiscard]] bool isReusable() const { return isReusable_; }
+    [[nodiscard]] const IdType& id() const noexcept { return id_; }
+    [[nodiscard]] bool isReusable() const noexcept { return isReusable_; }
 
     /**
      * @brief Returns the soul capacity of the soul gems in this group. Note
      * that this should never return SoulGemCapacity::Dual since we don't
      * support explicitly setting that value in the configuration files.
      */
-    [[nodiscard]] SoulGemCapacity capacity() const { return capacity_; }
+    [[nodiscard]] SoulGemCapacity capacity() const noexcept { return capacity_; }
     /**
      * @brief Returns the "effective" soul gem capacity, used to match against
      * the values reported by the game soul gem forms.
@@ -53,8 +53,8 @@ public:
         return toSoulLevel(capacity());
     }
 
-    [[nodiscard]] LoadPriority rawPriority() const { return priority_; }
-    [[nodiscard]] LoadPriority priority() const
+    [[nodiscard]] LoadPriority rawPriority() const noexcept { return priority_; }
+    [[nodiscard]] LoadPriority priority() const noexcept
     {
         if (rawPriority() == LoadPriority::Auto) {
             return isReusable() ? LoadPriority::High : LoadPriority::Normal;
@@ -63,7 +63,7 @@ public:
         return rawPriority();
     }
 
-    [[nodiscard]] const MemberList& members() const { return members_; }
+    [[nodiscard]] const MemberList& members() const noexcept { return members_; }
     [[nodiscard]] const FormId& emptyMember() const
     {
         return members().front();

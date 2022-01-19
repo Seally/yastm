@@ -23,18 +23,22 @@ protected:
 public:
     static constexpr auto FormType = T::FORMTYPE;
 
-    explicit Form() {}
+    explicit Form() noexcept {}
     virtual ~Form() {}
 
     void setFromToml(const toml::array& arr);
     void loadForm(RE::TESDataHandler* dataHandler);
-    void clear();
+    void clear() noexcept
+    {
+        formId_.reset();
+        form_ = nullptr;
+    }
 
     const FormId& formId() const { return formId_.value(); }
-    T* form() const { return form_; }
+    T* form() const noexcept { return form_; }
 
-    bool isConfigLoaded() const { return formId_.has_value(); }
-    bool isFormLoaded() const { return form_ != nullptr; }
+    bool isConfigLoaded() const noexcept { return formId_.has_value(); }
+    bool isFormLoaded() const noexcept { return form_ != nullptr; }
 };
 
 template <typename T>
@@ -66,11 +70,4 @@ inline void Form<T>::loadForm(RE::TESDataHandler* const dataHandler)
     } else {
         throw UnexpectedFormTypeError(FormType, formType, form->GetName());
     }
-}
-
-template <typename T>
-inline void Form<T>::clear()
-{
-    formId_.reset();
-    form_ = nullptr;
 }

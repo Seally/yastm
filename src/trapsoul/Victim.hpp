@@ -23,16 +23,24 @@ public:
      * @brief Constructs a victim with no associated actor. This constructor is
      * used for displaced souls.
      */
-    explicit Victim(SoulSize soulSize);
+    explicit Victim(SoulSize soulSize) noexcept
+        : actor_(nullptr)
+        , soulSize_(soulSize)
+        , isSplit_(false)
+    {}
     /**
      * @brief Constructs a victim with a custom soul size. This
      * constructor is used for split souls (the split flag is set
      * automatically).
      */
-    explicit Victim(RE::Actor* actor, SoulSize soulSize);
+    explicit Victim(RE::Actor* actor, SoulSize soulSize) noexcept
+        : actor_(actor)
+        , soulSize_(soulSize)
+        , isSplit_(true)
+    {}
 
-    RE::Actor* actor() const { return actor_; }
-    SoulSize soulSize() const { return soulSize_; }
+    RE::Actor* actor() const noexcept { return actor_; }
+    SoulSize soulSize() const noexcept { return soulSize_; }
 
     /**
      * @brief Primary souls are souls that we're currently capturing. These
@@ -42,16 +50,16 @@ public:
      * whether the original soul was a displaced soul or the one we're soul
      * trapping.
      */
-    bool isPrimarySoul() const { return actor() != nullptr; }
+    bool isPrimarySoul() const noexcept { return actor() != nullptr; }
     /**
      * @brief Secondary souls are souls displaced from an existing soul gem.
      * These souls have no actor associated with them.
      */
-    bool isSecondarySoul() const { return actor() == nullptr; }
-    bool isSplitSoul() const { return isSplit_; }
+    bool isSecondarySoul() const noexcept { return actor() == nullptr; }
+    bool isSplitSoul() const noexcept { return isSplit_; }
 };
 
-inline auto operator<=>(const Victim& lhs, const Victim& rhs)
+inline auto operator<=>(const Victim& lhs, const Victim& rhs) noexcept
 {
     return lhs.soulSize() <=> rhs.soulSize();
 }

@@ -25,10 +25,10 @@ public:
     FormId(const FormId&) = default;
     FormId(FormId&&) = default;
 
-    RE::FormID id() const { return id_; }
-    const std::string& pluginName() const { return pluginName_; }
+    RE::FormID id() const noexcept { return id_; }
+    const std::string& pluginName() const noexcept { return pluginName_; }
 
-    friend bool operator==(const FormId& lhs, const FormId& rhs)
+    friend bool operator==(const FormId& lhs, const FormId& rhs) noexcept
     {
         return lhs.id_ == rhs.id_ &&
                lhs.pluginNameLower_ == rhs.pluginNameLower_;

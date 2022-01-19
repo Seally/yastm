@@ -19,18 +19,18 @@ public:
 private:
     UnderlyingValueType value_;
 
-    constexpr SoulSizeValue(const UnderlyingValueType soulSize)
+    constexpr SoulSizeValue(const UnderlyingValueType soulSize) noexcept
         : value_(soulSize)
     {}
 
 public:
-    constexpr SoulSizeValue(const ValueType soulSize)
+    constexpr SoulSizeValue(const ValueType soulSize) noexcept
         : value_(static_cast<UnderlyingValueType>(soulSize))
     {}
 
     constexpr UnderlyingValueType raw() const { return value_; }
 
-    constexpr SoulSizeValue& operator=(const ValueType soulSize)
+    constexpr SoulSizeValue& operator=(const ValueType soulSize) noexcept
     {
         value_ = static_cast<UnderlyingValueType>(soulSize);
 
@@ -58,55 +58,56 @@ public:
             fmt::format("Cannot convert {} to SoulSize", value_));
     }
 
-    constexpr bool isValid() const
+    constexpr bool isValid() const noexcept
     {
         return static_cast<UnderlyingValueType>(ValueType::First) <= value_ &&
                value_ <= static_cast<UnderlyingValueType>(ValueType::Last);
     }
 
-    constexpr SoulSizeValue& operator++()
+    constexpr SoulSizeValue& operator++() noexcept
     {
         value_ += 1;
         return *this;
     }
 
-    constexpr SoulSizeValue operator++(int)
+    constexpr SoulSizeValue operator++(int) noexcept
     {
         SoulSizeValue tmp = *this;
         value_ += 1;
         return tmp;
     }
 
-    constexpr SoulSizeValue& operator--()
+    constexpr SoulSizeValue& operator--() noexcept
     {
         value_ -= 1;
         return *this;
     }
 
-    constexpr SoulSizeValue operator--(int)
+    constexpr SoulSizeValue operator--(int) noexcept
     {
         SoulSizeValue tmp = *this;
         value_ -= 1;
         return tmp;
     }
 
-    constexpr std::strong_ordering operator<=>(const SoulSize soulSize)
+    constexpr std::strong_ordering operator<=>(const SoulSize soulSize) noexcept
     {
         return value_ <=>
                static_cast<SoulSizeValue::UnderlyingValueType>(soulSize);
     }
 
-    constexpr std::strong_ordering operator<=>(const SoulSizeValue& other)
+    constexpr std::strong_ordering
+        operator<=>(const SoulSizeValue& other) noexcept
     {
         return value_ <=> other.value_;
     }
 
     friend constexpr std::strong_ordering operator<=>(
         const SoulSizeValue& soulSize,
-        const SoulGemCapacityValue& capacity);
+        const SoulGemCapacityValue& capacity) noexcept;
     friend constexpr bool operator==(
         const SoulSizeValue& soulSize,
-        const SoulGemCapacityValue& capacity);
+        const SoulGemCapacityValue& capacity) noexcept;
 };
 
 class SoulGemCapacityValue {
@@ -118,17 +119,17 @@ private:
     UnderlyingValueType value_;
 
 public:
-    constexpr SoulGemCapacityValue(const UnderlyingValueType capacity)
+    constexpr SoulGemCapacityValue(const UnderlyingValueType capacity) noexcept
         : value_(capacity)
     {}
 
-    constexpr SoulGemCapacityValue(const ValueType capacity)
+    constexpr SoulGemCapacityValue(const ValueType capacity) noexcept
         : SoulGemCapacityValue(static_cast<UnderlyingValueType>(capacity))
     {}
 
-    constexpr UnderlyingValueType raw() const { return value_; }
+    constexpr UnderlyingValueType raw() const noexcept { return value_; }
 
-    constexpr SoulGemCapacityValue& operator=(const ValueType capacity)
+    constexpr SoulGemCapacityValue& operator=(const ValueType capacity) noexcept
     {
         value_ = static_cast<UnderlyingValueType>(capacity);
 
@@ -156,60 +157,61 @@ public:
             fmt::format("Cannot convert {} to SoulGemCapacity", value_));
     }
 
-    constexpr bool isValid() const
+    constexpr bool isValid() const noexcept
     {
         return static_cast<UnderlyingValueType>(ValueType::First) <= value_ &&
                value_ <= static_cast<UnderlyingValueType>(ValueType::Last);
     }
 
-    constexpr SoulGemCapacityValue& operator++()
+    constexpr SoulGemCapacityValue& operator++() noexcept
     {
         value_ += 1;
         return *this;
     }
 
-    constexpr SoulGemCapacityValue operator++(int)
+    constexpr SoulGemCapacityValue operator++(int) noexcept
     {
         SoulGemCapacityValue tmp = *this;
         value_ += 1;
         return tmp;
     }
 
-    constexpr SoulGemCapacityValue& operator--()
+    constexpr SoulGemCapacityValue& operator--() noexcept
     {
         value_ -= 1;
         return *this;
     }
 
-    constexpr SoulGemCapacityValue operator--(int)
+    constexpr SoulGemCapacityValue operator--(int) noexcept
     {
         SoulGemCapacityValue tmp = *this;
         value_ -= 1;
         return tmp;
     }
 
-    constexpr std::strong_ordering operator<=>(const SoulGemCapacity capacity)
+    constexpr std::strong_ordering
+        operator<=>(const SoulGemCapacity capacity) noexcept
     {
         return value_ <=> static_cast<UnderlyingValueType>(capacity);
     }
 
     constexpr std::strong_ordering
-        operator<=>(const SoulGemCapacityValue& other)
+        operator<=>(const SoulGemCapacityValue& other) noexcept
     {
         return value_ <=> other.value_;
     }
 
     friend constexpr std::strong_ordering operator<=>(
         const SoulSizeValue& soulSize,
-        const SoulGemCapacityValue& capacity);
+        const SoulGemCapacityValue& capacity) noexcept;
     friend constexpr bool operator==(
         const SoulSizeValue& soulSize,
-        const SoulGemCapacityValue& capacity);
+        const SoulGemCapacityValue& capacity) noexcept;
 };
 
 constexpr std::strong_ordering operator<=>(
     const SoulSizeValue& soulSize,
-    const SoulGemCapacityValue& capacity)
+    const SoulGemCapacityValue& capacity) noexcept
 {
     // Same line means equivalent:
     //
@@ -231,7 +233,7 @@ constexpr std::strong_ordering operator<=>(
 
 constexpr bool operator==(
     const SoulSizeValue& soulSize,
-    const SoulGemCapacityValue& capacity)
+    const SoulGemCapacityValue& capacity) noexcept
 {
     // Same line means equivalent:
     //

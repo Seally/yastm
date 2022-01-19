@@ -39,7 +39,7 @@ namespace {
         // visible output).
         class Profiler : public Timer {
         public:
-            explicit Profiler()
+            explicit Profiler() noexcept
             {
                 LOG_TRACE("Entering YASTM trapSoul function");
             }

@@ -24,11 +24,11 @@ public:
         , entryData_(entryData)
     {}
 
-    RE::TESObjectREFR::Count itemCount() const { return itemCount_; }
-    RE::InventoryEntryData* entryData() const { return entryData_; }
+    RE::TESObjectREFR::Count itemCount() const noexcept { return itemCount_; }
+    RE::InventoryEntryData* entryData() const noexcept { return entryData_; }
 
     const ConcreteSoulGemGroup& group() const { return it_.group(); }
-    const SoulSize containedSoulSize() const { return it_.containedSoulSize(); }
+    const SoulSize containedSoulSize() const noexcept { return it_.containedSoulSize(); }
 
     RE::TESSoulGem* soulGem() const { return it_.get(); }
     RE::TESSoulGem* soulGemAt(const SoulSize containedSoulSize) const
