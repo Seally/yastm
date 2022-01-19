@@ -12,9 +12,7 @@ bool areAllUnique(iterator begin, iterator end)
 {
     using T = std::iterator_traits<iterator>::value_type;
 
-    // Use an unordered set to disambiguate between FormIds. We override the
-    // pointer's hashing function and equality comparator to compare the
-    // dereferenced values, not the pointers themselves.
+    // Use an unordered set to disambiguate between FormIds.
     std::unordered_set<std::reference_wrapper<const T>, Hash> uniques;
 
     std::size_t count = 0;
