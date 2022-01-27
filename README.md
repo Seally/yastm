@@ -55,7 +55,7 @@ specs. We use certain constructs that are only valid in v1.0+.
    * The CMake script uses the `VCPKG_ROOT` environment variable to locate
      Vcpkg. Make sure this is set before starting your IDE. You may need to kill
      and restart `explorer.exe` for this to apply properly.
-   * The build configuration is currently set up to use MSVC 14.2 (from VS2019) 
+   * The build configuration is currently set up to use MSVC 14.2 (from VS2019)
      as the compiler so to replicate the build you'll need to also install that
      version of the compiler from the installer if you're using VS2022.
 2. Clone the project _and_ its submodules using
@@ -64,7 +64,7 @@ specs. We use certain constructs that are only valid in v1.0+.
 4. Set CMake variables. You can use `CMakePresets.json` as a starting point. See
    [Important CMake Variables](#important-cmake-variables) and
    [Example `CMakeUserPresets.json`](#example-cmakeuserpresets.json) sections
-   for details.  
+   for details.
 5. Build the project.
 
 ### Important CMake Variables
@@ -111,7 +111,7 @@ if you don't have the compiler installed.
     "configurePresets": [
         {
             "name": "x64-Debug-SE-MSVC142",
-            "inherits": [ "base-vs2022", "se" ],
+            "inherits": [ "base", "msvc142", "vs2022", "se" ],
             "cacheVariables": {
                 "COPY_BUILD": true,
                 "SKYRIM64_DATA_PATH": "D:/Games/MO2 Data/SkyrimSE/mods/YASTM - SKSE Plugin (Debug)"
@@ -119,7 +119,7 @@ if you don't have the compiler installed.
         },
         {
             "name": "x64-Release-SE-MSVC142",
-            "inherits": [ "base-vs2022", "se" ],
+            "inherits": [ "base", "msvc142", "vs2022", "se" ],
             "cacheVariables": {
                 "COPY_BUILD": true,
                 "SKYRIM64_DATA_PATH": "D:/Games/MO2 Data/SkyrimSE/mods/YASTM - SKSE Plugin"
@@ -127,7 +127,7 @@ if you don't have the compiler installed.
         },
         {
             "name": "x64-Debug-AE-MSVC142",
-            "inherits": [ "base-vs2022", "ae" ],
+            "inherits": [ "base", "msvc142", "vs2022", "ae" ],
             "cacheVariables": {
                 "COPY_BUILD": true,
                 "SKYRIM64_DATA_PATH": "D:/Games/MO2 Data/SkyrimAE/mods/YASTM - SKSE Plugin (Debug)"
@@ -135,63 +135,93 @@ if you don't have the compiler installed.
         },
         {
             "name": "x64-Release-AE-MSVC142",
-            "inherits": [ "base-vs2022", "ae" ],
+            "inherits": [ "base", "msvc142", "vs2022", "ae" ],
             "cacheVariables": {
                 "COPY_BUILD": true,
                 "SKYRIM64_DATA_PATH": "D:/Games/MO2 Data/SkyrimAE/mods/YASTM - SKSE Plugin"
             }
         },
         {
-            "name": "x64-Debug-VR-MSVC142",
-            "inherits": [ "base-vs2022", "vr" ],
+            "name": "x64-Debug-SE-MSVC143",
+            "inherits": [ "base", "msvc143", "vs2022", "se" ],
             "cacheVariables": {
-                "COPY_BUILD":  false
+                "COPY_BUILD": false,
+                "SKYRIM64_DATA_PATH": "D:/Games/MO2 Data/SkyrimSE/mods/YASTM - SKSE Plugin (Debug)"
             }
         },
         {
-            "name": "x64-Release-VR-MSVC142",
-            "inherits": [ "base-vs2022", "vr" ],
+            "name": "x64-Release-SE-MSVC143",
+            "inherits": [ "base", "msvc143", "vs2022", "se" ],
             "cacheVariables": {
-                "COPY_BUILD": false
+                "COPY_BUILD": false,
+                "SKYRIM64_DATA_PATH": "D:/Games/MO2 Data/SkyrimSE/mods/YASTM - SKSE Plugin"
+            }
+        },
+        {
+            "name": "x64-Debug-AE-MSVC143",
+            "inherits": [ "base", "msvc143", "vs2022", "ae" ],
+            "cacheVariables": {
+                "COPY_BUILD": false,
+                "SKYRIM64_DATA_PATH": "D:/Games/MO2 Data/SkyrimAE/mods/YASTM - SKSE Plugin (Debug)"
+            }
+        },
+        {
+            "name": "x64-Release-AE-MSVC143",
+            "inherits": [ "base", "msvc143", "vs2022", "ae" ],
+            "cacheVariables": {
+                "COPY_BUILD": false,
+                "SKYRIM64_DATA_PATH": "D:/Games/MO2 Data/SkyrimAE/mods/YASTM - SKSE Plugin"
             }
         }
     ],
     "buildPresets": [
         {
-            "name": "se-debug",
+            "name": "se-debug-msvc142",
             "displayName": "SE Debug",
             "configuration": "Debug",
             "configurePreset": "x64-Debug-SE-MSVC142"
         },
         {
-            "name": "se-release",
+            "name": "se-release-msvc142",
             "displayName": "SE Release",
             "configuration": "RelWithDebInfo",
             "configurePreset": "x64-Release-SE-MSVC142"
         },
         {
-            "name": "ae-debug",
+            "name": "ae-debug-msvc142",
             "displayName": "AE Debug",
             "configuration": "Debug",
             "configurePreset": "x64-Debug-AE-MSVC142"
         },
         {
-            "name": "ae-release",
+            "name": "ae-release-msvc142",
             "displayName": "AE Release",
             "configuration": "RelWithDebInfo",
             "configurePreset": "x64-Release-AE-MSVC142"
         },
         {
-            "name": "vr-debug",
-            "displayName": "VR Debug",
+            "name": "se-debug-msvc143",
+            "displayName": "SE Debug",
             "configuration": "Debug",
-            "configurePreset": "x64-Debug-VR-MSVC142"
+            "configurePreset": "x64-Debug-SE-MSVC143"
         },
         {
-            "name": "vr-release",
-            "displayName": "VR Release",
+            "name": "se-release-msvc143",
+            "displayName": "SE Release",
             "configuration": "RelWithDebInfo",
-            "configurePreset": "x64-Release-VR-MSVC142"
+            "configurePreset": "x64-Release-SE-MSVC143"
+        },
+        {
+            "name": "ae-debug-msvc143",
+            "displayName": "AE Debug",
+            "configuration": "Debug",
+            "configurePreset": "x64-Debug-AE-MSVC143"
+        },
+        {
+            "name": "ae-release-msvc143",
+            "displayName": "AE Release",
+            "configuration": "RelWithDebInfo",
+            "configurePreset": "x64-Release-AE-MSVC143"
         }
     ]
 }

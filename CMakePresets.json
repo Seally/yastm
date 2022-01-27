@@ -13,10 +13,7 @@
                 "strategy": "set",
                 "value": "x64"
             },
-            "toolset": {
-                "strategy": "set",
-                "value": "v142"
-            },
+            "binaryDir": "${sourceDir}/out/build/${presetName}",
             "cacheVariables": {
                 "SKSE_SUPPORT_XBYAK": true,
                 "COPY_BUILD": false,
@@ -35,14 +32,28 @@
             }
         },
         {
-            "name": "base-vs2019",
-            "inherits": "base",
+            "name": "msvc142",
+            "hidden": true,
+            "toolset": {
+                "strategy": "set",
+                "value": "v142"
+            }
+        },
+        {
+            "name": "msvc143",
+            "hidden": true,
+            "toolset": {
+                "strategy": "set",
+                "value": "v143"
+            }
+        },
+        {
+            "name": "vs2019",
             "generator": "Visual Studio 16 2019",
             "hidden": true
         },
         {
-            "name": "base-vs2022",
-            "inherits": "base",
+            "name": "vs2022",
             "generator": "Visual Studio 17 2022",
             "hidden": true
         },
