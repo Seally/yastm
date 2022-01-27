@@ -49,7 +49,8 @@ namespace {
                         elapsedTime);
                     RE::DebugNotification(
                         fmt::format(
-                            getMessage(MiscMessage::TimeTakenToTrapSoul),
+                            fmt::runtime(
+                                getMessage(MiscMessage::TimeTakenToTrapSoul)),
                             elapsedTime)
                             .c_str());
                 }

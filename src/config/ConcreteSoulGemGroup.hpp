@@ -148,6 +148,9 @@ public:
             capitalizeFirstChar(formatString, formatString);
         }
 
-        return fmt::format_to(ctx.out(), formatString, group.id());
+        return fmt::format_to(
+            ctx.out(),
+            fmt::runtime(formatString),
+            group.id());
     }
 };

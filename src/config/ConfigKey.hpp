@@ -173,7 +173,7 @@ struct fmt::formatter<BoolConfigKey> {
 
         // Check if reached the end of the range:
         if (it != end && *it != '}') {
-            throw format_error("invalid format");
+            throw fmt::format_error("invalid format");
         }
 
         // Return an iterator past the end of the parsed range:
@@ -184,7 +184,7 @@ struct fmt::formatter<BoolConfigKey> {
     auto format(const BoolConfigKey key, FormatContext& ctx)
         -> decltype(ctx.out())
     {
-        return format_to(ctx.out(), toString(key));
+        return fmt::format_to(ctx.out(), fmt::runtime(toString(key)));
     }
 };
 
@@ -206,7 +206,7 @@ struct fmt::formatter<EnumConfigKey> {
 
         // Check if reached the end of the range:
         if (it != end && *it != '}') {
-            throw format_error("invalid format");
+            throw fmt::format_error("invalid format");
         }
 
         // Return an iterator past the end of the parsed range:
@@ -217,7 +217,7 @@ struct fmt::formatter<EnumConfigKey> {
     auto format(const EnumConfigKey key, FormatContext& ctx)
         -> decltype(ctx.out())
     {
-        return format_to(ctx.out(), toString(key));
+        return fmt::format_to(ctx.out(), fmt::runtime(toString(key)));
     }
 };
 
@@ -239,7 +239,7 @@ struct fmt::formatter<SoulShrinkingTechnique> {
 
         // Check if reached the end of the range:
         if (it != end && *it != '}') {
-            throw format_error("invalid format");
+            throw fmt::format_error("invalid format");
         }
 
         // Return an iterator past the end of the parsed range:
@@ -250,6 +250,6 @@ struct fmt::formatter<SoulShrinkingTechnique> {
     auto format(const SoulShrinkingTechnique key, FormatContext& ctx)
         -> decltype(ctx.out())
     {
-        return format_to(ctx.out(), toString(key));
+        return fmt::format_to(ctx.out(), fmt::runtime(toString(key)));
     }
 };

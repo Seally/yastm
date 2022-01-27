@@ -20,8 +20,8 @@ namespace {
     std::string_view MEMBERS_KEY_("members");
 
     template <typename T>
-    requires std::integral<T> constexpr SoulGemCapacity
-        toSoulGemCapacityFromConfig_(const T capacity)
+    requires std::integral<T>
+    constexpr SoulGemCapacity toSoulGemCapacityFromConfig_(const T capacity)
     {
         switch (capacity) {
         case 1:

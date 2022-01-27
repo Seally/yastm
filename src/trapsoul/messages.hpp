@@ -77,7 +77,7 @@ inline constexpr const char*
     return "";
 }
 
-inline constexpr const char* getMessage(const MiscMessage key)
+inline const char* getMessage(const MiscMessage key)
 {
     switch (key) {
     case MiscMessage::TimeTakenToTrapSoul:

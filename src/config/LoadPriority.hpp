@@ -96,7 +96,7 @@ struct fmt::formatter<LoadPriority> {
     auto format(const LoadPriority key, FormatContext& ctx)
         -> decltype(ctx.out())
     {
-        return format_to(ctx.out(), toString(key));
+        return format_to(ctx.out(), fmt::runtime(toString(key)));
     }
 };
 
