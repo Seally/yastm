@@ -71,7 +71,7 @@ struct fmt::formatter<FormId> {
 
         // Check if reached the end of the range:
         if (it != end && *it != '}') {
-            throw format_error("invalid format");
+            throw fmt::format_error("invalid format");
         }
 
         // Return an iterator past the end of the parsed range:
