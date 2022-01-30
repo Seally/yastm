@@ -38,20 +38,18 @@ public:
 };
 
 // Inject hash specialization into std namespace.
-namespace std {
-    template <>
-    struct hash<FormId> {
-        std::size_t operator()(const FormId& formId) const noexcept
-        {
-            std::size_t seed = 0;
+template <>
+struct std::hash<FormId> {
+    std::size_t operator()(const FormId& formId) const noexcept
+    {
+        std::size_t seed = 0;
 
-            boost::hash_combine(seed, formId.id_);
-            boost::hash_combine(seed, formId.pluginNameLower_);
+        boost::hash_combine(seed, formId.id_);
+        boost::hash_combine(seed, formId.pluginNameLower_);
 
-            return seed;
-        }
-    };
-} // namespace std
+        return seed;
+    }
+};
 
 template <>
 struct fmt::formatter<FormId> {

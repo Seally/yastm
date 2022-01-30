@@ -96,7 +96,7 @@ struct fmt::formatter<Victim> {
 
         const RE::Actor* const actor = victim.actor();
 
-        return format_to(
+        return fmt::format_to(
             ctx.out(),
             FMT_STRING("(soulSize={}, actor={}, isSplitSoul={})"sv),
             victim.soulSize(),
