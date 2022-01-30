@@ -38,7 +38,9 @@ namespace {
             return SoulGemCapacity::Black;
         }
 
-        throw ParseError("Invalid value for entry 'capacity'");
+        throw ParseError(fmt::format(
+            FMT_STRING("Invalid value for entry '{}'"),
+            CAPACITY_KEY_));
     }
 
     std::size_t
@@ -59,7 +61,9 @@ namespace {
         const auto value = table[ID_KEY_].as_string();
 
         if (value == nullptr) {
-            throw ParseError("Expected string entry named 'id'");
+            throw ParseError(fmt::format(
+                FMT_STRING("Expected string entry named '{}'"),
+                ID_KEY_));
         }
 
         return value->get();
@@ -70,11 +74,16 @@ namespace {
         const auto value = table[CAPACITY_KEY_].as_integer();
 
         if (value == nullptr) {
-            throw ParseError("Expected integer entry named 'capacity'");
+            throw ParseError(fmt::format(
+                FMT_STRING("Expected integer entry named '{}'"),
+                CAPACITY_KEY_));
         }
 
         const auto capacity = toSoulGemCapacityFromConfig_(value->get());
 
+        // The dual status of soul gems is determined by the code and not
+        // provided directly by configuration files, so if the parsed user input
+        // is "dual", it's a bug.
         assert(capacity != SoulGemCapacity::Dual);
 
         return capacity;
@@ -92,7 +101,9 @@ namespace {
         const LoadPriority priority = fromLoadPriorityString(value);
 
         if (priority == LoadPriority::Invalid) {
-            throw ParseError("Invalid value for entry 'priority'");
+            throw ParseError(fmt::format(
+                FMT_STRING("Invalid value for entry '{}'"),
+                PRIORITY_KEY_));
         }
 
         return priority;
@@ -104,7 +115,9 @@ namespace {
         const auto value = table[MEMBERS_KEY_].as_array();
 
         if (value == nullptr || value->empty()) {
-            throw ParseError("Expected non-empty array entry named 'members'");
+            throw ParseError(fmt::format(
+                FMT_STRING("Expected non-empty array entry named '{}'"),
+                MEMBERS_KEY_));
         }
 
         SoulGemGroup::MemberList members;
@@ -117,26 +130,32 @@ namespace {
                         members.emplace_back(el);
                     } else {
                         throw ParseError(fmt::format(
-                            FMT_STRING("members[{}] is not an array"),
+                            FMT_STRING("{}[{}] is not an array"),
+                            MEMBERS_KEY_,
                             index));
                     }
                 });
             } catch (...) {
                 std::throw_with_nested(ParseError(fmt::format(
-                    FMT_STRING("Invalid form ID entry at members[{}]"sv),
+                    FMT_STRING("Invalid form ID entry at {}[{}]"sv),
+                    MEMBERS_KEY_,
                     index)));
             }
             ++index;
         }
 
         if (!areAllUnique(members.cbegin(), members.cend())) {
-            throw ParseError("Duplicate values in 'members' array");
+            throw ParseError(fmt::format(
+                FMT_STRING("Duplicate values in '{}' array"),
+                MEMBERS_KEY_));
         }
 
         if (const auto expectedMemberCount =
                 getExpectedMemberCountForCapacity_(capacity);
             expectedMemberCount != members.size()) {
-            throw ParseError("Invalid number of members in 'members' array");
+            throw ParseError(fmt::format(
+                FMT_STRING("Invalid number of members in '{}' array"),
+                MEMBERS_KEY_));
         }
 
         return members;
