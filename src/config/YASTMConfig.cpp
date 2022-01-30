@@ -236,9 +236,7 @@ std::size_t
                         // We've found a valid soul gem group!
                         ++validSoulGemGroupsCount;
                     } else {
-                        throw InvalidEntryValueTypeError(
-                            "soulGems",
-                            ValueType::Table,
+                        throw ParseError(
                             "Member of 'soulGems' array must be a table.");
                     }
                 });

@@ -10,17 +10,11 @@ FormId::FormId(const toml::array& arr)
     auto pluginNameValue = arr[1].as_string();
 
     if (formIdValue == nullptr) {
-        throw InvalidEntryValueTypeError(
-            static_cast<std::size_t>(0),
-            ValueType::Integer,
-            "Form ID is missing or invalid");
+        throw ParseError("Form ID is missing or invalid");
     }
 
     if (pluginNameValue == nullptr) {
-        throw InvalidEntryValueTypeError(
-            static_cast<std::size_t>(1),
-            ValueType::String,
-            "Plugin name is missing or invalid");
+        throw ParseError("Plugin name is missing or invalid");
     }
 
     id_ = static_cast<RE::FormID>(formIdValue->get());
