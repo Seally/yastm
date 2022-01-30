@@ -66,7 +66,7 @@ inline auto operator<=>(const Victim& lhs, const Victim& rhs) noexcept
 
 template <>
 struct fmt::formatter<Victim> {
-    constexpr auto parse(format_parse_context& ctx) -> decltype(ctx.begin())
+    auto parse(fmt::format_parse_context& ctx) -> decltype(ctx.begin())
     {
         // [ctx.begin(), ctx.end()) is a character range that contains a part of
         // the format string starting from the format specifications to be parsed,

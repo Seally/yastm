@@ -69,7 +69,7 @@ inline LoadPriority fromLoadPriorityString(std::string_view str) noexcept
 
 template <>
 struct fmt::formatter<LoadPriority> {
-    constexpr auto parse(format_parse_context& ctx) -> decltype(ctx.begin())
+    auto parse(fmt::format_parse_context& ctx) -> decltype(ctx.begin())
     {
         // [ctx.begin(), ctx.end()) is a character range that contains a part of
         // the format string starting from the format specifications to be parsed,
@@ -85,7 +85,7 @@ struct fmt::formatter<LoadPriority> {
 
         // Check if reached the end of the range:
         if (it != end && *it != '}') {
-            throw format_error("invalid format");
+            throw fmt::format_error("invalid format");
         }
 
         // Return an iterator past the end of the parsed range:
