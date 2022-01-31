@@ -19,8 +19,7 @@ namespace {
     constexpr std::string_view PRIORITY_KEY_("priority");
     constexpr std::string_view MEMBERS_KEY_("members");
 
-    template <typename T>
-    requires std::integral<T>
+    template <std::integral T>
     constexpr SoulGemCapacity toSoulGemCapacityFromConfig_(const T capacity)
     {
         switch (capacity) {
