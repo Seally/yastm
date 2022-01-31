@@ -13,11 +13,11 @@
 using namespace std::literals;
 
 namespace {
-    std::string_view ID_KEY_("id");
-    std::string_view ISREUSABLE_KEY_("isReusable");
-    std::string_view CAPACITY_KEY_("capacity");
-    std::string_view PRIORITY_KEY_("priority");
-    std::string_view MEMBERS_KEY_("members");
+    constexpr std::string_view ID_KEY_("id");
+    constexpr std::string_view ISREUSABLE_KEY_("isReusable");
+    constexpr std::string_view CAPACITY_KEY_("capacity");
+    constexpr std::string_view PRIORITY_KEY_("priority");
+    constexpr std::string_view MEMBERS_KEY_("members");
 
     template <typename T>
     requires std::integral<T>
