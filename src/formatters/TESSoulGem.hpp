@@ -16,6 +16,7 @@ struct fmt::formatter<RE::SOUL_LEVEL> :
     fmt::formatter<std::underlying_type_t<RE::SOUL_LEVEL>> {
     template <typename FormatContext>
     auto format(const RE::SOUL_LEVEL soulLevel, FormatContext& ctx)
+        -> decltype(ctx.out())
     {
         using EnumType = std::underlying_type_t<RE::SOUL_LEVEL>;
 
@@ -27,7 +28,8 @@ struct fmt::formatter<RE::SOUL_LEVEL> :
 
 template <>
 struct fmt::formatter<RE::TESSoulGem> {
-    auto parse(fmt::format_parse_context& ctx) -> decltype(ctx.begin())
+    constexpr auto parse(fmt::format_parse_context& ctx)
+        -> decltype(ctx.begin())
     {
         // [ctx.begin(), ctx.end()) is a character range that contains a part of
         // the format string starting from the format specifications to be parsed,
