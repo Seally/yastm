@@ -46,14 +46,14 @@ namespace {
             capacity));
     }
 
-    void checkFormIsNotNull_(RE::TESForm* form, const FormId& formId)
+    void checkFormIsNotNull_(RE::TESForm* const form, const FormId& formId)
     {
         if (form == nullptr) {
             throw MissingFormError(formId);
         }
     }
 
-    void checkFormIsSoulGem_(RE::TESForm* form)
+    void checkFormIsSoulGem_(RE::TESForm* const form)
     {
         if (!form->IsSoulGem()) {
             throw UnexpectedFormTypeError(
@@ -64,7 +64,7 @@ namespace {
     }
 
     void checkGroupCapacityMatchesSoulGemFormCapacity_(
-        RE::TESSoulGem* form,
+        RE::TESSoulGem* const form,
         const FormId& formId,
         const SoulGemGroup& group)
     {
@@ -182,7 +182,7 @@ namespace {
 
 void ConcreteSoulGemGroup::initializeFromPrimaryBasis_(
     const SoulGemGroup& sourceGroup,
-    RE::TESDataHandler* dataHandler)
+    RE::TESDataHandler* const dataHandler)
 {
     capacity_ = sourceGroup.capacity();
 
@@ -244,7 +244,7 @@ void ConcreteSoulGemGroup::initializeFromSecondaryBasis_(
 
 ConcreteSoulGemGroup::ConcreteSoulGemGroup(
     const SoulGemGroup& sourceGroup,
-    RE::TESDataHandler* dataHandler)
+    RE::TESDataHandler* const dataHandler)
 {
     try {
         initializeFromPrimaryBasis_(sourceGroup, dataHandler);
@@ -258,7 +258,7 @@ ConcreteSoulGemGroup::ConcreteSoulGemGroup(
 ConcreteSoulGemGroup::ConcreteSoulGemGroup(
     const SoulGemGroup& whiteGrandSoulGemGroup,
     const ConcreteSoulGemGroup& blackSoulGemGroup,
-    RE::TESDataHandler* dataHandler)
+    RE::TESDataHandler* const dataHandler)
 {
     try {
         if (whiteGrandSoulGemGroup.capacity() != SoulGemCapacity::Grand) {
