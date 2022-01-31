@@ -82,10 +82,10 @@ struct fmt::formatter<LoadPriority> {
         // parse specifiers until '}' or the end of the range.
 
         // Parse the presentation format and store it in the formatter:
-        auto it = ctx.begin(), end = ctx.end();
+        auto it = ctx.begin();
 
         // Check if reached the end of the range:
-        if (it != end && *it != '}') {
+        if (it != ctx.end() && *it != '}') {
             throw fmt::format_error("invalid format");
         }
 
