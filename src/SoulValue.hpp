@@ -28,6 +28,11 @@ public:
         : value_(static_cast<UnderlyingValueType>(soulSize))
     {}
 
+    SoulSizeValue(const SoulSizeValue&) = default;
+    SoulSizeValue(SoulSizeValue&&) = default;
+    SoulSizeValue& operator=(const SoulSizeValue&) = default;
+    SoulSizeValue& operator=(SoulSizeValue&&) = default;
+
     constexpr UnderlyingValueType raw() const { return value_; }
 
     constexpr SoulSizeValue& operator=(const ValueType soulSize) noexcept
@@ -39,20 +44,20 @@ public:
 
     constexpr operator ValueType() const
     {
-#define CONV_CASE(Value)                                     \
+#define CONVERT_CASE(Value)                                  \
     case static_cast<UnderlyingValueType>(ValueType::Value): \
         return ValueType::Value
 
         switch (value_) {
-            CONV_CASE(None);
-            CONV_CASE(Petty);
-            CONV_CASE(Lesser);
-            CONV_CASE(Common);
-            CONV_CASE(Greater);
-            CONV_CASE(Grand);
-            CONV_CASE(Black);
+            CONVERT_CASE(None);
+            CONVERT_CASE(Petty);
+            CONVERT_CASE(Lesser);
+            CONVERT_CASE(Common);
+            CONVERT_CASE(Greater);
+            CONVERT_CASE(Grand);
+            CONVERT_CASE(Black);
         }
-#undef CONV_CASE
+#undef CONVERT_CASE
 
         throw std::runtime_error(
             fmt::format("Cannot convert {} to SoulSize", value_));
@@ -127,6 +132,11 @@ public:
         : SoulGemCapacityValue(static_cast<UnderlyingValueType>(capacity))
     {}
 
+    SoulGemCapacityValue(const SoulGemCapacityValue&) = default;
+    SoulGemCapacityValue(SoulGemCapacityValue&&) = default;
+    SoulGemCapacityValue& operator=(const SoulGemCapacityValue&) = default;
+    SoulGemCapacityValue& operator=(SoulGemCapacityValue&&) = default;
+
     constexpr UnderlyingValueType raw() const noexcept { return value_; }
 
     constexpr SoulGemCapacityValue& operator=(const ValueType capacity) noexcept
@@ -138,20 +148,20 @@ public:
 
     constexpr operator ValueType() const
     {
-#define CONV_CASE(Value)                                     \
+#define CONVERT_CASE(Value)                                  \
     case static_cast<UnderlyingValueType>(ValueType::Value): \
         return ValueType::Value
 
         switch (value_) {
-            CONV_CASE(Petty);
-            CONV_CASE(Lesser);
-            CONV_CASE(Common);
-            CONV_CASE(Greater);
-            CONV_CASE(Grand);
-            CONV_CASE(Dual);
-            CONV_CASE(Black);
+            CONVERT_CASE(Petty);
+            CONVERT_CASE(Lesser);
+            CONVERT_CASE(Common);
+            CONVERT_CASE(Greater);
+            CONVERT_CASE(Grand);
+            CONVERT_CASE(Dual);
+            CONVERT_CASE(Black);
         }
-#undef CONV_CASE
+#undef CONVERT_CASE
 
         throw std::runtime_error(
             fmt::format("Cannot convert {} to SoulGemCapacity", value_));
