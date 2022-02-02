@@ -22,8 +22,11 @@ class FormId {
 public:
     explicit FormId(const toml::array& arr);
     explicit FormId(RE::FormID id, std::string_view pluginName);
+
     FormId(const FormId&) = default;
     FormId(FormId&&) = default;
+    FormId& operator=(const FormId&) = default;
+    FormId& operator=(FormId&&) = default;
 
     RE::FormID id() const noexcept { return id_; }
     const std::string& pluginName() const noexcept { return pluginName_; }
