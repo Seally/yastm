@@ -2,9 +2,11 @@
 
 #include <exception>
 #include <iterator>
+#include <optional>
 #include <string>
 #include <type_traits>
 #include <unordered_set>
+
 #include <cstdint>
 
 #include <boost/container_hash/hash.hpp>
@@ -13,11 +15,45 @@
 
 #include <RE/B/BSCoreTypes.h>
 
+#include "../utilities/stringutils.hpp"
+
 class FormId {
     RE::FormID id_;
     std::string pluginName_;
-    /** Lowercase-only version of the plugin name. Used for comparison. **/
-    std::string pluginNameLower_;
+
+    mutable std::optional<std::string> cachedPluginNameLower_;
+    mutable std::optional<std::size_t> cachedHashCode_;
+
+    /**
+     * @brief Lowercase-only version of the plugin name. For comparison and
+     * hashing.
+     **/
+    const std::string& pluginNameLower_() const
+    {
+        if (cachedPluginNameLower_.has_value()) {
+            return *cachedPluginNameLower_;
+        }
+
+        cachedPluginNameLower_ = getLowerString(pluginName_);
+
+        return *cachedPluginNameLower_;
+    }
+
+    std::size_t calculateHashCode_() const
+    {
+        std::size_t seed = 0;
+
+        boost::hash_combine(seed, id_);
+        boost::hash_combine(seed, pluginNameLower_());
+
+        return seed;
+    }
+
+    void invalidateCache_() const
+    {
+        cachedPluginNameLower_.reset();
+        cachedHashCode_.reset();
+    }
 
 public:
     explicit FormId(const toml::array& arr);
@@ -34,10 +70,19 @@ public:
     friend bool operator==(const FormId& lhs, const FormId& rhs) noexcept
     {
         return lhs.id_ == rhs.id_ &&
-               lhs.pluginNameLower_ == rhs.pluginNameLower_;
+               lhs.pluginNameLower_() == rhs.pluginNameLower_();
     }
 
-    friend std::hash<FormId>;
+    std::size_t hash() const
+    {
+        if (cachedHashCode_.has_value()) {
+            return *cachedHashCode_;
+        }
+
+        cachedHashCode_ = calculateHashCode_();
+
+        return *cachedHashCode_;
+    }
 };
 
 // Inject hash specialization into std namespace.
@@ -45,12 +90,7 @@ template <>
 struct std::hash<FormId> {
     std::size_t operator()(const FormId& formId) const noexcept
     {
-        std::size_t seed = 0;
-
-        boost::hash_combine(seed, formId.id_);
-        boost::hash_combine(seed, formId.pluginNameLower_);
-
-        return seed;
+        return formId.hash();
     }
 };
 

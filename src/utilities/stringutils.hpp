@@ -1,42 +1,75 @@
 #pragma once
 
 #include <algorithm>
+#include <iterator>
+#include <ranges>
 #include <string>
+#include <string_view>
+
 #include <cctype>
 
-inline char toUpper(const unsigned char input)
+inline char toUpperChar(const unsigned char input)
 {
     return static_cast<char>(std::toupper(input));
 }
 
-inline void toUpperString(std::string& str)
-{
-    std::transform(str.begin(), str.end(), str.begin(), toUpper);
-}
-
-inline void toUpperString(const std::string& source, std::string& target)
-{
-    target.resize(source.size());
-    std::transform(source.begin(), source.end(), target.begin(), toUpper);
-}
-
-inline char toLower(const unsigned char input)
+inline char toLowerChar(const unsigned char input)
 {
     return static_cast<char>(std::tolower(input));
 }
 
+inline void toUpperString(std::string& str)
+{
+    std::ranges::transform(str, str.begin(), toUpperChar);
+}
+
 inline void toLowerString(std::string& str)
 {
-    std::transform(str.begin(), str.end(), str.begin(), toLower);
+    std::ranges::transform(str, str.begin(), toLowerChar);
 }
 
-inline void toLowerString(const std::string& source, std::string& target)
+inline std::string getUpperString(std::string_view str)
 {
-    target.resize(source.size());
-    std::transform(source.begin(), source.end(), target.begin(), toLower);
+    std::string output;
+    std::ranges::transform(str, std::back_inserter(output), toUpperChar);
+    return output;
 }
 
-inline void capitalizeFirstChar(const std::string& source, std::string& target)
+inline std::string getLowerString(std::string_view str)
 {
-    target.front() = toUpper(source.front());
+    std::string output;
+    std::ranges::transform(str, std::back_inserter(output), toLowerChar);
+    return output;
 }
+
+inline void capitalizeFirstChar(std::string& str)
+{
+    if (str.size() > 0) {
+        str.front() = toUpperChar(str.front());
+    }
+}
+
+inline std::string getFirstCharCapitalizedString(std::string_view str) {
+    std::string output(str);
+    capitalizeFirstChar(output);
+    return output;
+}
+ 
+inline bool iequals(std::string_view lhs, std::string_view rhs)
+{
+    auto toLowerTransform(std::ranges::views::transform(toLowerChar));
+    return std::ranges::equal(lhs | toLowerTransform, rhs | toLowerTransform);
+}
+
+inline void joinIfNotEmpty(
+    std::string& dest,
+    std::string_view source,
+    std::string_view joinString = " ")
+{
+    if (source.size() > 0) {
+        if (dest.size() > 0) {
+            dest.append(joinString);
+        }
+        dest.append(source);
+    }
+};

@@ -193,7 +193,7 @@ public:
         }
 
         if (capitalization_ == Capitalization::FirstUpper) {
-            capitalizeFirstChar(formatString, formatString);
+            capitalizeFirstChar(formatString);
         }
 
         return fmt::format_to(
