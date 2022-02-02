@@ -297,15 +297,17 @@ void YASTMConfig::clear()
 {
     LOG_INFO("Clearing configuration data...");
 
-    // Clear the loaded data (form ID and game form) and leave the default
+    // Clear the loaded data (form ID and game form) but leave the default
     // values intact.
     for (auto& [key, globalBool] : globalBools_) { globalBool.clear(); }
     for (auto& [key, globalEnum] : globalEnums_) { globalEnum.clear(); }
 
-    soulGemGroupList_.clear();
+    soulGemGroupList_ = SoulGemGroupList();
     soulGemMap_.clear();
-    // This doesn't need to be cleared.
-    // dependencies_.clear();
+    // This doesn't need to be cleared because the list won't change until the
+    // game fully restarts.
+    //dependencies_ =
+    //    std::unordered_map<DLLDependencyKey, const SKSE::PluginInfo*>();
 }
 
 void YASTMConfig::loadGlobalForms_(RE::TESDataHandler* const dataHandler)

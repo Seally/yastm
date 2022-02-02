@@ -3,8 +3,9 @@
 #include <array>
 #include <compare>
 #include <functional>
-#include <vector>
 #include <memory>
+#include <unordered_map>
+#include <vector>
 
 #include "../global.hpp"
 #include "SoulSize.hpp"

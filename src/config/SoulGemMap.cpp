@@ -118,7 +118,7 @@ void SoulGemMap::initializeWith(
     soulGemMap_ = std::move(soulGemGroupsByCapacity);
 }
 
-void SoulGemMap::clear() { soulGemMap_.clear(); }
+void SoulGemMap::clear() { soulGemMap_ = FormMap(); }
 
 void SoulGemMap::printContents() const
 {
