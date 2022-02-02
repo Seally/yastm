@@ -161,8 +161,8 @@ struct fmt::formatter<BoolConfigKey> {
         -> decltype(ctx.begin())
     {
         // [ctx.begin(), ctx.end()) is a character range that contains a part of
-        // the format string starting from the format specifications to be parsed,
-        // e.g. in
+        // the format string starting from the format specifications to be
+        // parsed, e.g. in
         //
         //   fmt::format("{:f} - point of interest", point(1, 2));
         //
@@ -194,8 +194,8 @@ struct fmt::formatter<EnumConfigKey> {
         -> decltype(ctx.begin())
     {
         // [ctx.begin(), ctx.end()) is a character range that contains a part of
-        // the format string starting from the format specifications to be parsed,
-        // e.g. in
+        // the format string starting from the format specifications to be
+        // parsed, e.g. in
         //
         //   fmt::format("{:f} - point of interest", point(1, 2));
         //
