@@ -40,20 +40,24 @@
 #    define AE_ONLY(output)
 #    define SE_ONLY(output) output
 #    define VR_ONLY(output)
-/* Syntax: VERSION_SPECIFIC(SE_OUTPUT, AE_OUTPUT, VR_OUTPUT) */
-#    define VERSION_SPECIFIC(se, ae, vr) se
+/* Syntax: VERSION_SPECIFIC_3(SE_OUTPUT, AE_OUTPUT, VR_OUTPUT) */
+#    define VERSION_SPECIFIC_3(se, ae, vr) se
+/* */
+#    define VERSION_SPECIFIC_2(sevr, ae) sevr
 #elif defined(SKYRIM_VERSION_AE)
 #    define AE_ONLY(output) output
 #    define SE_ONLY(output)
 #    define VR_ONLY(output)
-/* Syntax: VERSION_SPECIFIC(SE_OUTPUT, AE_OUTPUT, VR_OUTPUT) */
-#    define VERSION_SPECIFIC(se, ae, vr) ae
+/* Syntax: VERSION_SPECIFIC_3(SE_OUTPUT, AE_OUTPUT, VR_OUTPUT) */
+#    define VERSION_SPECIFIC_3(se, ae, vr) ae
+#    define VERSION_SPECIFIC_2(sevr, ae) ae
 #elif defined(SKYRIM_VERSION_VR)
 #    define AE_ONLY(output)
 #    define SE_ONLY(output)
 #    define VR_ONLY(output) output
-/* Syntax: VERSION_SPECIFIC(SE_OUTPUT, AE_OUTPUT, VR_OUTPUT) */
-#    define VERSION_SPECIFIC(se, ae, vr) vr
+/* Syntax: VERSION_SPECIFIC_3(SE_OUTPUT, AE_OUTPUT, VR_OUTPUT) */
+#    define VERSION_SPECIFIC_3(se, ae, vr) vr
+#    define VERSION_SPECIFIC_2(sevr, ae) sevr
 #else
 #    error "SKYRIM_VERSION_<version> is not defined or invalid."
 #endif
