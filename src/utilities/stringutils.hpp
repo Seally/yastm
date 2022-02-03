@@ -49,12 +49,13 @@ inline void capitalizeFirstChar(std::string& str)
     }
 }
 
-inline std::string getFirstCharCapitalizedString(std::string_view str) {
+inline std::string getFirstCharCapitalizedString(std::string_view str)
+{
     std::string output(str);
     capitalizeFirstChar(output);
     return output;
 }
- 
+
 inline bool iequals(std::string_view lhs, std::string_view rhs)
 {
     auto toLowerTransform(std::ranges::views::transform(toLowerChar));
