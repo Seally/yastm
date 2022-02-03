@@ -33,9 +33,15 @@ private:
         const ConcreteSoulGemGroup& blackSoulGemGroup);
 
 public:
+    /**
+     * @brief Constructs a pure soul gem group.
+     */
     explicit ConcreteSoulGemGroup(
         const SoulGemGroup& sourceGroup,
         RE::TESDataHandler* dataHandler);
+    /**
+     * @brief Constructs a dual soul gem group.
+     */
     explicit ConcreteSoulGemGroup(
         const SoulGemGroup& whiteGrandSoulGemGroup,
         const ConcreteSoulGemGroup& blackSoulGemGroup,
@@ -95,11 +101,12 @@ public:
     // Capacity:
     //
     //     'c': Show capacity string ("black"/"petty"/"common"/etc.)
-    constexpr auto parse(format_parse_context& ctx) -> decltype(ctx.begin())
+    constexpr auto parse(fmt::format_parse_context& ctx)
+        -> decltype(ctx.begin())
     {
         // [ctx.begin(), ctx.end()) is a character range that contains a part of
-        // the format string starting from the format specifications to be parsed,
-        // e.g. in
+        // the format string starting from the format specifications to be
+        // parsed, e.g. in
         //
         //   fmt::format("{:f} - point of interest", point(1, 2));
         //
@@ -121,7 +128,7 @@ public:
                 showCapacity_ = true;
                 break;
             default:
-                throw format_error("invalid format");
+                throw fmt::format_error("invalid format");
             }
         }
 
