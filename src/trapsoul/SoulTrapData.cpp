@@ -1,5 +1,7 @@
 #include "SoulTrapData.hpp"
 
+#include <cassert>
+
 void SoulTrapData::resetInventoryData_()
 {
     std::size_t maxFilledSoulGemsCount = 0;
@@ -20,6 +22,10 @@ void SoulTrapData::resetInventoryData_()
     // thus it's preferable that we exit the soul processing anyway.
     for (const auto& [obj, entryData] : inventoryMap_) {
         const auto soulGem = obj->As<RE::TESSoulGem>();
+
+        // Can happen if the type-cast failed, but all objects in the map
+        // *should* be soul gems already.
+        assert(soulGem != nullptr); 
 
         if (soulGem->GetMaximumCapacity() == soulGem->GetContainedSoul()) {
             ++maxFilledSoulGemsCount;

@@ -53,14 +53,18 @@ namespace {
         }
     }
 
-    void checkFormIsSoulGem_(RE::TESForm* const form)
+    RE::TESSoulGem* toSoulGem_(RE::TESForm* const form)
     {
-        if (!form->IsSoulGem()) {
+        const auto soulGemForm = form->As<RE::TESSoulGem>();
+
+        if (soulGemForm == nullptr) {
             throw UnexpectedFormTypeError(
                 RE::FormType::SoulGem,
                 form->GetFormType(),
                 form->GetName());
         }
+
+        return soulGemForm;
     }
 
     void checkGroupCapacityMatchesSoulGemFormCapacity_(
@@ -193,9 +197,7 @@ void ConcreteSoulGemGroup::initializeFromPrimaryBasis_(
             dataHandler->LookupForm(formId.id(), formId.pluginName());
 
         checkFormIsNotNull_(form, formId);
-        checkFormIsSoulGem_(form);
-
-        RE::TESSoulGem* const soulGemForm = form->As<RE::TESSoulGem>();
+        const auto soulGemForm = toSoulGem_(form);
 
         checkGroupCapacityMatchesSoulGemFormCapacity_(
             soulGemForm,

@@ -63,11 +63,12 @@ inline void Form<T>::loadForm(RE::TESDataHandler* const dataHandler)
         throw MissingFormError(formId);
     }
 
-    const auto formType = form->GetFormType();
+    form_ = form->As<T>();
 
-    if (formType == FormType) {
-        form_ = form->As<T>();
-    } else {
-        throw UnexpectedFormTypeError(FormType, formType, form->GetName());
+    if (form_ == nullptr) {
+        throw UnexpectedFormTypeError(
+            FormType,
+            form->GetFormType(),
+            form->GetName());
     }
 }
