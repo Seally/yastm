@@ -15,6 +15,7 @@
 #include "FormError.hpp"
 #include "ParseError.hpp"
 #include "SoulGemGroup.hpp"
+#include "../utilities/containerutils.hpp"
 #include "../utilities/printerror.hpp"
 
 using namespace std::literals;
@@ -302,7 +303,7 @@ void YASTMConfig::clear()
     for (auto& [key, globalBool] : globalBools_) { globalBool.clear(); }
     for (auto& [key, globalEnum] : globalEnums_) { globalEnum.clear(); }
 
-    soulGemGroupList_ = SoulGemGroupList();
+    clearContainer(soulGemGroupList_);
     soulGemMap_.clear();
     // This doesn't need to be cleared because the list won't change until the
     // game fully restarts.

@@ -2,6 +2,8 @@
 
 #include <filesystem>
 
+#include "../../utilities/containerutils.hpp"
+
 // Note to Future Me: Do not handle exceptions here. Let them propagate to the
 //                    actual Papyrus call so that we have access to the
 //                    Papyrus VM context for logging.
@@ -74,5 +76,5 @@ std::optional<std::reference_wrapper<Config>>
 void ConfigManager::closeAllConfigs()
 {
     std::unique_lock handle(mutex_);
-    configs_.clear();
+    clearContainer(configs_);
 }

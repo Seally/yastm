@@ -156,6 +156,7 @@ set(SOURCES
     src/trapsoul/Victim.cpp
     src/utilities/algorithms.hpp
     src/utilities/assembly.hpp
+    src/utilities/containerutils.hpp
     src/utilities/FormType.hpp
     src/utilities/misc.hpp
     src/utilities/misc.cpp

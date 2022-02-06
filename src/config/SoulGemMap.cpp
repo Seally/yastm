@@ -14,6 +14,7 @@
 #include "../SoulValue.hpp"
 #include "FormError.hpp"
 #include "SoulGemGroup.hpp"
+#include "../utilities/containerutils.hpp"
 #include "../utilities/printerror.hpp"
 #include "../utilities/native.hpp"
 #include "../formatters/TESSoulGem.hpp"
@@ -118,7 +119,7 @@ void SoulGemMap::initializeWith(
     soulGemMap_ = std::move(soulGemGroupsByCapacity);
 }
 
-void SoulGemMap::clear() { soulGemMap_ = FormMap(); }
+void SoulGemMap::clear() { clearContainer(soulGemMap_); }
 
 void SoulGemMap::printContents() const
 {
