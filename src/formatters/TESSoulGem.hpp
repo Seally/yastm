@@ -61,7 +61,7 @@ struct fmt::formatter<RE::TESSoulGem> {
         return fmt::format_to(
             ctx.out(),
             FMT_STRING(
-                "[ID:{:08x}] {} (capacity={}, containedSoulSize={}, canHoldBlackSoul={}, reusable={})"sv),
+                "[ID:{:08X}] {} (capacity={}, containedSoulSize={}, canHoldBlackSoul={}, reusable={})"sv),
             soulGemForm.GetFormID(),
             soulGemForm.GetName(),
             soulGemForm.GetMaximumCapacity(),
