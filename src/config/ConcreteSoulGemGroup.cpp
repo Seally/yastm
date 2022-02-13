@@ -195,20 +195,10 @@ void ConcreteSoulGemGroup::initializeFromPrimaryBasis_(
     for (std::size_t i = 0; i < sourceGroup.members().size(); ++i) {
         const auto& formLocator = sourceGroup.members().at(i);
 
-        const auto form = std::visit(
-            [dataHandler](auto&& arg) {
-                using T = std::decay_t<decltype(arg)>;
-
-                if constexpr (std::is_same_v<T, FormId>) {
-                    return dataHandler->LookupForm(arg.id(), arg.pluginName());
-                } else if constexpr (std::is_same_v<T, std::string>) {
-                    return RE::TESForm::LookupByEditorID(arg);
-                } else {
-                    throw std::runtime_error(
-                        "Invalid SoulGemGroup member type.");
-                }
-            },
-            formLocator);
+        const auto form = getFormForLocator(
+            formLocator,
+            dataHandler,
+            "Invalid SoulGemGroup member type.");
 
         std::visit(
             [form](auto&& formLocator) {

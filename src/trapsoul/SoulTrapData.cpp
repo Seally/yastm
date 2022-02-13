@@ -25,7 +25,7 @@ void SoulTrapData::resetInventoryData_()
 
         // Can happen if the type-cast failed, but all objects in the map
         // *should* be soul gems already.
-        assert(soulGem != nullptr); 
+        assert(soulGem != nullptr);
 
         if (soulGem->GetMaximumCapacity() == soulGem->GetContainedSoul()) {
             ++maxFilledSoulGemsCount;

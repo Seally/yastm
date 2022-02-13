@@ -7,7 +7,7 @@
 
 #include <RE/T/TESDataHandler.h>
 
-#include "FormId.hpp"
+#include "FormLocator.hpp"
 #include "FormError.hpp"
 
 namespace RE {
@@ -17,7 +17,7 @@ namespace RE {
 template <typename T>
 class Form {
 protected:
-    std::optional<FormId> formId_;
+    std::optional<FormLocator> formLocator_;
     T* form_ = nullptr;
 
 public:
@@ -26,25 +26,32 @@ public:
     explicit Form() noexcept {}
     virtual ~Form() {}
 
-    void setFromToml(const toml::array& arr);
+    void setFromTomlArray(const toml::array& arr);
+    void setFromTomlString(const toml::string& str);
     void loadForm(RE::TESDataHandler* dataHandler);
     void clear() noexcept
     {
-        formId_.reset();
+        formLocator_.reset();
         form_ = nullptr;
     }
 
-    const FormId& formId() const { return formId_.value(); }
+    const FormLocator& formLocator() const { return formLocator_.value(); }
     T* form() const noexcept { return form_; }
 
-    bool isConfigLoaded() const noexcept { return formId_.has_value(); }
+    bool isConfigLoaded() const noexcept { return formLocator_.has_value(); }
     bool isFormLoaded() const noexcept { return form_ != nullptr; }
 };
 
 template <typename T>
-inline void Form<T>::setFromToml(const toml::array& arr)
+inline void Form<T>::setFromTomlArray(const toml::array& arr)
 {
-    formId_.emplace(arr);
+    formLocator_.emplace(FormId(arr));
+}
+
+template <typename T>
+inline void Form<T>::setFromTomlString(const toml::string& str)
+{
+    formLocator_.emplace(std::string(str));
 }
 
 template <typename T>
@@ -52,15 +59,18 @@ inline void Form<T>::loadForm(RE::TESDataHandler* const dataHandler)
 {
     using namespace std::literals;
 
-    if (!formId_.has_value()) {
+    if (!formLocator_.has_value()) {
         return;
     }
 
-    const auto& formId = formId_.value();
-    auto form = dataHandler->LookupForm(formId.id(), formId.pluginName());
+    const auto& formLocator = formLocator_.value();
+
+    auto form = getFormForLocator(formLocator, dataHandler);
 
     if (form == nullptr) {
-        throw MissingFormError(formId);
+        std::visit(
+            [](auto&& formLocator) { throw MissingFormError(formLocator); },
+            formLocator);
     }
 
     form_ = form->As<T>();

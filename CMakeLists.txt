@@ -139,6 +139,7 @@ set(SOURCES
     src/config/SpecificationError.cpp
     src/config/YASTMConfig.hpp
     src/config/YASTMConfig.cpp
+    src/formatters/TESForm.hpp
     src/formatters/TESSoulGem.hpp
     src/fsutils/FSUtils.hpp
     src/fsutils/FSUtils.cpp
@@ -158,6 +159,7 @@ set(SOURCES
     src/utilities/algorithms.hpp
     src/utilities/assembly.hpp
     src/utilities/containerutils.hpp
+    src/utilities/formidutils.hpp
     src/utilities/FormType.hpp
     src/utilities/misc.hpp
     src/utilities/misc.cpp

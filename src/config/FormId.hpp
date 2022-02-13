@@ -88,9 +88,9 @@ public:
 // Inject hash specialization into std namespace.
 template <>
 struct std::hash<FormId> {
-    std::size_t operator()(const FormId& formId) const noexcept
+    std::size_t operator()(const FormId& formLocator) const noexcept
     {
-        return formId.hash();
+        return formLocator.hash();
     }
 };
 
@@ -100,8 +100,8 @@ struct fmt::formatter<FormId> {
         -> decltype(ctx.begin())
     {
         // [ctx.begin(), ctx.end()) is a character range that contains a part of
-        // the format string starting from the format specifications to be parsed,
-        // e.g. in
+        // the format string starting from the format specifications to be
+        // parsed, e.g. in
         //
         //   fmt::format("{:f} - point of interest", point(1, 2));
         //
@@ -121,14 +121,15 @@ struct fmt::formatter<FormId> {
     }
 
     template <typename FormatContext>
-    auto format(const FormId& formId, FormatContext& ctx) -> decltype(ctx.out())
+    auto format(const FormId& formLocator, FormatContext& ctx)
+        -> decltype(ctx.out())
     {
         using namespace std::literals;
 
         return fmt::format_to(
             ctx.out(),
             "[{:#08x}, {}]"sv,
-            formId.id(),
-            formId.pluginName());
+            formLocator.id(),
+            formLocator.pluginName());
     }
 };

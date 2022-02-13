@@ -15,6 +15,7 @@
 #include "FormError.hpp"
 #include "ParseError.hpp"
 #include "SoulGemGroup.hpp"
+#include "../formatters/TESForm.hpp"
 #include "../utilities/containerutils.hpp"
 #include "../utilities/printerror.hpp"
 
@@ -30,10 +31,29 @@ namespace {
         const auto keyName = toString(key);
         const auto tomlKeyName = std::string(keyName) + "Global";
 
-        if (const auto idArray = table[tomlKeyName].as_array(); idArray) {
+        const auto& locatorNode = table[tomlKeyName];
+
+        if (const auto formIdArray = locatorNode.as_array();
+            formIdArray != nullptr) {
             if (map.contains(key)) {
                 try {
-                    map.at(key).setFromToml(*idArray);
+                    map.at(key).setFromTomlArray(*formIdArray);
+                } catch (const ParseError& error) {
+                    LOG_ERROR_FMT(
+                        "Error while reading configuration for key \"{}\":"sv,
+                        keyName);
+                    printError(error, 1);
+                }
+            } else {
+                LOG_ERROR_FMT(
+                    "Initialized global map does not contain configuration for key \"{}\"."sv,
+                    keyName);
+            }
+        } else if (const auto edidString = locatorNode.as_string();
+                   edidString != nullptr) {
+            if (map.contains(key)) {
+                try {
+                    map.at(key).setFromTomlString(edidString->get());
                 } catch (const ParseError& error) {
                     LOG_ERROR_FMT(
                         "Error while reading configuration for key \"{}\":"sv,
@@ -75,11 +95,28 @@ namespace {
     }
 
     template <typename KeyType>
+    void printGlobalForms_(const YASTMConfig::GlobalVarMap<KeyType>& map)
+    {
+        for (const auto& [key, globalVar] : map) {
+            if (globalVar.isConfigLoaded()) {
+                std::visit(
+                    [key](auto&& formLocator) {
+                        LOG_INFO_FMT("- {} = {}"sv, key, formLocator);
+                    },
+                    globalVar.formLocator());
+            }
+        }
+    }
+
+    template <typename KeyType>
     void printLoadedGlobalForms_(const YASTMConfig::GlobalVarMap<KeyType>& map)
     {
-        for (auto& [key, globalVar] : map) {
+        for (const auto& [key, globalVar] : map) {
             if (globalVar.isFormLoaded()) {
-                LOG_INFO_FMT("- {}: {}"sv, key, globalVar.formId());
+                LOG_INFO_FMT(
+                    "- {} = {}",
+                    key,
+                    *static_cast<RE::TESForm*>(globalVar.form()));
             } else {
                 LOG_INFO_FMT("- {}: Not loaded."sv, key);
             }
@@ -141,17 +178,8 @@ void YASTMConfig::loadYASTMConfigFile_()
     // Game hasn't fully initialized.)
     LOG_INFO("Loaded configuration from TOML:"sv);
 
-    for (const auto& [key, globalVar] : globalBools_) {
-        if (globalVar.isConfigLoaded()) {
-            LOG_INFO_FMT("- {} = {}"sv, key, globalVar.formId());
-        }
-    }
-
-    for (const auto& [key, globalVar] : globalEnums_) {
-        if (globalVar.isConfigLoaded()) {
-            LOG_INFO_FMT("- {} = {}"sv, key, globalVar.formId());
-        }
-    }
+    printGlobalForms_(globalBools_);
+    printGlobalForms_(globalEnums_);
 }
 
 void YASTMConfig::loadIndividualConfigFiles_()
