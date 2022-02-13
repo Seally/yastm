@@ -3,6 +3,7 @@
 #include <exception>
 #include <memory>
 #include <string>
+#include <variant>
 #include <vector>
 
 #include <fmt/format.h>
@@ -11,7 +12,7 @@
 #include <RE/S/SoulLevels.h>
 
 #include "../utilities/stringutils.hpp"
-#include "FormId.hpp"
+#include "FormLocator.hpp"
 #include "LoadPriority.hpp"
 #include "SoulSize.hpp"
 
@@ -23,7 +24,7 @@ namespace RE {
 class SoulGemGroup {
 public:
     using IdType = std::string;
-    using MemberList = std::vector<FormId>;
+    using MemberList = std::vector<FormLocator>;
 
 private:
     IdType id_;
@@ -73,11 +74,11 @@ public:
     {
         return members_;
     }
-    [[nodiscard]] const FormId& emptyMember() const
+    [[nodiscard]] MemberList::const_reference emptyMember() const
     {
         return members().front();
     }
-    [[nodiscard]] const FormId& filledMember() const
+    [[nodiscard]] MemberList::const_reference filledMember() const
     {
         return members().back();
     }

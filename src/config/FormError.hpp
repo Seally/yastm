@@ -2,6 +2,9 @@
 
 #include <exception>
 #include <string>
+#include <string_view>
+
+#include <fmt/format.h>
 
 #include <RE/F/FormTypes.h>
 
@@ -32,7 +35,9 @@ public:
 
 class MissingFormError : public FormError {
 public:
-    const FormId formId;
-
-    explicit MissingFormError(const FormId& formId);
+    template <typename T>
+    explicit MissingFormError(const T& formLocator)
+        : FormError(
+              fmt::format(FMT_STRING("Form does not exist: {}"sv), formLocator))
+    {}
 };

@@ -212,8 +212,12 @@ void YASTMConfig::loadIndividualConfigFiles_()
             soulGemGroup.capacity(),
             toString(soulGemGroup.rawPriority()));
 
-        for (const auto& soulGemId : soulGemGroup.members()) {
-            LOG_INFO_FMT("        {}"sv, soulGemId);
+        for (const auto& soulGemLocator : soulGemGroup.members()) {
+            std::visit(
+                [](auto&& soulGemLocator) {
+                    LOG_INFO_FMT("        {}"sv, soulGemLocator);
+                },
+                soulGemLocator);
         }
     }
 

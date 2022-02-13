@@ -31,13 +31,16 @@ void SoulGemMap::initializeWith(
 
     FormMap soulGemGroupsByCapacity;
 
+    using MapKey = SoulGemGroup::MemberList::value_type;
+
     /**
      * @brief Stores a map of the empty soul gem FormId to its soul gem group. 
     */
     std::unordered_map<
-        std::reference_wrapper<const FormId>,
+        std::reference_wrapper<const MapKey>,
         const ConcreteSoulGemGroup*,
-        std::hash<FormId>>
+        std::hash<MapKey>,
+        std::equal_to<MapKey>>
         blackSoulGemGroupMap;
 
     LOG_INFO("Loading black soul gem groups");

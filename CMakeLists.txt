@@ -126,6 +126,7 @@ set(SOURCES
     src/config/FormError.cpp
     src/config/FormId.hpp
     src/config/FormId.cpp
+    src/config/FormLocator.hpp
     src/config/GlobalVarForm.hpp
     src/config/LoadPriority.hpp
     src/config/ParseError.hpp

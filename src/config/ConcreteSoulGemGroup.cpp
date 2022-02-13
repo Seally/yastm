@@ -46,10 +46,11 @@ namespace {
             capacity));
     }
 
-    void checkFormIsNotNull_(RE::TESForm* const form, const FormId& formId)
+    template <typename T>
+    void checkFormIsNotNull_(RE::TESForm* const form, const T& formLocator)
     {
         if (form == nullptr) {
-            throw MissingFormError(formId);
+            throw MissingFormError(formLocator);
         }
     }
 
@@ -67,9 +68,10 @@ namespace {
         return soulGemForm;
     }
 
+    template <typename T>
     void checkGroupCapacityMatchesSoulGemFormCapacity_(
         RE::TESSoulGem* const form,
-        const FormId& formId,
+        const T& formLocator,
         const SoulGemGroup& group)
     {
         // We use effective capacity since black souls are grand souls
@@ -78,7 +80,7 @@ namespace {
             throw SpecificationError(fmt::format(
                 FMT_STRING(
                     "Soul gem form {} \"{}\" in {} does not have a capacity matching configuration"sv),
-                formId,
+                formLocator,
                 form->GetName(),
                 group));
         }
@@ -191,18 +193,38 @@ void ConcreteSoulGemGroup::initializeFromPrimaryBasis_(
     capacity_ = sourceGroup.capacity();
 
     for (std::size_t i = 0; i < sourceGroup.members().size(); ++i) {
-        const auto& formId = sourceGroup.members().at(i);
+        const auto& formLocator = sourceGroup.members().at(i);
 
-        const auto form =
-            dataHandler->LookupForm(formId.id(), formId.pluginName());
+        const auto form = std::visit(
+            [dataHandler](auto&& arg) {
+                using T = std::decay_t<decltype(arg)>;
 
-        checkFormIsNotNull_(form, formId);
+                if constexpr (std::is_same_v<T, FormId>) {
+                    return dataHandler->LookupForm(arg.id(), arg.pluginName());
+                } else if constexpr (std::is_same_v<T, std::string>) {
+                    return RE::TESForm::LookupByEditorID(arg);
+                } else {
+                    throw std::runtime_error(
+                        "Invalid SoulGemGroup member type.");
+                }
+            },
+            formLocator);
+
+        std::visit(
+            [form](auto&& formLocator) {
+                checkFormIsNotNull_(form, formLocator);
+            },
+            formLocator);
         const auto soulGemForm = toSoulGem_(form);
 
-        checkGroupCapacityMatchesSoulGemFormCapacity_(
-            soulGemForm,
-            formId,
-            sourceGroup);
+        std::visit(
+            [soulGemForm, &sourceGroup](auto&& formLocator) {
+                checkGroupCapacityMatchesSoulGemFormCapacity_(
+                    soulGemForm,
+                    formLocator,
+                    sourceGroup);
+            },
+            formLocator);
 
         const bool isReusable =
             checkSoulGemReusability_(soulGemForm, sourceGroup);

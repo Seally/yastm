@@ -3,11 +3,13 @@
 #include <concepts>
 #include <iterator>
 #include <queue>
+#include <string>
 
 #include <cassert>
 
 #include "../global.hpp"
 #include "../utilities/algorithms.hpp"
+#include "FormId.hpp"
 #include "ParseError.hpp"
 
 using namespace std::literals;
@@ -126,7 +128,9 @@ namespace {
             try {
                 elem.visit([&](auto&& el) {
                     if constexpr (toml::is_array<decltype(el)>) {
-                        members.emplace_back(el);
+                        members.push_back(FormId(el));
+                    } else if constexpr (toml::is_string<decltype(el)>) {
+                        members.push_back(std::string(el));
                     } else {
                         throw ParseError(fmt::format(
                             FMT_STRING("{}[{}] is not an array"),

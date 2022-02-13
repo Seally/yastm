@@ -1,6 +1,5 @@
 #include "FormError.hpp"
 
-#include <fmt/format.h>
 #include "../utilities/FormType.hpp"
 
 using namespace std::literals;
@@ -17,9 +16,4 @@ UnexpectedFormTypeError::UnexpectedFormTypeError(
     , expectedFormType(expectedFormType)
     , receivedFormType(receivedFormType)
     , formName(formName)
-{}
-
-MissingFormError::MissingFormError(const FormId& formId)
-    : FormError(fmt::format(FMT_STRING("Form does not exist: {}"sv), formId))
-    , formId(formId)
 {}
