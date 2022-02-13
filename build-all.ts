@@ -7,7 +7,7 @@ const args = flags.parse(Deno.args, {
     alias: {
         help: "h",
     },
-    boolean: ["help", "rebuild", "clean-only", "configure-only"],
+    boolean: ["help", "rebuild", "skip-configure", "skip-build", "clean-only"],
 });
 
 function printHelp() {
@@ -15,12 +15,13 @@ function printHelp() {
         "OPTIONS",
         "--help, -h        Prints this help.",
         "--rebuild         Cleans and builds the project.",
+        "--skip-configure  Skip CMake configure step.",
+        "--skip-build      Skip building step.",
         "--clean-only      Only clean the targets. Prevents CMake configure.",
-        "--configure-only  Do not compile, only configure CMake.",
         "",
         "In case of conflicting arguments, the priority is in this order:",
         "",
-        "    --clean-only > --configure-only > --rebuild",
+        "    clean-only > skip-configure == skip-build > rebuild",
     ].join("\n"));
 }
 
@@ -28,7 +29,8 @@ const verifyArgs = t.isPartial({
     help: t.isBoolean(),
     h: t.isBoolean(),
     rebuild: t.isBoolean(),
-    "configure-only": t.isBoolean(),
+    "skip-configure": t.isBoolean(),
+    "skip-build": t.isBoolean(),
     "clean-only": t.isBoolean(),
 });
 
@@ -66,7 +68,7 @@ for (const buildPreset of cmakeUserPresets?.buildPresets) {
             Deno.exit(1);
         }
     } else {
-        {
+        if (!args["skip-configure"]) {
             const displayString = `${configurePreset} (configure - task ${
                 index + 1
             } of ${cmakeUserPresets.buildPresets.length})`;
@@ -86,7 +88,7 @@ for (const buildPreset of cmakeUserPresets?.buildPresets) {
             }
         }
 
-        if (!args["configure-only"]) {
+        if (!args["skip-build"]) {
             const displayString = `${configurePreset} (build - task ${
                 index + 1
             } of ${cmakeUserPresets.buildPresets.length})`;
