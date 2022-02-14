@@ -125,5 +125,31 @@ public:
     constexpr size_type max_size() const noexcept { return data_.max_size(); }
     constexpr size_type capacity() const noexcept { return data_.capacity(); }
 
-    constexpr void swap(EnumVector& other) noexcept { data_.swap(other.data); }
+    constexpr void swap(EnumVector& other) noexcept { data_.swap(other.data_); }
+
+    friend constexpr bool
+        operator==(const EnumVector& lhs, const EnumVector& rhs)
+    {
+        return lhs.data_ == rhs.data_;
+    }
+
+    friend constexpr auto
+        operator<=>(const EnumVector& lhs, const EnumVector& rhs)
+    {
+        return lhs.data_ <=> rhs.data_;
+    }
 };
+
+namespace std {
+    template <
+        typename K,
+        typename T,
+        std::size_t Size = static_cast<std::size_t>(K::Size),
+        typename Allocator = std::allocator<T>>
+    void swap(
+        EnumVector<K, T, Size, Allocator>& lhs,
+        EnumVector<K, T, Size, Allocator>& rhs) noexcept
+    {
+        lhs.swap(rhs);
+    }
+} // namespace std
