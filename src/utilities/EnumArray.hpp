@@ -7,10 +7,10 @@
 #include <cstddef>
 
 /**
- * @brief An std::vector wrapper that can use an enum class as indices. By
- * default, it uses K::Size as the size of the vector, unless overridden.
+ * @brief An std::array wrapper that can use an enum class as indices. By
+ * default, it uses K::Size as the size of the array, unless overridden.
  *
- * Most functions simply call the internal std::vector's function. Most
+ * Most functions simply call the internal std::array's function. Most
  * functions that can change the size of the internal vector are not exposed.
  *
  * T must be default constructible.
@@ -18,50 +18,23 @@
 template <
     typename K,
     typename T,
-    std::size_t Size = static_cast<std::size_t>(K::Size),
-    typename Allocator = std::allocator<T>>
-class EnumVector {
-    std::vector<T, Allocator> data_;
-    using wrapped_vector_ = decltype(data_);
+    std::size_t Size = static_cast<std::size_t>(K::Size)>
+class EnumArray {
+    std::array<T, Size> data_;
+    using wrapped_array_ = decltype(data_);
 
 public:
-    using value_type = wrapped_vector_::value_type;
-    using allocator_type = wrapped_vector_::allocator_type;
-    using size_type = wrapped_vector_::size_type;
-    using difference_type = wrapped_vector_::difference_type;
-    using reference = wrapped_vector_::reference;
-    using const_reference = wrapped_vector_::const_reference;
-    using pointer = wrapped_vector_::pointer;
-    using const_pointer = wrapped_vector_::const_pointer;
-    using iterator = wrapped_vector_::iterator;
-    using const_iterator = wrapped_vector_::const_iterator;
-    using reverse_iterator = wrapped_vector_::reverse_iterator;
-    using const_reverse_iterator = wrapped_vector_::const_reverse_iterator;
-
-    constexpr EnumVector() noexcept(noexcept(Allocator()))
-        : data_(Size)
-    {}
-    constexpr explicit EnumVector(const Allocator& alloc) noexcept
-        : data_(Size, alloc)
-    {}
-    constexpr EnumVector(const EnumVector& other) = default;
-    constexpr EnumVector(const EnumVector& other, const Allocator& alloc)
-        : data_(other.data_, alloc)
-    {}
-    constexpr EnumVector(EnumVector&& other) noexcept = default;
-    constexpr EnumVector(EnumVector&& other, const Allocator& alloc) noexcept
-        : data_(std::move(other.data_), alloc)
-    {}
-
-    constexpr ~EnumVector() {}
-
-    constexpr EnumVector& operator=(const EnumVector&) = default;
-    constexpr EnumVector& operator=(EnumVector&&) noexcept = default;
-
-    constexpr allocator_type get_allocator() const noexcept
-    {
-        return data_.get_allocator();
-    }
+    using value_type = wrapped_array_::value_type;
+    using size_type = wrapped_array_::size_type;
+    using difference_type = wrapped_array_::difference_type;
+    using reference = wrapped_array_::reference;
+    using const_reference = wrapped_array_::const_reference;
+    using pointer = wrapped_array_::pointer;
+    using const_pointer = wrapped_array_::const_pointer;
+    using iterator = wrapped_array_::iterator;
+    using const_iterator = wrapped_array_::const_iterator;
+    using reverse_iterator = wrapped_array_::reverse_iterator;
+    using const_reverse_iterator = wrapped_array_::const_reverse_iterator;
 
     constexpr reference at(const K key)
     {
@@ -79,6 +52,26 @@ public:
     constexpr const_reference operator[](const K key) const
     {
         return data_[static_cast<size_type>(key)];
+    }
+
+    template <K Key>
+    constexpr reference get() noexcept
+    {
+        static_assert(
+            static_cast<std::size_t>(Key) < Size,
+            "array index out of bounds");
+
+        return (*this)[Key];
+    }
+
+    template <K Key>
+    constexpr const_reference get() const noexcept
+    {
+        static_assert(
+            static_cast<std::size_t>(Key) < Size,
+            "array index out of bounds");
+
+        return (*this)[Key];
     }
 
     constexpr reference front() { return data_.front(); }
@@ -127,16 +120,16 @@ public:
     constexpr size_type max_size() const noexcept { return data_.max_size(); }
     constexpr size_type capacity() const noexcept { return data_.capacity(); }
 
-    constexpr void swap(EnumVector& other) noexcept { data_.swap(other.data_); }
+    constexpr void swap(EnumArray& other) noexcept { data_.swap(other.data_); }
+    constexpr void fill(const T& value) { data_.fill(value); }
 
-    friend constexpr bool
-        operator==(const EnumVector& lhs, const EnumVector& rhs)
+    friend constexpr bool operator==(const EnumArray& lhs, const EnumArray& rhs)
     {
         return lhs.data_ == rhs.data_;
     }
 
     friend constexpr auto
-        operator<=>(const EnumVector& lhs, const EnumVector& rhs)
+        operator<=>(const EnumArray& lhs, const EnumArray& rhs)
     {
         return lhs.data_ <=> rhs.data_;
     }
@@ -146,11 +139,8 @@ namespace std {
     template <
         typename K,
         typename T,
-        std::size_t Size = static_cast<std::size_t>(K::Size),
-        typename Allocator = std::allocator<T>>
-    void swap(
-        EnumVector<K, T, Size, Allocator>& lhs,
-        EnumVector<K, T, Size, Allocator>& rhs) noexcept
+        std::size_t Size = static_cast<std::size_t>(K::Size)>
+    void swap(EnumArray<K, T, Size>& lhs, EnumArray<K, T, Size>& rhs) noexcept
     {
         lhs.swap(rhs);
     }

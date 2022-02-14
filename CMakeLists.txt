@@ -159,7 +159,7 @@ set(SOURCES
     src/utilities/algorithms.hpp
     src/utilities/assembly.hpp
     src/utilities/containerutils.hpp
-    src/utilities/EnumVector.hpp
+    src/utilities/EnumArray.hpp
     src/utilities/formidutils.hpp
     src/utilities/FormType.hpp
     src/utilities/misc.hpp

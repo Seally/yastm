@@ -11,7 +11,7 @@
 #include "SoulSize.hpp"
 #include "ConcreteSoulGemGroup.hpp"
 #include "SpecificationError.hpp"
-#include "../utilities/EnumVector.hpp"
+#include "../utilities/EnumArray.hpp"
 
 namespace RE {
     class TESDataHandler;
@@ -29,7 +29,7 @@ private:
     using SoulGemList = std::vector<RE::TESSoulGem*>;
     using ConcreteSoulGemGroupList =
         std::vector<std::unique_ptr<ConcreteSoulGemGroup>>;
-    using FormMap = EnumVector<
+    using FormMap = EnumArray<
         SoulGemCapacity,
         ConcreteSoulGemGroupList>;
     FormMap soulGemMap_;
