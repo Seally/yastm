@@ -1,8 +1,10 @@
 #pragma once
 
-#include <initializer_list>
+#include <memory>
 #include <utility>
 #include <vector>
+
+#include <cstddef>
 
 /**
  * @brief An std::vector wrapper that can use an enum class as indices. By
