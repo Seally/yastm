@@ -31,8 +31,7 @@ private:
         std::vector<std::unique_ptr<ConcreteSoulGemGroup>>;
     using FormMap = EnumVector<
         SoulGemCapacity,
-        ConcreteSoulGemGroupList,
-        static_cast<std::size_t>(SoulGemCapacity::Last)>;
+        ConcreteSoulGemGroupList>;
     FormMap soulGemMap_;
 
     friend class Iterator;
