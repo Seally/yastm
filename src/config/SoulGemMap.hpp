@@ -11,6 +11,7 @@
 #include "SoulSize.hpp"
 #include "ConcreteSoulGemGroup.hpp"
 #include "SpecificationError.hpp"
+#include "../utilities/EnumVector.hpp"
 
 namespace RE {
     class TESDataHandler;
@@ -28,8 +29,10 @@ private:
     using SoulGemList = std::vector<RE::TESSoulGem*>;
     using ConcreteSoulGemGroupList =
         std::vector<std::unique_ptr<ConcreteSoulGemGroup>>;
-    using FormMap =
-        std::unordered_map<SoulGemCapacity, ConcreteSoulGemGroupList>;
+    using FormMap = EnumVector<
+        SoulGemCapacity,
+        ConcreteSoulGemGroupList,
+        static_cast<std::size_t>(SoulGemCapacity::Last)>;
     FormMap soulGemMap_;
 
     friend class Iterator;

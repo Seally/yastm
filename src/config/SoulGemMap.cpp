@@ -111,12 +111,6 @@ void SoulGemMap::initializeWith(
         }
     });
 
-    LOG_INFO("Initialize missing capacity vectors");
-    // Initialize the missing vectors for capacities if not already constructed.
-    forEachSoulGemCapacity([&](const SoulGemCapacity capacity) {
-        soulGemGroupsByCapacity.try_emplace(capacity);
-    });
-
     // Assign it if we reach this point so we don't end in a half-initialized
     // state.
     soulGemMap_ = std::move(soulGemGroupsByCapacity);
