@@ -12,8 +12,6 @@
  *
  * Most functions simply call the internal std::array's function. Most
  * functions that can change the size of the internal vector are not exposed.
- *
- * T must be default constructible.
  */
 template <
     typename K,
@@ -21,20 +19,21 @@ template <
     std::size_t Size = static_cast<std::size_t>(K::Size)>
 class EnumArray {
     std::array<T, Size> data_;
-    using wrapped_array_ = decltype(data_);
+    using wrapped_type_ = decltype(data_);
 
 public:
-    using value_type = wrapped_array_::value_type;
-    using size_type = wrapped_array_::size_type;
-    using difference_type = wrapped_array_::difference_type;
-    using reference = wrapped_array_::reference;
-    using const_reference = wrapped_array_::const_reference;
-    using pointer = wrapped_array_::pointer;
-    using const_pointer = wrapped_array_::const_pointer;
-    using iterator = wrapped_array_::iterator;
-    using const_iterator = wrapped_array_::const_iterator;
-    using reverse_iterator = wrapped_array_::reverse_iterator;
-    using const_reverse_iterator = wrapped_array_::const_reverse_iterator;
+    using value_type = typename wrapped_type_::value_type;
+    using size_type = typename wrapped_type_::size_type;
+    using difference_type = typename wrapped_type_::difference_type;
+    using reference = typename wrapped_type_::reference;
+    using const_reference = typename wrapped_type_::const_reference;
+    using pointer = typename wrapped_type_::pointer;
+    using const_pointer = typename wrapped_type_::const_pointer;
+    using iterator = typename wrapped_type_::iterator;
+    using const_iterator = typename wrapped_type_::const_iterator;
+    using reverse_iterator = typename wrapped_type_::reverse_iterator;
+    using const_reverse_iterator =
+        typename wrapped_type_::const_reverse_iterator;
 
     constexpr reference at(const K key)
     {
