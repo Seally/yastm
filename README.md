@@ -126,22 +126,6 @@ if you don't have the compiler installed.
             }
         },
         {
-            "name": "x64-Debug-AE-MSVC142",
-            "inherits": [ "base", "msvc142", "vs2022", "ae" ],
-            "cacheVariables": {
-                "COPY_BUILD": true,
-                "SKYRIM64_DATA_PATH": "D:/Games/MO2 Data/SkyrimAE/mods/YASTM - SKSE Plugin (Debug)"
-            }
-        },
-        {
-            "name": "x64-Release-AE-MSVC142",
-            "inherits": [ "base", "msvc142", "vs2022", "ae" ],
-            "cacheVariables": {
-                "COPY_BUILD": true,
-                "SKYRIM64_DATA_PATH": "D:/Games/MO2 Data/SkyrimAE/mods/YASTM - SKSE Plugin"
-            }
-        },
-        {
             "name": "x64-Debug-SE-MSVC143",
             "inherits": [ "base", "msvc143", "vs2022", "se" ],
             "cacheVariables": {
@@ -155,6 +139,22 @@ if you don't have the compiler installed.
             "cacheVariables": {
                 "COPY_BUILD": false,
                 "SKYRIM64_DATA_PATH": "D:/Games/MO2 Data/SkyrimSE/mods/YASTM - SKSE Plugin"
+            }
+        },
+        {
+            "name": "x64-Debug-AE-MSVC142",
+            "inherits": [ "base", "msvc142", "vs2022", "ae" ],
+            "cacheVariables": {
+                "COPY_BUILD": true,
+                "SKYRIM64_DATA_PATH": "D:/Games/MO2 Data/SkyrimAE/mods/YASTM - SKSE Plugin (Debug)"
+            }
+        },
+        {
+            "name": "x64-Release-AE-MSVC142",
+            "inherits": [ "base", "msvc142", "vs2022", "ae" ],
+            "cacheVariables": {
+                "COPY_BUILD": true,
+                "SKYRIM64_DATA_PATH": "D:/Games/MO2 Data/SkyrimAE/mods/YASTM - SKSE Plugin"
             }
         },
         {
@@ -172,6 +172,34 @@ if you don't have the compiler installed.
                 "COPY_BUILD": false,
                 "SKYRIM64_DATA_PATH": "D:/Games/MO2 Data/SkyrimAE/mods/YASTM - SKSE Plugin"
             }
+        },
+        {
+            "name": "x64-Debug-VR-MSVC142",
+            "inherits": [ "base", "msvc142", "vs2022", "vr" ],
+            "cacheVariables": {
+                "COPY_BUILD": false
+            }
+        },
+        {
+            "name": "x64-Release-VR-MSVC142",
+            "inherits": [ "base", "msvc142", "vs2022", "vr" ],
+            "cacheVariables": {
+                "COPY_BUILD": false
+            }
+        },
+        {
+            "name": "x64-Debug-VR-MSVC143",
+            "inherits": [ "base", "msvc143", "vs2022", "vr" ],
+            "cacheVariables": {
+                "COPY_BUILD": false
+            }
+        },
+        {
+            "name": "x64-Release-VR-MSVC143",
+            "inherits": [ "base", "msvc143", "vs2022", "vr" ],
+            "cacheVariables": {
+                "COPY_BUILD": false
+            }
         }
     ],
     "buildPresets": [
@@ -188,18 +216,6 @@ if you don't have the compiler installed.
             "configurePreset": "x64-Release-SE-MSVC142"
         },
         {
-            "name": "ae-debug-msvc142",
-            "displayName": "AE Debug",
-            "configuration": "Debug",
-            "configurePreset": "x64-Debug-AE-MSVC142"
-        },
-        {
-            "name": "ae-release-msvc142",
-            "displayName": "AE Release",
-            "configuration": "RelWithDebInfo",
-            "configurePreset": "x64-Release-AE-MSVC142"
-        },
-        {
             "name": "se-debug-msvc143",
             "displayName": "SE Debug",
             "configuration": "Debug",
@@ -212,6 +228,18 @@ if you don't have the compiler installed.
             "configurePreset": "x64-Release-SE-MSVC143"
         },
         {
+            "name": "ae-debug-msvc142",
+            "displayName": "AE Debug",
+            "configuration": "Debug",
+            "configurePreset": "x64-Debug-AE-MSVC142"
+        },
+        {
+            "name": "ae-release-msvc142",
+            "displayName": "AE Release",
+            "configuration": "RelWithDebInfo",
+            "configurePreset": "x64-Release-AE-MSVC142"
+        },
+        {
             "name": "ae-debug-msvc143",
             "displayName": "AE Debug",
             "configuration": "Debug",
@@ -222,6 +250,30 @@ if you don't have the compiler installed.
             "displayName": "AE Release",
             "configuration": "RelWithDebInfo",
             "configurePreset": "x64-Release-AE-MSVC143"
+        },
+        {
+            "name": "vr-debug-msvc142",
+            "displayName": "VR Debug",
+            "configuration": "Debug",
+            "configurePreset": "x64-Debug-VR-MSVC142"
+        },
+        {
+            "name": "vr-release-msvc142",
+            "displayName": "VR Release",
+            "configuration": "RelWithDebInfo",
+            "configurePreset": "x64-Release-VR-MSVC142"
+        },
+        {
+            "name": "vr-debug-msvc143",
+            "displayName": "VR Debug",
+            "configuration": "Debug",
+            "configurePreset": "x64-Debug-VR-MSVC143"
+        },
+        {
+            "name": "vr-release-msvc143",
+            "displayName": "VR Release",
+            "configuration": "RelWithDebInfo",
+            "configurePreset": "x64-Release-VR-MSVC143"
         }
     ]
 }
