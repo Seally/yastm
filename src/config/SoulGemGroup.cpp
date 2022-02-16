@@ -4,6 +4,7 @@
 #include <iterator>
 #include <queue>
 #include <string>
+#include <utility>
 
 #include <cassert>
 
@@ -128,9 +129,11 @@ namespace {
             try {
                 elem.visit([&](auto&& el) {
                     if constexpr (toml::is_array<decltype(el)>) {
-                        members.push_back(FormId(el));
+                        members.emplace_back(std::in_place_type<FormId>, el);
                     } else if constexpr (toml::is_string<decltype(el)>) {
-                        members.push_back(std::string(el));
+                        members.emplace_back(
+                            std::in_place_type<std::string>,
+                            el);
                     } else {
                         throw ParseError(fmt::format(
                             FMT_STRING("{}[{}] is not an array"),

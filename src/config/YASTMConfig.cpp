@@ -196,7 +196,7 @@ void YASTMConfig::loadIndividualConfigFiles_()
                 LOG_INFO_FMT(
                     "Found YASTM soul gem configuration file: {}"sv,
                     fileNameStr);
-                configPaths.push_back(entry.path());
+                configPaths.emplace_back(entry.path());
             }
         }
     }
