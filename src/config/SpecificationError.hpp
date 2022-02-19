@@ -6,13 +6,7 @@
 
 class SpecificationError : public std::runtime_error {
 public:
-    explicit SpecificationError(const std::string& message)
-        : std::runtime_error(message)
-    {}
-
-    explicit SpecificationError(const char* message)
-        : std::runtime_error(message)
-    {}
+    using std::runtime_error::runtime_error;
 };
 
 class InvalidSoulSpecificationError : public SpecificationError {

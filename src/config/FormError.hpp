@@ -1,7 +1,6 @@
 #pragma once
 
 #include <exception>
-#include <string>
 #include <string_view>
 
 #include <fmt/format.h>
@@ -12,13 +11,7 @@
 
 class FormError : public std::runtime_error {
 public:
-    explicit FormError(const std::string& message)
-        : std::runtime_error(message)
-    {}
-
-    explicit FormError(const char* message)
-        : std::runtime_error(message)
-    {}
+    using std::runtime_error::runtime_error;
 };
 
 class UnexpectedFormTypeError : public FormError {
