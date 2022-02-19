@@ -3,7 +3,7 @@
 InvalidSoulSpecificationError::InvalidSoulSpecificationError(
     const SoulSize givenCapacity,
     const SoulSize givenContainedSoul,
-    const std::string& message)
+    std::string_view message)
     : SpecificationError(
           message.empty()
               ? fmt::format(
@@ -11,7 +11,7 @@ InvalidSoulSpecificationError::InvalidSoulSpecificationError(
                         "Attempted to look up invalid soul capacity {} and contained soul size {}"sv),
                     givenCapacity,
                     givenContainedSoul)
-              : message)
+              : message.data())
     , givenCapacity(givenCapacity)
     , givenContainedSoul(givenContainedSoul)
 {}

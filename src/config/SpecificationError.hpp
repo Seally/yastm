@@ -1,6 +1,7 @@
 #pragma once
 
 #include <exception>
+#include <string_view>
 
 #include "SoulSize.hpp"
 
@@ -17,7 +18,7 @@ public:
     explicit InvalidSoulSpecificationError(
         SoulSize givenCapacity,
         SoulSize givenContainedSoul,
-        const std::string& message = std::string());
+        std::string_view message = "");
 };
 
 class InvalidWhiteSoulSpecificationError :
