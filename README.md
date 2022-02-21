@@ -96,9 +96,11 @@ the path of Vcpkg.
 Copy and paste this into `CMakeUserPresets.json`, then modify values as
 appropriate. Replace `base-vs2022` with `base-vs2019` if you're using VS2019.
 
-Both configurations are set up to use MSVC 14.2 compiler (VS2019) instead of
-14.3. Either install it or remove the `toolset` key from `CMakePresets.json`
-if you don't have the compiler installed.
+The `msvc142` hidden preset uses MSVC 14.2 (VS2019) while `msvc143` uses
+MSVC 14.3 (VS2022) as their names suggest. Public builds normally use the
+14.2 compiler, but the 14.3 build is done to make sure the code compiles under
+that compiler as well. Use whichever compiler you find appropriate for your own
+builds.
 
 ```json
 {
