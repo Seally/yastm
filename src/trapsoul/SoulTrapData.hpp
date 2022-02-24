@@ -38,14 +38,14 @@ private:
     std::optional<Victim> victim_;
 
     template <typename MessageKey>
-    void notify_(const MessageKey message);
-    void sendSoulTrapEvent_(RE::Actor* const victim);
+    void notify_(MessageKey message);
+    void sendSoulTrapEvent_(RE::Actor* victim);
     void resetInventoryData_();
 
 public:
     const YASTMConfig::Snapshot config;
 
-    SoulTrapData(RE::Actor* const caster);
+    SoulTrapData(RE::Actor* caster);
 
     SoulTrapData(const SoulTrapData&) = delete;
     SoulTrapData(SoulTrapData&&) = delete;
