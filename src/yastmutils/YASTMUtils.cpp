@@ -19,11 +19,11 @@ using RE::BSScript::Internal::VirtualMachine;
 
 namespace {
     RE::Actor* TrapSoulAndGetCaster(
-        [[maybe_unused]] VirtualMachine* vm,
+        [[maybe_unused]] VirtualMachine* const vm,
         [[maybe_unused]] RE::VMStackID stackId,
         RE::StaticFunctionTag*,
         RE::Actor* caster,
-        RE::Actor* victim)
+        RE::Actor* const victim)
     {
         // This logs the "enter" and "exit" messages upon construction and
         // destruction, respectively.

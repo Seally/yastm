@@ -15,10 +15,10 @@ using RE::BSScript::Internal::VirtualMachine;
 
 namespace {
     bool FileExists(
-        VirtualMachine* vm,
-        RE::VMStackID stackId,
+        VirtualMachine* const vm,
+        const RE::VMStackID stackId,
         RE::StaticFunctionTag*,
-        RE::BSFixedString path)
+        const RE::BSFixedString path)
     {
         std::filesystem::path filePath("Data");
         filePath /= path.c_str();
@@ -39,10 +39,10 @@ namespace {
     }
 
     bool RemoveFile(
-        RE::BSScript::Internal::VirtualMachine* vm,
-        RE::VMStackID stackId,
+        RE::BSScript::Internal::VirtualMachine* const vm,
+        const RE::VMStackID stackId,
         RE::StaticFunctionTag*,
-        RE::BSFixedString path)
+        const RE::BSFixedString path)
     {
         std::filesystem::path filePath("Data");
         filePath /= path.c_str();
@@ -63,8 +63,8 @@ namespace {
     }
 
     ConfigManager::HandleType CreateConfig(
-        RE::BSScript::Internal::VirtualMachine* vm,
-        RE::VMStackID stackId,
+        RE::BSScript::Internal::VirtualMachine* const vm,
+        const RE::VMStackID stackId,
         RE::StaticFunctionTag*)
     {
         try {
@@ -83,10 +83,10 @@ namespace {
     }
 
     ConfigManager::HandleType OpenConfig(
-        RE::BSScript::Internal::VirtualMachine* vm,
-        RE::VMStackID stackId,
+        RE::BSScript::Internal::VirtualMachine* const vm,
+        const RE::VMStackID stackId,
         RE::StaticFunctionTag*,
-        RE::BSFixedString path)
+        const RE::BSFixedString path)
     {
         if (path.length() <= 0) {
             vm->TraceStack("File path is empty", stackId);
@@ -112,11 +112,11 @@ namespace {
     }
 
     bool SaveConfig(
-        RE::BSScript::Internal::VirtualMachine* vm,
-        RE::VMStackID stackId,
+        RE::BSScript::Internal::VirtualMachine* const vm,
+        const RE::VMStackID stackId,
         RE::StaticFunctionTag*,
-        ConfigManager::HandleType handle,
-        RE::BSFixedString path)
+        const ConfigManager::HandleType handle,
+        const RE::BSFixedString path)
     {
         std::filesystem::path filePath("Data");
         filePath /= path.c_str();
@@ -139,10 +139,10 @@ namespace {
     }
 
     void CloseConfig(
-        RE::BSScript::Internal::VirtualMachine* vm,
-        RE::VMStackID stackId,
+        RE::BSScript::Internal::VirtualMachine* const vm,
+        const RE::VMStackID stackId,
         RE::StaticFunctionTag*,
-        ConfigManager::HandleType handle)
+        const ConfigManager::HandleType handle)
     {
         try {
             ConfigManager::getInstance().closeConfig(handle);
@@ -158,11 +158,11 @@ namespace {
     }
 
     bool HasEntry(
-        RE::BSScript::Internal::VirtualMachine* vm,
-        RE::VMStackID stackId,
+        RE::BSScript::Internal::VirtualMachine* const vm,
+        const RE::VMStackID stackId,
         RE::StaticFunctionTag*,
-        ConfigManager::HandleType handle,
-        RE::BSFixedString key)
+        const ConfigManager::HandleType handle,
+        const RE::BSFixedString key)
     {
         if (key.length() <= 0) {
             vm->TraceStack("Key is empty", stackId);
@@ -192,12 +192,12 @@ namespace {
 
     template <typename T>
     bool SetValue(
-        RE::BSScript::Internal::VirtualMachine* vm,
-        RE::VMStackID stackId,
+        RE::BSScript::Internal::VirtualMachine* const vm,
+        const RE::VMStackID stackId,
         RE::StaticFunctionTag*,
-        ConfigManager::HandleType handle,
-        RE::BSFixedString key,
-        T value)
+        const ConfigManager::HandleType handle,
+        const RE::BSFixedString key,
+        const T value)
     {
         if (key.length() <= 0) {
             vm->TraceStack("Key is empty", stackId);
@@ -228,12 +228,12 @@ namespace {
 
     template <typename T>
     T GetValue(
-        RE::BSScript::Internal::VirtualMachine* vm,
-        RE::VMStackID stackId,
+        RE::BSScript::Internal::VirtualMachine* const vm,
+        const RE::VMStackID stackId,
         RE::StaticFunctionTag*,
-        ConfigManager::HandleType handle,
-        RE::BSFixedString key,
-        T defaultValue)
+        const ConfigManager::HandleType handle,
+        const RE::BSFixedString key,
+        const T defaultValue)
     {
         if (key.length() <= 0) {
             vm->TraceStack("Key is empty", stackId);
@@ -261,8 +261,8 @@ namespace {
     }
 
     int GetConfigCount(
-        RE::BSScript::Internal::VirtualMachine* vm,
-        RE::VMStackID stackId,
+        RE::BSScript::Internal::VirtualMachine* const vm,
+        const RE::VMStackID stackId,
         RE::StaticFunctionTag*)
     {
         try {
@@ -287,8 +287,8 @@ namespace {
     }
 
     ConfigManager::HandleType GetLargestHandle(
-        RE::BSScript::Internal::VirtualMachine* vm,
-        RE::VMStackID stackId,
+        RE::BSScript::Internal::VirtualMachine* const vm,
+        const RE::VMStackID stackId,
         RE::StaticFunctionTag*)
     {
         try {
@@ -307,8 +307,8 @@ namespace {
     }
 
     ConfigManager::HandleType GetNextHandle(
-        RE::BSScript::Internal::VirtualMachine* vm,
-        RE::VMStackID stackId,
+        RE::BSScript::Internal::VirtualMachine* const vm,
+        const RE::VMStackID stackId,
         RE::StaticFunctionTag*)
     {
         try {
@@ -327,8 +327,8 @@ namespace {
     }
 
     void CloseAllConfigs(
-        RE::BSScript::Internal::VirtualMachine* vm,
-        RE::VMStackID stackId,
+        RE::BSScript::Internal::VirtualMachine* const vm,
+        const RE::VMStackID stackId,
         RE::StaticFunctionTag*)
     {
         try {
