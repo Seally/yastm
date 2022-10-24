@@ -7,7 +7,7 @@
 #include <vector>
 
 #include <fmt/format.h>
-#include <toml++/toml_table.h>
+#include <toml++/toml.h>
 
 #include <RE/S/SoulLevels.h>
 

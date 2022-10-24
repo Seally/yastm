@@ -9,7 +9,7 @@
 #include <RE/A/Actor.h>
 #include <RE/B/BSCoreTypes.h>
 
-#include <toml++/toml_table.h>
+#include <toml++/toml.h>
 
 #include "ConfigKey.hpp"
 #include "DllDependencyKey.hpp"

@@ -27,7 +27,7 @@ public:
     virtual ~Form() {}
 
     void setFromTomlArray(const toml::array& arr);
-    void setFromTomlString(const toml::string& str);
+    void setFromTomlString(std::string str);
     void loadForm(RE::TESDataHandler* dataHandler);
     void clear() noexcept
     {
@@ -49,9 +49,9 @@ inline void Form<T>::setFromTomlArray(const toml::array& arr)
 }
 
 template <typename T>
-inline void Form<T>::setFromTomlString(const toml::string& str)
+inline void Form<T>::setFromTomlString(std::string str)
 {
-    formLocator_.emplace(std::string(str));
+    formLocator_.emplace(str);
 }
 
 template <typename T>
