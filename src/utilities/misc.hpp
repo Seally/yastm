@@ -9,6 +9,10 @@
 #include <RE/T/TESObjectREFR.h>
 #include <RE/T/TESSoulGem.h>
 
+#if defined(SKYRIM_VERSION_AE2)
+#   include "native.hpp" 
+#endif
+
 namespace RE {
     class BGSKeyword;
     class TESBoundObject;
@@ -38,6 +42,7 @@ using UnorderedInventoryItemMap = std::unordered_map<
            RE::TESSoulGem::RecordFlags::kCanHoldNPCSoul;
 }
 
+#if !defined(SKYRIM_VERSION_AE2)
 /**
  * @brief Creates a new ExtraDataList, copying some properties from the
  * original.
@@ -56,9 +61,34 @@ using UnorderedInventoryItemMap = std::unordered_map<
         if (const auto owner = originalExtraList->GetOwner(); owner) {
             newExtraList.reset(new RE::ExtraDataList());
             newExtraList->SetOwner(owner);
-            return newExtraList;
         }
     }
 
     return newExtraList;
 }
+#else
+
+/**
+ * @brief Creates a new ExtraDataList, copying some properties from the
+ * original.
+ *
+ * WARNING: The returned ExtraDataList is constructed on the heap within this
+ * function and MUST be deleted or managed manually otherwise you WILL have
+ * a memory leak.
+ */
+[[nodiscard]] inline RE::ExtraDataList*
+    createExtraDataListFromOriginal(RE::ExtraDataList* const originalExtraList)
+{
+    RE::ExtraDataList* newExtraList = nullptr;
+
+    if (originalExtraList != nullptr) {
+        // Inherit ownership.
+        if (const auto owner = originalExtraList->GetOwner(); owner) {
+            newExtraList = native::BSExtraDataList::constructor();
+            newExtraList->SetOwner(owner);
+        }
+    }
+
+    return newExtraList;
+}
+#endif

@@ -76,7 +76,12 @@ namespace {
         SoulTrapData& d)
     {
         RE::ExtraDataList* oldExtraList = nullptr;
+#if !defined(SKYRIM_VERSION_AE2)
         std::unique_ptr<RE::ExtraDataList> newExtraList;
+#else
+        RE::ExtraDataList* newExtraList = nullptr;
+#endif
+
 
         if (d.config[BC::AllowExtraSoulRelocation] ||
             d.config[BC::PreserveOwnership]) {
@@ -119,7 +124,11 @@ namespace {
 
         d.caster()->AddObjectToContainer(
             soulGemToAdd,
+#if !defined(SKYRIM_VERSION_AE2)
             newExtraList.release(), // Transfer ownership to the engine.
+#else
+            newExtraList,
+#endif
             1,
             nullptr);
         d.caster()->RemoveItem(

@@ -53,6 +53,15 @@ namespace native {
     }
 
     namespace BSExtraDataList {
+#if defined(SKYRIM_VERSION_AE2)
+        [[nodiscard]] inline RE::ExtraDataList* constructor()
+        {
+            using func_t = decltype(&constructor);
+            REL::Relocation<func_t> func(re::BSExtraDataList::Constructor);
+            return func();
+        }
+#endif
+
         inline void SetSoul(
             RE::ExtraDataList* const dataList,
             const RE::SOUL_LEVEL soulLevel)
