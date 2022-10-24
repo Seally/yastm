@@ -97,10 +97,9 @@ Copy and paste this into `CMakeUserPresets.json`, then modify values as
 appropriate. Replace `base-vs2022` with `base-vs2019` if you're using VS2019.
 
 The `msvc142` hidden preset uses MSVC 14.2 (VS2019) while `msvc143` uses
-MSVC 14.3 (VS2022) as their names suggest. Public builds normally use the
-14.2 compiler, but the 14.3 build is done to make sure the code compiles under
-that compiler as well. Use whichever compiler you find appropriate for your own
-builds.
+MSVC 14.3 (VS2022) as their names suggest. Public builds for 1.5.x and
+pre-1.6.629 normally use the 14.2 compiler. The 14.3 build is used for the
+1.6.629+ version.
 
 ```json
 {
@@ -148,7 +147,7 @@ builds.
             "inherits": [ "base", "msvc142", "vs2022", "ae" ],
             "cacheVariables": {
                 "COPY_BUILD": true,
-                "SKYRIM64_DATA_PATH": "D:/Games/MO2 Data/SkyrimAE/mods/YASTM - SKSE Plugin (Debug)"
+                "SKYRIM64_DATA_PATH": "D:/devel/Seally/yastm-ck/se/YASTM - SKSE Plugin (Debug - Anniversary Edition 1.6.353)"
             }
         },
         {
@@ -156,7 +155,7 @@ builds.
             "inherits": [ "base", "msvc142", "vs2022", "ae" ],
             "cacheVariables": {
                 "COPY_BUILD": true,
-                "SKYRIM64_DATA_PATH": "D:/Games/MO2 Data/SkyrimAE/mods/YASTM - SKSE Plugin"
+                "SKYRIM64_DATA_PATH": "D:/devel/Seally/yastm-ck/se/YASTM - SKSE Plugin (Release - Anniversary Edition 1.6.353)"
             }
         },
         {
@@ -164,7 +163,7 @@ builds.
             "inherits": [ "base", "msvc143", "vs2022", "ae" ],
             "cacheVariables": {
                 "COPY_BUILD": false,
-                "SKYRIM64_DATA_PATH": "D:/Games/MO2 Data/SkyrimAE/mods/YASTM - SKSE Plugin (Debug)"
+                "SKYRIM64_DATA_PATH": "D:/devel/Seally/yastm-ck/se/YASTM - SKSE Plugin (Debug - Anniversary Edition 1.6.353)"
             }
         },
         {
@@ -172,6 +171,38 @@ builds.
             "inherits": [ "base", "msvc143", "vs2022", "ae" ],
             "cacheVariables": {
                 "COPY_BUILD": false,
+                "SKYRIM64_DATA_PATH": "D:/devel/Seally/yastm-ck/se/YASTM - SKSE Plugin (Release - Anniversary Edition 1.6.353)"
+            }
+        },
+        {
+            "name": "x64-Debug-AE2-MSVC142",
+            "inherits": [ "base", "msvc142", "vs2022", "ae2" ],
+            "cacheVariables": {
+                "COPY_BUILD": false,
+                "SKYRIM64_DATA_PATH": "D:/Games/MO2 Data/SkyrimAE/mods/YASTM - SKSE Plugin (Debug)"
+            }
+        },
+        {
+            "name": "x64-Release-AE2-MSVC142",
+            "inherits": [ "base", "msvc142", "vs2022", "ae2" ],
+            "cacheVariables": {
+                "COPY_BUILD": false,
+                "SKYRIM64_DATA_PATH": "D:/Games/MO2 Data/SkyrimAE/mods/YASTM - SKSE Plugin"
+            }
+        },
+        {
+            "name": "x64-Debug-AE2-MSVC143",
+            "inherits": [ "base", "msvc143", "vs2022", "ae2" ],
+            "cacheVariables": {
+                "COPY_BUILD": true,
+                "SKYRIM64_DATA_PATH": "D:/Games/MO2 Data/SkyrimAE/mods/YASTM - SKSE Plugin (Debug)"
+            }
+        },
+        {
+            "name": "x64-Release-AE2-MSVC143",
+            "inherits": [ "base", "msvc143", "vs2022", "ae2" ],
+            "cacheVariables": {
+                "COPY_BUILD": true,
                 "SKYRIM64_DATA_PATH": "D:/Games/MO2 Data/SkyrimAE/mods/YASTM - SKSE Plugin"
             }
         },
@@ -179,28 +210,32 @@ builds.
             "name": "x64-Debug-VR-MSVC142",
             "inherits": [ "base", "msvc142", "vs2022", "vr" ],
             "cacheVariables": {
-                "COPY_BUILD": false
+                "COPY_BUILD": true,
+                "SKYRIM64_DATA_PATH": "D:/devel/Seally/yastm-ck/vr/YASTM - SKSE Plugin (Debug)"
             }
         },
         {
             "name": "x64-Release-VR-MSVC142",
             "inherits": [ "base", "msvc142", "vs2022", "vr" ],
             "cacheVariables": {
-                "COPY_BUILD": false
+                "COPY_BUILD": true,
+                "SKYRIM64_DATA_PATH": "D:/devel/Seally/yastm-ck/vr/YASTM - SKSE Plugin"
             }
         },
         {
             "name": "x64-Debug-VR-MSVC143",
             "inherits": [ "base", "msvc143", "vs2022", "vr" ],
             "cacheVariables": {
-                "COPY_BUILD": false
+                "COPY_BUILD": false,
+                "SKYRIM64_DATA_PATH": "D:/devel/Seally/yastm-ck/vr/YASTM - SKSE Plugin (Debug)"
             }
         },
         {
             "name": "x64-Release-VR-MSVC143",
             "inherits": [ "base", "msvc143", "vs2022", "vr" ],
             "cacheVariables": {
-                "COPY_BUILD": false
+                "COPY_BUILD": false,
+                "SKYRIM64_DATA_PATH": "D:/devel/Seally/yastm-ck/vr/YASTM - SKSE Plugin"
             }
         }
     ],
@@ -252,6 +287,30 @@ builds.
             "displayName": "AE Release",
             "configuration": "RelWithDebInfo",
             "configurePreset": "x64-Release-AE-MSVC143"
+        },
+        {
+            "name": "ae2-debug-msvc142",
+            "displayName": "AE2 Debug",
+            "configuration": "Debug",
+            "configurePreset": "x64-Debug-AE2-MSVC142"
+        },
+        {
+            "name": "ae2-release-msvc142",
+            "displayName": "AE2 Release",
+            "configuration": "RelWithDebInfo",
+            "configurePreset": "x64-Release-AE2-MSVC142"
+        },
+        {
+            "name": "ae2-debug-msvc143",
+            "displayName": "AE2 Debug",
+            "configuration": "Debug",
+            "configurePreset": "x64-Debug-AE2-MSVC143"
+        },
+        {
+            "name": "ae2-release-msvc143",
+            "displayName": "AE2 Release",
+            "configuration": "RelWithDebInfo",
+            "configurePreset": "x64-Release-AE2-MSVC143"
         },
         {
             "name": "vr-debug-msvc142",

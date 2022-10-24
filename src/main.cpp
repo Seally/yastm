@@ -116,7 +116,7 @@ extern "C" DLLEXPORT bool SKSEAPI
 
     return installPatches(skse);
 }
-#elif defined(SKYRIM_VERSION_AE)
+#elif defined(SKYRIM_VERSION_AE) || defined(SKYRIM_VERSION_AE2)
 extern "C" DLLEXPORT constinit auto SKSEPlugin_Version = []() {
     using namespace meta;
 
@@ -128,7 +128,15 @@ extern "C" DLLEXPORT constinit auto SKSEPlugin_Version = []() {
     v.AuthorName("Seally");
     v.UsesAddressLibrary(true);
     v.UsesSigScanning(false);
-    v.CompatibleVersions({SKSE::RUNTIME_1_6_318});
+    v.CompatibleVersions({
+        SKSE::RUNTIME_1_6_318,
+#   if defined(SKYRIM_VERSION_AE2)
+        SKSE::RUNTIME_1_6_640,
+#   endif
+    });
+#   if defined(SKYRIM_VERSION_AE2)
+    v.UsesStructsPost629(true);
+#   endif
 
     return v;
 }();

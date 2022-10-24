@@ -58,6 +58,12 @@
  * not supported.
  */
 #    define VERSION_SPECIFIC_SE(se, ae) ae
+#elif defined(SKYRIM_VERSION_AE2)
+#    define AE_ONLY(output) output
+#    define SE_ONLY(output)
+#    define VR_ONLY(output)
+#    define VERSION_SPECIFIC_3(se, ae, vr) ae
+#    define VERSION_SPECIFIC_2(sevr, ae) ae
 #elif defined(SKYRIM_VERSION_VR)
 #    define AE_ONLY(output)
 #    define SE_ONLY(output)

@@ -28,9 +28,9 @@ endif()
 set(Boost_USE_STATIC_RUNTIME OFF CACHE BOOL "")
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>" CACHE STRING "")
 
-set(SKYRIM_VERSION "AE" CACHE STRING "Sets the DLL target compile version.")
+set(SKYRIM_VERSION "AE2" CACHE STRING "Sets the DLL target compile version.")
 
-set_property(CACHE SKYRIM_VERSION PROPERTY STRINGS "AE" "SE" "VR")
+set_property(CACHE SKYRIM_VERSION PROPERTY STRINGS "AE" "AE2" "SE" "VR")
 
 # ---- Project ----
 
@@ -87,6 +87,8 @@ if(SKYRIM_VERSION STREQUAL "SE")
     add_subdirectory("extern/CommonLibSSE_SE" CommonLibSSE)
 elseif(SKYRIM_VERSION STREQUAL "AE")
     add_subdirectory("extern/CommonLibSSE_AE" CommonLibSSE)
+elseif(SKYRIM_VERSION STREQUAL "AE2")
+    add_subdirectory("extern/CommonLibSSE_AE2" CommonLibSSE)
 elseif(SKYRIM_VERSION STREQUAL "VR")
     if (BUILD_SKYRIMVR)
         add_subdirectory("extern/CommonLibVR" CommonLibVR)
@@ -277,6 +279,8 @@ target_precompile_headers(
 
 if (SKYRIM_VERSION STREQUAL "AE")
     target_compile_definitions(${PROJECT_NAME} PRIVATE SKYRIM_VERSION_AE)
+elseif(SKYRIM_VERSION STREQUAL "AE2")
+    target_compile_definitions(${PROJECT_NAME} PRIVATE SKYRIM_VERSION_AE2)
 elseif(SKYRIM_VERSION STREQUAL "SE")
     target_compile_definitions(${PROJECT_NAME} PRIVATE SKYRIM_VERSION_SE)
 elseif(SKYRIM_VERSION STREQUAL "VR")

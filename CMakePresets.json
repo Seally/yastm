@@ -72,6 +72,13 @@
             }
         },
         {
+            "name": "ae2",
+            "hidden": true,
+            "cacheVariables": {
+                "SKYRIM_VERSION": "AE2"
+            }
+        },
+        {
             "name": "vr",
             "hidden": true,
             "cacheVariables": {
