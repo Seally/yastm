@@ -36,7 +36,7 @@ set_property(CACHE SKYRIM_VERSION PROPERTY STRINGS "AE" "AE2" "SE" "VR")
 
 project(
     YASTM
-    VERSION 1.10.0
+    VERSION 1.10.3
     LANGUAGES CXX
 )
 

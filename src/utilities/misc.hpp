@@ -9,9 +9,7 @@
 #include <RE/T/TESObjectREFR.h>
 #include <RE/T/TESSoulGem.h>
 
-#if defined(SKYRIM_VERSION_AE2)
-#   include "native.hpp" 
-#endif
+#include "formatters/TESForm.hpp"
 
 namespace RE {
     class BGSKeyword;
@@ -42,14 +40,9 @@ using UnorderedInventoryItemMap = std::unordered_map<
            RE::TESSoulGem::RecordFlags::kCanHoldNPCSoul;
 }
 
-#if !defined(SKYRIM_VERSION_AE2)
 /**
  * @brief Creates a new ExtraDataList, copying some properties from the
  * original.
- *
- * WARNING: The returned ExtraDataList is constructed on the heap within this
- * function and MUST be deleted or managed manually otherwise you WILL have
- * a memory leak.
  */
 [[nodiscard]] inline std::unique_ptr<RE::ExtraDataList>
     createExtraDataListFromOriginal(RE::ExtraDataList* const originalExtraList)
@@ -57,38 +50,17 @@ using UnorderedInventoryItemMap = std::unordered_map<
     std::unique_ptr<RE::ExtraDataList> newExtraList;
 
     if (originalExtraList != nullptr) {
-        // Inherit ownership.
+        LOG_TRACE("Checking if we need to copy ownership...");
+
         if (const auto owner = originalExtraList->GetOwner(); owner) {
+            LOG_TRACE("Owner found.");
             newExtraList.reset(new RE::ExtraDataList());
+            LOG_TRACE_FMT("Copying owner: {}", *owner);
             newExtraList->SetOwner(owner);
+        } else {
+            LOG_TRACE("No owner exists. No need to copy extra data.");
         }
     }
 
     return newExtraList;
 }
-#else
-
-/**
- * @brief Creates a new ExtraDataList, copying some properties from the
- * original.
- *
- * WARNING: The returned ExtraDataList is constructed on the heap within this
- * function and MUST be deleted or managed manually otherwise you WILL have
- * a memory leak.
- */
-[[nodiscard]] inline RE::ExtraDataList*
-    createExtraDataListFromOriginal(RE::ExtraDataList* const originalExtraList)
-{
-    RE::ExtraDataList* newExtraList = nullptr;
-
-    if (originalExtraList != nullptr) {
-        // Inherit ownership.
-        if (const auto owner = originalExtraList->GetOwner(); owner) {
-            newExtraList = native::BSExtraDataList::constructor();
-            newExtraList->SetOwner(owner);
-        }
-    }
-
-    return newExtraList;
-}
-#endif

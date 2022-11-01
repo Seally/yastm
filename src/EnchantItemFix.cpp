@@ -55,11 +55,7 @@ namespace {
 
         player->AddObjectToContainer(
             soulGemToConsume->linkedSoulGem,
-#if !defined(SKYRIM_VERSION_AE2)
             newDataList.release(), // Transfer ownership to the engine.
-#else
-            newDataList,
-#endif
             1,
             nullptr);
         player->RemoveItem(

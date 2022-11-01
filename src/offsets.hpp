@@ -21,9 +21,9 @@ namespace re {
     } // namespace SoulsTrapped
 
     namespace BSExtraDataList {
-#if defined(SKYRIM_VERSION_AE2)
-        constexpr REL::ID Constructor(11583);
-#endif
+// #if defined(SKYRIM_VERSION_AE2)
+//         constexpr REL::ID Constructor(11583);
+// #endif
         // SkyrimSE.exe + 0x10e960 [1.5.97.0]  [ADDRLIB:11474]
         // SkyrimSE.exe + 0x11af60 [1.6.323.0] [ADDRLIB:11620]
         // SkyrimVR.exe + 0x126c00 [1.4.15.1]  [ADDRLIB:11474]
