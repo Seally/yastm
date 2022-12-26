@@ -1,4 +1,4 @@
-import { expandGlob } from "https://deno.land/std@0.123.0/fs/mod.ts";
+import { expandGlob } from "std/fs/mod.ts";
 
 const walker = expandGlob("src/**/*.{cpp,hpp}", { caseInsensitive: true });
 

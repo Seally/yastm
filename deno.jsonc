@@ -3,5 +3,6 @@
         "options": {
             "indentWidth": 4
         }
-    }
+    },
+    "importMap": "./import_map.json"
 }

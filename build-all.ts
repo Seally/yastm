@@ -1,4 +1,4 @@
-import * as flags from "https://deno.land/std@0.123.0/flags/mod.ts";
+import * as flags from "std/flags/mod.ts";
 import * as t from "./scripts/typanion.ts";
 
 import cmakeUserPresets from "./CMakeUserPresets.json" assert { type: "json" };
