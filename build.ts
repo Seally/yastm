@@ -1,5 +1,4 @@
 import * as flags from "std/flags/mod.ts";
-import * as t from "./scripts/typanion.ts";
 
 import cmakeUserPresets from "./CMakeUserPresets.json" assert { type: "json" };
 
@@ -36,22 +35,6 @@ function printHelp() {
         "",
         "    help > list-only > clean-only > skip-configure == skip-build > rebuild",
     ].join("\n"));
-}
-
-const verifyArgs = t.isPartial({
-    help: t.isBoolean(),
-    h: t.isBoolean(),
-    all: t.isBoolean(),
-    "list-only": t.isBoolean(),
-    rebuild: t.isBoolean(),
-    "skip-configure": t.isBoolean(),
-    "skip-build": t.isBoolean(),
-    "clean-only": t.isBoolean(),
-});
-
-if (!verifyArgs(args)) {
-    printHelp();
-    Deno.exit(1);
 }
 
 if (args.help) {
