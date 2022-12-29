@@ -10,11 +10,10 @@
 #include <fmt/format.h>
 
 #include <RE/A/Actor.h>
+#include <RE/S/SoulsTrapped.h>
 #include <RE/T/TESBoundObject.h>
 #include <RE/T/TESObjectREFR.h>
 #include <RE/T/TESSoulGem.h>
-
-#include "../RE/S/SoulsTrapped.hpp"
 
 #include "../global.hpp"
 #include "../SoulValue.hpp"

@@ -12,13 +12,13 @@
 //       addresses because the addresses are added by hand.
 
 namespace re {
-    namespace SoulsTrapped {
-        // SkyrimSE.exe + 0x636c40 [1.5.97.0]  [ADDRLIB:37916]
-        // SkyrimSE.exe + 0x65c9e0 [1.6.318.0] [ADDRLIB:38873]
-        // SkyrimSE.exe + 0x65c750 [1.6.323.0] [ADDRLIB:38873]
-        // SkyrimVR.exe + 0x63fc50 [1.4.15.1]  [ADDRLIB:37916]
-        constexpr REL::ID GetEventSource(VERSION_SPECIFIC_2(37916, 38873));
-    } // namespace SoulsTrapped
+    // namespace SoulsTrapped {
+    //     // SkyrimSE.exe + 0x636c40 [1.5.97.0]  [ADDRLIB:37916]
+    //     // SkyrimSE.exe + 0x65c9e0 [1.6.318.0] [ADDRLIB:38873]
+    //     // SkyrimSE.exe + 0x65c750 [1.6.323.0] [ADDRLIB:38873]
+    //     // SkyrimVR.exe + 0x63fc50 [1.4.15.1]  [ADDRLIB:37916]
+    //     constexpr REL::ID GetEventSource(VERSION_SPECIFIC_2(37916, 38873));
+    // } // namespace SoulsTrapped
 
     namespace BSExtraDataList {
 // #if defined(SKYRIM_VERSION_AE2)

@@ -174,8 +174,6 @@ set(SOURCES
     src/utilities/Timer.hpp
     src/yastmutils/YASTMUtils.hpp
     src/yastmutils/YASTMUtils.cpp
-    src/RE/S/SoulsTrapped.hpp
-    src/RE/S/SoulsTrapped.cpp
 )
 
 source_group(

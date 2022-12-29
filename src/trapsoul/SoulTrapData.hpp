@@ -5,6 +5,7 @@
 #include <RE/A/Actor.h>
 #include <RE/M/Misc.h>
 #include <RE/P/PlayerCharacter.h>
+#include <RE/S/SoulsTrapped.h>
 #include <RE/T/TESForm.h>
 #include <RE/T/TESBoundObject.h>
 
@@ -12,7 +13,6 @@
 #include "InventoryStatus.hpp"
 #include "messages.hpp"
 #include "Victim.hpp"
-#include "../RE/S/SoulsTrapped.hpp"
 #include "../config/YASTMConfig.hpp"
 #include "../utilities/misc.hpp"
 
