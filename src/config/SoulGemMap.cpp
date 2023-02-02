@@ -50,10 +50,10 @@ void SoulGemMap::initializeWith(
         for (const auto& group : t.groupsToAdd_) {
             try {
                 if (group.get().priority() == priority) {
-                    LOG_INFO_FMT("- Loading soul gems for {:c}", group.get());
-
                     // Add black soul gems to the map.
                     if (group.get().capacity() == SoulGemCapacity::Black) {
+                        LOG_INFO_FMT("- Loading soul gems for {:c}", group.get());
+
                         const auto& addedGroup =
                             soulGemGroupsByCapacity[SoulGemCapacity::Black]
                                 .emplace_back(new ConcreteSoulGemGroup(
