@@ -114,38 +114,6 @@ namespace {
         return isReusable;
     }
 
-    void checkReusableSoulGemFields_(
-        RE::TESSoulGem* const soulGemForm,
-        const SoulGemGroup& group)
-    {
-        // Checks reusable soul gems for the appropriate fields.
-        //
-        // We use the linked soul gem field to fix a crash that occurs when
-        // trying to use reusable soul gems whose base form does not have an
-        // empty soul gem (the entire point of the ChargeItemFix and
-        // EnchantItemFix) so it is absolutely important to get this right.
-        if (soulGemForm->GetContainedSoul() != RE::SOUL_LEVEL::kNone) {
-            if (soulGemForm->linkedSoulGem == nullptr) {
-                throw FormError(fmt::format(
-                    FMT_STRING(
-                        "Reusable soul gem {} in {} contains a soul but has "
-                        "no linked soul gem specified in the form."),
-                    *soulGemForm,
-                    group));
-            }
-
-            if (soulGemForm->linkedSoulGem->GetContainedSoul() !=
-                RE::SOUL_LEVEL::kNone) {
-                throw FormError(fmt::format(
-                    FMT_STRING(
-                        "Linked soul gem for reusable soul gem {} in {} is "
-                        "not an empty soul gem."),
-                    *soulGemForm,
-                    group));
-            }
-        }
-    }
-
     void checkIndexMatchesContainedSoulSize_(
         const std::size_t index,
         RE::TESSoulGem* const soulGemForm,
@@ -215,12 +183,6 @@ void ConcreteSoulGemGroup::initializeFromPrimaryBasis_(
                     sourceGroup);
             },
             formLocator);
-
-        const bool isReusable =
-            checkSoulGemReusability_(soulGemForm, sourceGroup);
-        if (isReusable) {
-            checkReusableSoulGemFields_(soulGemForm, sourceGroup);
-        }
 
         forms_.emplace(
             toContainedSoulSize_(sourceGroup.capacity(), i),

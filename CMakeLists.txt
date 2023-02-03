@@ -139,6 +139,7 @@ set(SOURCES
     src/config/SoulSize.hpp
     src/config/SpecificationError.hpp
     src/config/SpecificationError.cpp
+    src/config/utilities.hpp
     src/config/YASTMConfig.hpp
     src/config/YASTMConfig.cpp
     src/formatters/TESForm.hpp

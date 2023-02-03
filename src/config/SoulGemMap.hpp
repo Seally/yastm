@@ -32,10 +32,19 @@ private:
     using SoulGemList = std::vector<RE::TESSoulGem*>;
     using ConcreteSoulGemGroupList =
         std::vector<std::unique_ptr<ConcreteSoulGemGroup>>;
-    using FormMap = EnumArray<
-        SoulGemCapacity,
-        ConcreteSoulGemGroupList>;
-    FormMap soulGemMap_;
+    using GroupListMap = EnumArray<SoulGemCapacity, ConcreteSoulGemGroupList>;
+    using BaseFormMap = std::unordered_map<RE::TESSoulGem*, RE::TESSoulGem*>;
+
+    /**
+     * @brief Maps the SoulGemCapacity to the corresponding list of
+     * ConcreteSoulGemGroups with the same capacity.
+     */
+    GroupListMap soulGemMap_;
+    /**
+     * @brief Maps a soul gem form to its base form (the empty version of the
+     * soul gem).
+     */
+    BaseFormMap baseFormMap_;
 
     friend class Iterator;
 
@@ -192,6 +201,17 @@ public:
                 soulGemsAtCapacity,
                 containedSoulSize,
                 soulGemsAtCapacity.size())};
+    }
+
+    RE::TESSoulGem* getBaseFormOf(RE::TESSoulGem* const soulGemForm) const
+    {
+        const auto it = baseFormMap_.find(soulGemForm);
+
+        if (it != baseFormMap_.end()) {
+            return it->second;
+        }
+
+        return nullptr;
     }
 
     void printContents() const;

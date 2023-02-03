@@ -12,6 +12,8 @@
 #include "expectedbytes.hpp"
 #include "offsets.hpp"
 #include "trampoline.hpp"
+#include "config/utilities.hpp"
+#include "formatters/TESSoulGem.hpp"
 #include "utilities/misc.hpp"
 #include "utilities/native.hpp"
 
@@ -45,17 +47,33 @@ namespace {
     {
         const auto dataList = dataListPtr ? *dataListPtr : nullptr;
 
-        if ((dataList && dataList->GetSoulLevel() != RE::SOUL_LEVEL::kNone) ||
-            soulGemToConsume->linkedSoulGem == nullptr) {
+        // This soul gem uses extra data to store the contained soul size,
+        // so we set that instead.
+        if (dataList && dataList->GetSoulLevel() != RE::SOUL_LEVEL::kNone) {
             native::BSExtraDataList::SetSoul(dataList, RE::SOUL_LEVEL::kNone);
             return;
+        }
+
+        const auto baseSoulGem = getSoulGemBaseForm(soulGemToConsume);
+
+        // If we fail to get the base soul gem, we fall back to setting the
+        // contained soul to zero on the extra data.
+        if (baseSoulGem == nullptr) {
+            if (dataList == nullptr) {
+                LOG_CRITICAL_FMT(
+                    "[CHARGE] Cannot find base form for soul gem {} and soul "
+                    "gem has no extra data. Game will likely crash after this "
+                    "line.",
+                    *soulGemToConsume);
+            }
+            native::BSExtraDataList::SetSoul(dataList, RE::SOUL_LEVEL::kNone);
         }
 
         auto newDataList = createExtraDataListFromOriginal(dataList);
         const auto player = RE::PlayerCharacter::GetSingleton();
 
         player->AddObjectToContainer(
-            soulGemToConsume->linkedSoulGem,
+            baseSoulGem,
             newDataList.release(), // Transfer ownership to the engine.
             1,
             nullptr);
