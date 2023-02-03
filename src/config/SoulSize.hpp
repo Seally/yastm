@@ -188,6 +188,51 @@ enum class SoulGemCapacity {
         static_cast<std::underlying_type_t<SoulSize>>(soulSize)));
 }
 
+[[nodiscard]] constexpr SoulGemCapacity toSoulGemCapacity(
+    const RE::SOUL_LEVEL soulLevel)
+{
+    switch (soulLevel) {
+    case RE::SOUL_LEVEL::kNone:
+        throw std::runtime_error(
+            "Cannot convert RE::SOUL_LEVEL::kNone to SoulGemCapacity");
+    case RE::SOUL_LEVEL::kPetty:
+        return SoulGemCapacity::Petty;
+    case RE::SOUL_LEVEL::kLesser:
+        return SoulGemCapacity::Lesser;
+    case RE::SOUL_LEVEL::kCommon:
+        return SoulGemCapacity::Common;
+    case RE::SOUL_LEVEL::kGreater:
+        return SoulGemCapacity::Greater;
+    case RE::SOUL_LEVEL::kGrand:
+        return SoulGemCapacity::Grand;
+    }
+
+    throw std::runtime_error(fmt::format(
+        FMT_STRING("Invalid SOUL_LEVEL value: {}"),
+        static_cast<std::underlying_type_t<RE::SOUL_LEVEL>>(soulLevel)));
+}
+
+[[nodiscard]] constexpr const char* toString(const RE::SOUL_LEVEL soulLevel) {
+    switch (soulLevel) {
+    case RE::SOUL_LEVEL::kNone:
+        return "none";
+    case RE::SOUL_LEVEL::kPetty:
+        return "petty";
+    case RE::SOUL_LEVEL::kLesser:
+        return "lesser";
+    case RE::SOUL_LEVEL::kCommon:
+        return "common";
+    case RE::SOUL_LEVEL::kGreater:
+        return "greater";
+    case RE::SOUL_LEVEL::kGrand:
+        return "grand";
+    }
+
+    throw std::runtime_error(fmt::format(
+        FMT_STRING("Invalid SOUL_LEVEL value: {}"),
+        static_cast<std::underlying_type_t<RE::SOUL_LEVEL>>(soulLevel)));
+}
+
 [[nodiscard]] constexpr const char* toString(const SoulSize soulSize)
 {
     switch (soulSize) {

@@ -113,8 +113,8 @@ namespace {
         LOG_TRACE_FMT(
             "Replacing soul gems in {}'s inventory"sv,
             d.caster()->GetName());
-        LOG_TRACE_FMT("- from: {}"sv, *soulGemToRemove);
-        LOG_TRACE_FMT("- to: {}"sv, *soulGemToAdd);
+        LOG_TRACE_FMT("- from: {:f}"sv, *soulGemToRemove);
+        LOG_TRACE_FMT("- to: {:f}"sv, *soulGemToAdd);
 
         d.caster()->AddObjectToContainer(
             soulGemToAdd,

@@ -98,14 +98,14 @@ namespace {
         if (group.isReusable()) {
             if (!isReusable) {
                 LOG_WARN_FMT(
-                    "Non-reusable soul gem {} is listed in {:r}"sv,
+                    "Non-reusable soul gem {:f} is listed in {:r}"sv,
                     *soulGemForm,
                     group);
             }
         } else {
             if (isReusable) {
                 LOG_WARN_FMT(
-                    "Reusable soul gem {} is listed in {:r}"sv,
+                    "Reusable soul gem {:f} is listed in {:r}"sv,
                     *soulGemForm,
                     group);
             }

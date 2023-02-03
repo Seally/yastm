@@ -1,6 +1,11 @@
 #include "SoulGemMap.hpp"
 
+#include <algorithm>
 #include <unordered_map>
+#include <vector>
+
+#include <cmath>
+#include <cstring>
 
 #include <RE/F/FormTypes.h>
 #include <RE/T/TESDataHandler.h>
@@ -11,15 +16,70 @@
 #include <fmt/format.h>
 
 #include "../global.hpp"
-#include "../SoulValue.hpp"
 #include "FormError.hpp"
 #include "SoulGemGroup.hpp"
+#include "SoulSize.hpp"
+#include "../SoulValue.hpp"
 #include "../utilities/containerutils.hpp"
-#include "../utilities/printerror.hpp"
+#include "../utilities/misc.hpp"
 #include "../utilities/native.hpp"
+#include "../utilities/printerror.hpp"
 #include "../formatters/TESSoulGem.hpp"
 
 using namespace std::literals;
+
+namespace {
+    /**
+     * @brief Returns the capacity number to be used for sorting the soul gem.
+     *
+     * @details Base sort capacity starts at 1 (petty) to 6 (black). If the soul
+     * gem is reusable, +0.5 is added to the base sort capacity (so it will
+     * "higher" than non-reusable soul gems of the same capacity).
+     */
+    double getSortCapacity_(const RE::TESSoulGem* const soulGem)
+    {
+        double sortCapacity;
+
+        if (canHoldBlackSoul(soulGem)) {
+            sortCapacity = 6;
+        } else {
+            sortCapacity = static_cast<double>(soulGem->GetMaximumCapacity());
+        }
+
+        if (soulGem->HasKeyword(getReusableSoulGemKeyword())) {
+            sortCapacity += 0.5;
+        }
+
+        return sortCapacity;
+    };
+
+    /**
+     * @brief Compares two soul gems (ascending) and returns if left should be
+     * sorted before right.
+     *
+     * @details This function sorts by capacity (@ref getSortCapacity_), name,
+     * and contained soul size, respectively.
+     */
+    bool compareSoulGems_(
+        const RE::TESSoulGem* const left,
+        const RE::TESSoulGem* const right)
+    {
+        const auto leftCapacity = getSortCapacity_(left);
+        const auto rightCapacity = getSortCapacity_(right);
+
+        if (leftCapacity != rightCapacity) {
+            return leftCapacity < rightCapacity;
+        }
+
+        int nameDiff = std::strcmp(left->GetName(), right->GetName());
+
+        if (nameDiff != 0) {
+            return nameDiff < 0;
+        }
+
+        return left->GetContainedSoul() < right->GetContainedSoul();
+    };
+} // end namespace
 
 void SoulGemMap::initializeWith(
     RE::TESDataHandler* dataHandler,
@@ -160,7 +220,7 @@ void SoulGemMap::printContents() const
             if (it.get() == nullptr) {
                 LOG_INFO("- null");
             } else {
-                LOG_INFO_FMT("- {}", *it);
+                LOG_INFO_FMT("- {:f}", *it);
             }
         }
     };
@@ -180,5 +240,26 @@ void SoulGemMap::printContents() const
         printSoulGemsWith(SoulGemCapacity::Black, SoulSize::Black);
     } catch (const std::exception& error) {
         printError(error);
+    }
+
+    LOG_INFO("Base form mappings:");
+
+    using BaseFormMapEntryList =
+        std::vector<std::pair<RE::TESSoulGem*, RE::TESSoulGem*>>;
+
+    BaseFormMapEntryList baseFormMapEntries(
+        baseFormMap_.begin(),
+        baseFormMap_.end());
+
+    std::sort(
+        baseFormMapEntries.begin(),
+        baseFormMapEntries.end(),
+        [](const BaseFormMapEntryList::value_type& left,
+           const BaseFormMapEntryList::value_type& right) {
+            return compareSoulGems_(left.first, right.first);
+        });
+
+    for (const auto [soulGem, baseSoulGem] : baseFormMapEntries) {
+        LOG_INFO_FMT("{} => {}", *soulGem, *baseSoulGem);
     }
 }
