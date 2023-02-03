@@ -4,9 +4,9 @@
 #include <unordered_map>
 
 #include "SoulGemGroup.hpp"
-#include "SoulSize.hpp"
 
 #include "../global.hpp"
+#include "../SoulSize.hpp"
 #include "../utilities/stringutils.hpp"
 
 namespace RE {
@@ -40,7 +40,7 @@ private:
 public:
     /**
      * @brief Constructs a pure soul gem group.
-     * 
+     *
      * @param[in] sourceGroup The soul gem group to store.
      * @param[in] dataHandler The data handler used to retrieve the in-game
      * forms.

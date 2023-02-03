@@ -3,7 +3,7 @@
 #include <exception>
 #include <string_view>
 
-#include "SoulSize.hpp"
+#include "../SoulSize.hpp"
 
 class SpecificationError : public std::runtime_error {
 public:

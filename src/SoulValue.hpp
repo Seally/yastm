@@ -7,7 +7,7 @@
 
 #include <fmt/format.h>
 
-#include "config/SoulSize.hpp"
+#include "SoulSize.hpp"
 
 class SoulGemCapacityValue;
 

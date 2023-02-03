@@ -115,6 +115,7 @@ set(SOURCES
     src/EnchantItemFix.cpp
     src/expectedbytes.hpp
     src/offsets.hpp
+    src/SoulSize.hpp
     src/SoulValue.hpp
     src/trampoline.hpp
     src/TrapSoulFix.hpp
@@ -136,7 +137,6 @@ set(SOURCES
     src/config/SoulGemGroup.cpp
     src/config/SoulGemMap.hpp
     src/config/SoulGemMap.cpp
-    src/config/SoulSize.hpp
     src/config/SpecificationError.hpp
     src/config/SpecificationError.cpp
     src/config/utilities.hpp

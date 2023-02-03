@@ -6,7 +6,7 @@
 
 #include <RE/A/Actor.h>
 
-#include "../config/SoulSize.hpp"
+#include "../SoulSize.hpp"
 
 class Victim {
     RE::Actor* actor_;

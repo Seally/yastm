@@ -18,7 +18,7 @@
 #include "../global.hpp"
 #include "FormError.hpp"
 #include "SoulGemGroup.hpp"
-#include "SoulSize.hpp"
+#include "../SoulSize.hpp"
 #include "../SoulValue.hpp"
 #include "../utilities/containerutils.hpp"
 #include "../utilities/misc.hpp"

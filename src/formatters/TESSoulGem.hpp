@@ -9,7 +9,7 @@
 #include <RE/S/SoulLevels.h>
 #include <RE/T/TESSoulGem.h>
 
-#include "../config/SoulSize.hpp"
+#include "../SoulSize.hpp"
 #include "../utilities/misc.hpp"
 
 template <>

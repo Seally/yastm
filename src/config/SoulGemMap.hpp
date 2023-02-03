@@ -7,10 +7,10 @@
 #include <unordered_map>
 #include <vector>
 
-#include "../global.hpp"
-#include "SoulSize.hpp"
 #include "ConcreteSoulGemGroup.hpp"
 #include "SpecificationError.hpp"
+#include "../global.hpp"
+#include "../SoulSize.hpp"
 #include "../utilities/EnumArray.hpp"
 
 namespace RE {

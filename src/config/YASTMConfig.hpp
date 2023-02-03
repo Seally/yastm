@@ -15,8 +15,8 @@
 #include "DllDependencyKey.hpp"
 #include "GlobalVarForm.hpp"
 #include "SoulGemGroup.hpp"
-#include "SoulSize.hpp"
 #include "SoulGemMap.hpp"
+#include "../SoulSize.hpp"
 
 namespace RE {
     class TESDataHandler;
@@ -79,7 +79,7 @@ public:
     void loadConfig(RE::TESDataHandler* dataHandler);
 
     /**
-     * @brief Clears (most) data stored in YASTMConfig. 
+     * @brief Clears (most) data stored in YASTMConfig.
      */
     void clear();
 

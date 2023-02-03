@@ -4,7 +4,7 @@
 #include <RE/S/SoulLevels.h>
 
 #include "../offsets.hpp"
-#include "config/SoulSize.hpp"
+#include "../SoulSize.hpp"
 
 namespace RE {
     class Actor;
