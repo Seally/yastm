@@ -1,4 +1,4 @@
-#include "EnchantItemFix.hpp"
+#include "enchantitemfix.hpp"
 
 #include <SKSE/SKSE.h>
 #include <xbyak/xbyak.h>
@@ -10,11 +10,11 @@
 
 #include "global.hpp"
 #include "expectedbytes.hpp"
+#include "messages.hpp"
 #include "offsets.hpp"
 #include "trampoline.hpp"
-#include "config/utilities.hpp"
+#include "config/configutilities.hpp"
 #include "formatters/TESSoulGem.hpp"
-#include "trapsoul/messages.hpp"
 #include "utilities/misc.hpp"
 #include "utilities/native.hpp"
 

@@ -6,8 +6,8 @@
 #include <RE/M/Misc.h>
 #include <RE/V/VirtualMachine.h>
 
-#include "global.hpp"
-#include "../trapsoul/messages.hpp"
+#include "../global.hpp"
+#include "../messages.hpp"
 #include "../trapsoul/trapsoul.hpp"
 #include "../utilities/native.hpp"
 #include "../utilities/PapyrusFunctionRegistry.hpp"

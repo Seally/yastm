@@ -16,10 +16,10 @@
 #include <RE/T/TESSoulGem.h>
 
 #include "../global.hpp"
+#include "../messages.hpp"
 #include "../SoulValue.hpp"
 #include "types.hpp"
 #include "InventoryStatus.hpp"
-#include "messages.hpp"
 #include "SearchResult.hpp"
 #include "SoulTrapData.hpp"
 #include "Victim.hpp"

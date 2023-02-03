@@ -1,4 +1,4 @@
-#include "ChargeItemFix.hpp"
+#include "chargeitemfix.hpp"
 
 #include <xbyak/xbyak.h>
 
@@ -13,9 +13,9 @@
 #include "expectedbytes.hpp"
 #include "offsets.hpp"
 #include "trampoline.hpp"
-#include "config/utilities.hpp"
+#include "config/configutilities.hpp"
 #include "formatters/TESSoulGem.hpp"
-#include "trapsoul/messages.hpp"
+#include "messages.hpp"
 #include "utilities/misc.hpp"
 #include "utilities/native.hpp"
 

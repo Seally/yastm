@@ -8,9 +8,9 @@
 #include "global.hpp"
 #include "version.hpp"
 
-#include "ChargeItemFix.hpp"
-#include "EnchantItemFix.hpp"
-#include "TrapSoulFix.hpp"
+#include "chargeitemfix.hpp"
+#include "enchantitemfix.hpp"
+#include "trapsoulfix.hpp"
 #include "fsutils/FSUtils.hpp"
 #include "yastmutils/YASTMUtils.hpp"
 

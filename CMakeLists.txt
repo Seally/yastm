@@ -109,20 +109,22 @@ set(SOURCES
     src/global.hpp
     src/main.cpp
     src/PCH.hpp
-    src/ChargeItemFix.hpp
-    src/ChargeItemFix.cpp
-    src/EnchantItemFix.hpp
-    src/EnchantItemFix.cpp
+    src/chargeitemfix.hpp
+    src/chargeitemfix.cpp
+    src/enchantitemfix.hpp
+    src/enchantitemfix.cpp
     src/expectedbytes.hpp
+    src/messages.hpp
     src/offsets.hpp
     src/SoulSize.hpp
     src/SoulValue.hpp
     src/trampoline.hpp
-    src/TrapSoulFix.hpp
-    src/TrapSoulFix.cpp
+    src/trapsoulfix.hpp
+    src/trapsoulfix.cpp
     src/config/ConcreteSoulGemGroup.hpp
     src/config/ConcreteSoulGemGroup.cpp
     src/config/ConfigKey.hpp
+    src/config/configutilities.hpp
     src/config/DLLDependencyKey.hpp
     src/config/Form.hpp
     src/config/FormError.hpp
@@ -139,7 +141,6 @@ set(SOURCES
     src/config/SoulGemMap.cpp
     src/config/SpecificationError.hpp
     src/config/SpecificationError.cpp
-    src/config/utilities.hpp
     src/config/YASTMConfig.hpp
     src/config/YASTMConfig.cpp
     src/formatters/TESForm.hpp
@@ -150,7 +151,6 @@ set(SOURCES
     src/fsutils/internal/Config.cpp
     src/fsutils/internal/ConfigManager.hpp
     src/fsutils/internal/ConfigManager.cpp
-    src/trapsoul/messages.hpp
     src/trapsoul/SearchResult.hpp
     src/trapsoul/SoulTrapData.hpp
     src/trapsoul/SoulTrapData.cpp

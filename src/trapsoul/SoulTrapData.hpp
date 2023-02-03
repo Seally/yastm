@@ -11,8 +11,8 @@
 
 #include "types.hpp"
 #include "InventoryStatus.hpp"
-#include "messages.hpp"
 #include "Victim.hpp"
+#include "../messages.hpp"
 #include "../config/YASTMConfig.hpp"
 #include "../utilities/misc.hpp"
 

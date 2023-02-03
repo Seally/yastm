@@ -1,4 +1,4 @@
-#include "TrapSoulFix.hpp"
+#include "trapsoulfix.hpp"
 
 #include <exception>
 
@@ -16,12 +16,12 @@
 
 #include "global.hpp"
 #include "expectedbytes.hpp"
+#include "messages.hpp"
 #include "offsets.hpp"
 #include "trampoline.hpp"
 #include "config/ConfigKey.hpp"
 #include "config/YASTMConfig.hpp"
 #include "trapsoul/trapsoul.hpp"
-#include "trapsoul/messages.hpp"
 #include "utilities/assembly.hpp"
 #include "utilities/Timer.hpp"
 #include "utilities/printerror.hpp"

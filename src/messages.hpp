@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../config/DllDependencyKey.hpp"
-#include "../config/YASTMConfig.hpp"
+#include "config/DllDependencyKey.hpp"
+#include "config/YASTMConfig.hpp"
 
 enum class SoulTrapSuccessMessage {
     SoulCaptured,
