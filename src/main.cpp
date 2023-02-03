@@ -42,7 +42,7 @@ bool setUpLogging()
 #endif
 
     spdlog::set_default_logger(std::move(log));
-    spdlog::set_pattern("%g(%#): [%^%l%$] %v"s);
+    spdlog::set_pattern("%s(%#): [%^%l%$] %v"s);
 
     LOG_INFO_FMT("Loaded {} v{}"sv, NAME, version::FULL_STRING);
 
