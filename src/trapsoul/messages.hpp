@@ -38,9 +38,11 @@ enum class MiscMessage {
      * notification. Resulting message requires processing with fmt::format()
      * with a double as an argument.
      *
+     * @example
      * fmt::format(getMessage(MiscMessage::TimeTakenToTrapSoul), elapsedTime)
      */
-    TimeTakenToTrapSoul
+    TimeTakenToTrapSoul,
+    CannotFindSoulGemBaseForm,
 };
 
 inline constexpr const char*
@@ -87,6 +89,10 @@ inline const char* getMessage(const MiscMessage key)
         }
 
         return "Time taken to trap soul: {:.7f} seconds";
+    case MiscMessage::CannotFindSoulGemBaseForm:
+        // We don't want a translation string for an error message that should
+        // never happen.
+        return "ERROR: Soul gem not consumed because no base form was found.";
     }
 
     return "";

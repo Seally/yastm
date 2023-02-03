@@ -5,6 +5,7 @@
 #include <SKSE/SKSE.h>
 #include <REL/Relocation.h>
 #include <RE/E/ExtraDataList.h>
+#include <RE/M/Misc.h>
 #include <RE/P/PlayerCharacter.h>
 #include <RE/T/TESSoulGem.h>
 
@@ -14,6 +15,7 @@
 #include "trampoline.hpp"
 #include "config/utilities.hpp"
 #include "formatters/TESSoulGem.hpp"
+#include "trapsoul/messages.hpp"
 #include "utilities/misc.hpp"
 #include "utilities/native.hpp"
 
@@ -60,13 +62,26 @@ namespace {
         // contained soul to zero on the extra data.
         if (baseSoulGem == nullptr) {
             if (dataList == nullptr) {
-                LOG_CRITICAL_FMT(
+                // This should only happen on reusable soul gems that have no
+                // NAM0 field specified, no entry in the soul gem map, and no
+                // extra data.
+                //
+                // The last one is only possible if the reusable soul gem form
+                // has a non-empty contained soul size, which isn't valid
+                // without YASTM anyway, so reaching this is indication that
+                // something has gone very wrong (in ESP/config files).
+                RE::DebugNotification(
+                    getMessage(MiscMessage::CannotFindSoulGemBaseForm));
+                LOG_ERROR_FMT(
                     "[CHARGE] Cannot find base form for soul gem {} and soul "
-                    "gem has no extra data. Game will likely crash after this "
-                    "line.",
+                    "gem has no extra data. Soul gem will not be consumed.",
                     *soulGemToConsume);
+            } else {
+                native::BSExtraDataList::SetSoul(
+                    dataList,
+                    RE::SOUL_LEVEL::kNone);
             }
-            native::BSExtraDataList::SetSoul(dataList, RE::SOUL_LEVEL::kNone);
+            return;
         }
 
         auto newDataList = createExtraDataListFromOriginal(dataList);
