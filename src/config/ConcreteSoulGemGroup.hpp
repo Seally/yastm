@@ -14,6 +14,11 @@ namespace RE {
     class TESSoulGem;
 } // end namespace RE
 
+/**
+ * @brief Represents a group of soul gem forms. This class differs from
+ * SoulGemGroup in that the forms stored are already resolved to pointers to the
+ * in-game forms.
+ */
 class ConcreteSoulGemGroup {
 public:
     using IdType = SoulGemGroup::IdType;
@@ -35,12 +40,25 @@ private:
 public:
     /**
      * @brief Constructs a pure soul gem group.
+     * 
+     * @param[in] sourceGroup The soul gem group to store.
+     * @param[in] dataHandler The data handler used to retrieve the in-game
+     * forms.
      */
     explicit ConcreteSoulGemGroup(
         const SoulGemGroup& sourceGroup,
         RE::TESDataHandler* dataHandler);
     /**
      * @brief Constructs a dual soul gem group.
+     *
+     * @param[in] whiteGrandSoulGemGroup The grand soul gem group to use as the
+     * primary basis for the group. This is the "real" group that is stored.
+     * @param[in] blackSoulGemGroup A previously instantiated
+     * ConcreteSoulGemGroup of black soul gems to use as the secondary basis for
+     * the group. This is used to look up the black soul-containing soul gem
+     * form.
+     * @param[in] dataHandler The data handler used to retrieve the in-game
+     * forms.
      */
     explicit ConcreteSoulGemGroup(
         const SoulGemGroup& whiteGrandSoulGemGroup,

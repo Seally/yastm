@@ -21,6 +21,9 @@ namespace RE {
     class TESSoulGem;
 } // end namespace RE
 
+/**
+ * @brief Represents a group of soul gems read from the configuration file.
+ */
 class SoulGemGroup {
 public:
     using IdType = std::string;

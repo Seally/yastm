@@ -20,6 +20,9 @@ namespace RE {
 
 class SoulGemGroup;
 
+/**
+ * @brief Stores a soul gem map allowing fast lookup for soul gems.
+ */
 class SoulGemMap {
 public:
     class Iterator;

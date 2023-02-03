@@ -77,7 +77,6 @@ namespace {
         RE::ExtraDataList* oldExtraList = nullptr;
         std::unique_ptr<RE::ExtraDataList> newExtraList;
 
-
         if (d.config[BC::AllowExtraSoulRelocation] ||
             d.config[BC::PreserveOwnership]) {
             oldExtraList = getFirstExtraDataList_(soulGemToRemoveEntryData);
@@ -218,6 +217,8 @@ namespace {
     {
         LOG_TRACE("Trapping black soul..."sv);
 
+        // We try to trap black souls into black soul gems first. If that
+        // succeeds, we can stop here.
         LOG_TRACE("Looking up pure empty black soul gems"sv);
         const bool isSoulTrapped = fillBlackSoulGem_(d);
 
@@ -235,11 +236,16 @@ namespace {
         // contained soul size up to SoulSize::Grand to allow displacing white
         // grand souls.
         //
-        // Note: Loop range is end-EXclusive.
+        // When displacement is NOT allowed, we search only for empty dual
+        // soul gems.
+        //
+        // Note: Loop range is end-EXclusive, so we use the next lowest soul
+        // sizes after our target (Grand => Black, None => Petty).
         const SoulSize maxContainedSoulSizeToSearch =
             d.config[BC::AllowSoulDisplacement] ? SoulSize::Black
                                                 : SoulSize::Petty;
 
+        // Perform the actual search for the appropriate dual soul gem.
         for (SoulSizeValue containedSoulSize = SoulSize::None;
              containedSoulSize < maxContainedSoulSizeToSearch;
              ++containedSoulSize) {

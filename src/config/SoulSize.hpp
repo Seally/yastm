@@ -253,28 +253,28 @@ inline void forEachSoulGemCapacity(std::function<void(SoulGemCapacity)> fn)
 // SoulSize operator overloads
 // -----------------------------------------------------------------------------
 template <typename T>
-requires std::integral<T>
+    requires std::integral<T>
 constexpr T operator+(const SoulSize soulSize, const T other)
 {
     return static_cast<T>(soulSize) + other;
 }
 
 template <typename T>
-requires std::integral<T>
+    requires std::integral<T>
 constexpr T operator+(const T other, const SoulSize soulSize)
 {
     return other + static_cast<T>(soulSize);
 }
 
 template <typename T>
-requires std::integral<T>
+    requires std::integral<T>
 constexpr T operator-(const SoulSize soulSize, const T other)
 {
     return static_cast<T>(soulSize) - other;
 }
 
 template <typename T>
-requires std::integral<T>
+    requires std::integral<T>
 constexpr T operator-(const T other, const SoulSize soulSize)
 {
     return other - static_cast<T>(soulSize);
@@ -284,28 +284,28 @@ constexpr T operator-(const T other, const SoulSize soulSize)
 // SoulGemCapacity operator overloads
 // -----------------------------------------------------------------------------
 template <typename T>
-requires std::integral<T>
+    requires std::integral<T>
 constexpr T operator+(const SoulGemCapacity capacity, const T other)
 {
     return static_cast<T>(capacity) + other;
 }
 
 template <typename T>
-requires std::integral<T>
+    requires std::integral<T>
 constexpr T operator+(const T other, const SoulGemCapacity capacity)
 {
     return other + static_cast<T>(capacity);
 }
 
 template <typename T>
-requires std::integral<T>
+    requires std::integral<T>
 constexpr T operator-(const SoulGemCapacity capacity, const T other)
 {
     return static_cast<T>(capacity) - other;
 }
 
 template <typename T>
-requires std::integral<T>
+    requires std::integral<T>
 constexpr T operator-(const T other, const SoulGemCapacity capacity)
 {
     return other - static_cast<T>(capacity);

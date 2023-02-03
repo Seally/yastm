@@ -274,6 +274,19 @@ ConcreteSoulGemGroup::ConcreteSoulGemGroup(
     const ConcreteSoulGemGroup& blackSoulGemGroup,
     RE::TESDataHandler* const dataHandler)
 {
+    // Primary and secondary basis are concepts used for dual soul gem groups.
+    //
+    // Basically the primary basis is the soul gem group that is actually stored
+    // within the soul gem group instance.
+    //
+    // The secondary basis is a previously constructed soul gem group which
+    // contains the form for the soul gem containing a black soul.
+    //
+    // This allows the soul trapping algorithm to "know" if a soul gem group
+    // can contain both black and white souls
+    // (capacity() == SoulGemCapacity::Dual), and look up the corresponding
+    // black soul-containing soul gem form alongside its white-storing
+    // counterparts.
     try {
         if (whiteGrandSoulGemGroup.capacity() != SoulGemCapacity::Grand) {
             throw std::runtime_error(fmt::format(
