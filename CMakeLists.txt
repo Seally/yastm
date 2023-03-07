@@ -123,7 +123,9 @@ set(SOURCES
     src/trapsoulfix.cpp
     src/config/ConcreteSoulGemGroup.hpp
     src/config/ConcreteSoulGemGroup.cpp
-    src/config/ConfigKey.hpp
+    src/config/ConfigKey/BoolConfigKey.hpp
+    src/config/ConfigKey/EnumConfigKey.hpp
+    src/config/ConfigKey/IntConfigKey.hpp
     src/config/configutilities.hpp
     src/config/DLLDependencyKey.hpp
     src/config/Form.hpp
@@ -158,7 +160,6 @@ set(SOURCES
     src/trapsoul/trapsoul.cpp
     src/trapsoul/types.hpp
     src/trapsoul/Victim.hpp
-    src/trapsoul/Victim.cpp
     src/utilities/algorithms.hpp
     src/utilities/assembly.hpp
     src/utilities/containerutils.hpp

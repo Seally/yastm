@@ -4,7 +4,7 @@
 #include <RE/P/PlayerCharacter.h>
 
 #include "../global.hpp"
-#include "../config/ConfigKey.hpp"
+#include "../config/ConfigKey/BoolConfigKey.hpp"
 #include "../config/YASTMConfig.hpp"
 
 bool trapSoul(RE::Actor* caster, RE::Actor* victim);

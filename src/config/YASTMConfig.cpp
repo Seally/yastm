@@ -142,6 +142,14 @@ YASTMConfig::YASTMConfig()
                 std::forward_as_tuple(key),
                 std::forward_as_tuple(key, defaultValue));
         });
+
+    forEachIntConfigKey(
+        [this](const IntConfigKey key, const float defaultValue) {
+            globalInts_.emplace(
+                std::piecewise_construct,
+                std::forward_as_tuple(key),
+                std::forward_as_tuple(key, defaultValue));
+        });
 }
 
 void YASTMConfig::loadYASTMConfigFile_()
@@ -167,6 +175,10 @@ void YASTMConfig::loadYASTMConfigFile_()
         forEachEnumConfigKey([&, this](const EnumConfigKey key) {
             readGlobalVariableConfigs_(key, yastmTable, globalEnums_);
         });
+
+        forEachIntConfigKey([&, this](const IntConfigKey key){
+            readGlobalVariableConfigs_(key, yastmTable, globalInts_);
+        });
     } catch (const toml::parse_error& error) {
         LOG_WARN_FMT(
             "Error while parsing general configuration file \"{}\": {}"sv,
@@ -180,6 +192,7 @@ void YASTMConfig::loadYASTMConfigFile_()
 
     printGlobalForms_(globalBools_);
     printGlobalForms_(globalEnums_);
+    printGlobalForms_(globalInts_);
 }
 
 void YASTMConfig::loadIndividualConfigFiles_()
@@ -334,6 +347,7 @@ void YASTMConfig::clear()
     // values intact.
     for (auto& [key, globalBool] : globalBools_) { globalBool.clear(); }
     for (auto& [key, globalEnum] : globalEnums_) { globalEnum.clear(); }
+    for (auto& [key, globalInt] : globalInts_) { globalInt.clear(); }
 
     clearContainer(soulGemGroupList_);
     soulGemMap_.clear();
@@ -350,10 +364,12 @@ void YASTMConfig::loadGlobalForms_(RE::TESDataHandler* const dataHandler)
     LOG_INFO("Loading global variable forms..."sv);
     loadGlobalFormsIn_(globalBools_, dataHandler);
     loadGlobalFormsIn_(globalEnums_, dataHandler);
+    loadGlobalFormsIn_(globalInts_, dataHandler);
 
     LOG_INFO("Listing loaded global variable forms:"sv);
     printLoadedGlobalForms_(globalBools_);
     printLoadedGlobalForms_(globalEnums_);
+    printLoadedGlobalForms_(globalInts_);
 }
 
 void YASTMConfig::createSoulGemMap_(RE::TESDataHandler* const dataHandler)

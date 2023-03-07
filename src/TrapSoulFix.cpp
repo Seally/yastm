@@ -19,7 +19,7 @@
 #include "messages.hpp"
 #include "offsets.hpp"
 #include "trampoline.hpp"
-#include "config/ConfigKey.hpp"
+#include "config/ConfigKey/BoolConfigKey.hpp"
 #include "config/YASTMConfig.hpp"
 #include "trapsoul/trapsoul.hpp"
 #include "utilities/assembly.hpp"

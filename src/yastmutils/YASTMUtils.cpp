@@ -8,6 +8,7 @@
 
 #include "../global.hpp"
 #include "../messages.hpp"
+#include "../config/YASTMConfig.hpp"
 #include "../trapsoul/trapsoul.hpp"
 #include "../utilities/native.hpp"
 #include "../utilities/PapyrusFunctionRegistry.hpp"

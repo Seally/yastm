@@ -11,7 +11,9 @@
 
 #include <toml++/toml.h>
 
-#include "ConfigKey.hpp"
+#include "ConfigKey/BoolConfigKey.hpp"
+#include "ConfigKey/EnumConfigKey.hpp"
+#include "ConfigKey/IntConfigKey.hpp"
 #include "DllDependencyKey.hpp"
 #include "GlobalVarForm.hpp"
 #include "SoulGemGroup.hpp"
@@ -34,6 +36,7 @@ public:
 private:
     GlobalVarMap<BoolConfigKey> globalBools_;
     GlobalVarMap<EnumConfigKey> globalEnums_;
+    GlobalVarMap<IntConfigKey> globalInts_;
 
     SoulGemGroupList soulGemGroupList_;
     SoulGemMap soulGemMap_;
@@ -88,18 +91,26 @@ public:
         return dependencies_.contains(key) && dependencies_.at(key) != nullptr;
     }
 
+    float getGlobalValue(const BoolConfigKey key) const
+    {
+        return globalBools_.at(key).value();
+    }
     float getGlobalValue(const EnumConfigKey key) const
     {
         return globalEnums_.at(key).value();
     }
-    float getGlobalValue(const BoolConfigKey key) const
+    float getGlobalValue(const IntConfigKey key) const
     {
-        return globalBools_.at(key).value();
+        return globalInts_.at(key).value();
     }
 
     bool getGlobalBool(const BoolConfigKey key) const
     {
         return getGlobalValue(key) != 0;
+    }
+    int getGlobalInt(const IntConfigKey key) const
+    {
+        return static_cast<int>(getGlobalValue(key));
     }
 
     template <EnumConfigKey key>
@@ -119,6 +130,7 @@ public:
             configBools_;
         std::unordered_map<EnumConfigKey, EnumConfigUnderlyingType>
             configEnums_;
+        std::unordered_map<IntConfigKey, int> configInts_;
 
     public:
         explicit Snapshot(const YASTMConfig& config);
@@ -127,6 +139,7 @@ public:
         auto get() const;
 
         bool operator[](BoolConfigKey key) const;
+        int operator[](IntConfigKey key) const;
     };
 };
 
@@ -141,11 +154,20 @@ inline YASTMConfig::Snapshot::Snapshot(const YASTMConfig& config)
             key,
             static_cast<EnumConfigUnderlyingType>(config.getGlobalValue(key)));
     });
+
+    forEachIntConfigKey([&, this](const IntConfigKey key) {
+        configInts_.emplace(key, config.getGlobalInt(key));
+    });
 }
 
 inline bool YASTMConfig::Snapshot::operator[](const BoolConfigKey key) const
 {
     return configBools_[static_cast<std::size_t>(key)];
+}
+
+inline int YASTMConfig::Snapshot::operator[](const IntConfigKey key) const
+{
+    return configInts_.at(key);
 }
 
 template <EnumConfigKey K>

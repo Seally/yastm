@@ -605,22 +605,57 @@ namespace {
         // Do not split black souls.
         // case SoulSize::Black:
         case SoulSize::Grand:
-            victimQueue.emplace(victim.actor(), SoulSize::Greater);
-            victimQueue.emplace(victim.actor(), SoulSize::Common);
+            victimQueue.emplace(victim.actor(), SoulSize::Greater, true);
+            victimQueue.emplace(victim.actor(), SoulSize::Common, true);
             break;
         case SoulSize::Greater:
-            victimQueue.emplace(victim.actor(), SoulSize::Common);
-            victimQueue.emplace(victim.actor(), SoulSize::Common);
+            victimQueue.emplace(victim.actor(), SoulSize::Common, true);
+            victimQueue.emplace(victim.actor(), SoulSize::Common, true);
             break;
         case SoulSize::Common:
-            victimQueue.emplace(victim.actor(), SoulSize::Lesser);
-            victimQueue.emplace(victim.actor(), SoulSize::Lesser);
+            victimQueue.emplace(victim.actor(), SoulSize::Lesser, true);
+            victimQueue.emplace(victim.actor(), SoulSize::Lesser, true);
             break;
         case SoulSize::Lesser:
-            victimQueue.emplace(victim.actor(), SoulSize::Petty);
-            victimQueue.emplace(victim.actor(), SoulSize::Petty);
+            victimQueue.emplace(victim.actor(), SoulSize::Petty, true);
+            victimQueue.emplace(victim.actor(), SoulSize::Petty, true);
             break;
         }
+    }
+
+    SoulSize maxTrappableSoulSize_(const SoulTrapData& d) {
+        assert(d.config.get<EC::SoulTrapLevelGateType>() != SoulTrapLevelGateType::None);
+
+        const auto conjurationSkill =
+            d.caster()->GetActorValue(RE::ActorValue::kConjuration);
+
+        LOG_TRACE_FMT("Retrieved conjuration skill level: {}"sv, conjurationSkill);
+
+        if (conjurationSkill >= d.config[IC::SoulTrapThresholdBlack]) {
+            return SoulSize::Black;
+        }
+
+        if (conjurationSkill >= d.config[IC::SoulTrapThresholdGrand]) {
+            return SoulSize::Grand;
+        }
+
+        if (conjurationSkill >= d.config[IC::SoulTrapThresholdGreater]) {
+            return SoulSize::Greater;
+        }
+
+        if (conjurationSkill >= d.config[IC::SoulTrapThresholdCommon]) {
+            return SoulSize::Common;
+        }
+
+        if (conjurationSkill >= d.config[IC::SoulTrapThresholdLesser]) {
+            return SoulSize::Lesser;
+        }
+
+        if (conjurationSkill >= d.config[IC::SoulTrapThresholdPetty]) {
+            return SoulSize::Petty;
+        }
+
+        return SoulSize::None;
     }
 
     std::mutex trapSoulMutex_; /* Process only one soul trap at a time. */
@@ -668,8 +703,6 @@ bool trapSoul(RE::Actor* const caster, RE::Actor* const victim)
         //            external changes for this particular call.
         SoulTrapData d(caster);
 
-        d.victims().emplace(victim);
-
 #ifndef NDEBUG
         LOG_TRACE("Found configuration:"sv);
 
@@ -679,9 +712,47 @@ bool trapSoul(RE::Actor* const caster, RE::Actor* const victim)
 
         LOG_TRACE_FMT(
             "- {}: {}"sv,
-            EC::SoulShrinkingTechnique,
+            EC::SoulTrapLevelGateType,
             d.config.get<EC::SoulShrinkingTechnique>());
+        LOG_TRACE_FMT(
+            "- {}: {}"sv,
+            EC::SoulTrapLevelGateType,
+            d.config.get<EC::SoulTrapLevelGateType>());
+
+        forEachIntConfigKey([&](const IntConfigKey key) {
+            LOG_TRACE_FMT("- {}: {}"sv, key, d.config[key]);
+        });
 #endif // NDEBUG
+
+        switch (d.config.get<EC::SoulTrapLevelGateType>()) {
+        case SoulTrapLevelGateType::Partial:
+        {
+            const auto maxSoulSize = maxTrappableSoulSize_(d);
+            LOG_TRACE_FMT("Max trappable soul size: {:tu}"sv, maxSoulSize);
+
+            const auto actorSoulSize = getActorSoulSize(victim);
+
+            d.victims().emplace(victim, std::min(actorSoulSize, maxSoulSize), false);
+            break;
+        }
+        case SoulTrapLevelGateType::Block:
+        {
+            const auto maxSoulSize = maxTrappableSoulSize_(d);
+            LOG_TRACE_FMT("Max trappable soul size: {:tu}"sv, maxSoulSize);
+
+            const auto actorSoulSize = getActorSoulSize(victim);
+
+            if (actorSoulSize > maxSoulSize) {
+                RE::DebugNotification("Conjuration skill too low for soul trap.");
+                return false;
+            }
+            d.victims().emplace(victim);
+            break;
+        }
+        default:
+            d.victims().emplace(victim);
+            break;
+        }
 
         while (!d.victims().empty()) {
             d.updateLoopVariables();

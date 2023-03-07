@@ -4,14 +4,19 @@
 #include <memory>
 #include <unordered_map>
 
+#include <cassert>
+
 #include <RE/B/BGSDefaultObjectManager.h>
 #include <RE/B/BGSKeyword.h>
 #include <RE/T/TESObjectREFR.h>
 #include <RE/T/TESSoulGem.h>
 
+#include "native.hpp"
+#include "SoulSize.hpp"
 #include "formatters/TESForm.hpp"
 
 namespace RE {
+    class Actor;
     class BGSKeyword;
     class TESBoundObject;
 } // namespace RE
@@ -63,4 +68,15 @@ using UnorderedInventoryItemMap = std::unordered_map<
     }
 
     return newExtraList;
+}
+
+inline SoulSize getActorSoulSize(RE::Actor* const actor)
+{
+    assert(actor != nullptr);
+
+    if (native::isActorNPC(actor)) {
+        return SoulSize::Black;
+    }
+
+    return toSoulSize(native::getRemainingSoulLevel(actor));
 }

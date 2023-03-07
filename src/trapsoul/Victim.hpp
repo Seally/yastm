@@ -2,11 +2,15 @@
 
 #include <compare>
 
+#include <cassert>
+
 #include <fmt/format.h>
 
 #include <RE/A/Actor.h>
 
 #include "../SoulSize.hpp"
+#include "../utilities/misc.hpp"
+#include "../utilities/native.hpp"
 
 class Victim {
     RE::Actor* actor_;
@@ -15,8 +19,8 @@ class Victim {
 
 public:
     /**
-     * @brief Constructs a primary victim. The soul size automatically
-     * calculated from the actor's properties.
+     * @brief Constructs a primary victim. The soul size calculated from the
+     * actor's properties and the maximum soul size.
      */
     explicit Victim(RE::Actor* actor);
     /**
@@ -29,14 +33,12 @@ public:
         , isSplit_(false)
     {}
     /**
-     * @brief Constructs a victim with a custom soul size. This
-     * constructor is used for split souls (the split flag is set
-     * automatically).
+     * @brief Constructs a victim with a custom soul size.
      */
-    explicit Victim(RE::Actor* actor, SoulSize soulSize) noexcept
+    explicit Victim(RE::Actor* actor, SoulSize soulSize, bool isSplit) noexcept
         : actor_(actor)
         , soulSize_(soulSize)
-        , isSplit_(true)
+        , isSplit_(isSplit)
     {}
 
     RE::Actor* actor() const noexcept { return actor_; }
@@ -58,6 +60,12 @@ public:
     bool isSecondarySoul() const noexcept { return actor() == nullptr; }
     bool isSplitSoul() const noexcept { return isSplit_; }
 };
+
+inline Victim::Victim(RE::Actor* const actor)
+    : actor_(actor)
+    , soulSize_(getActorSoulSize(actor))
+    , isSplit_(false)
+{}
 
 inline auto operator<=>(const Victim& lhs, const Victim& rhs) noexcept
 {
