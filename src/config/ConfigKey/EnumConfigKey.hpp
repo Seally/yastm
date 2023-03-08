@@ -25,7 +25,7 @@ enum class SoulShrinkingTechnique : EnumConfigUnderlyingType {
 
 enum class SoulTrapLevelGateType : EnumConfigUnderlyingType {
     None,
-    Partial,
+    Degrade,
     Block,
 };
 
@@ -85,8 +85,8 @@ inline constexpr std::string_view
     switch (key) {
     case SoulTrapLevelGateType::None:
         return "none"sv;
-    case SoulTrapLevelGateType::Partial:
-        return "partial"sv;
+    case SoulTrapLevelGateType::Degrade:
+        return "degrade"sv;
     case SoulTrapLevelGateType::Block:
         return "block"sv;
     }
@@ -121,8 +121,8 @@ struct EnumConfigKeyTypeMap<EnumConfigKey::SoulTrapLevelGateType> {
 
     type operator()(const float value) noexcept
     {
-        if (value == static_cast<float>(type::Partial)) {
-            return type::Partial;
+        if (value == static_cast<float>(type::Degrade)) {
+            return type::Degrade;
         }
 
         if (value == static_cast<float>(type::Block)) {

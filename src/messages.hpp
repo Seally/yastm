@@ -30,6 +30,11 @@ enum class SoulTrapFailureMessage {
      * when no other condition is satisfied.
      */
     NoSuitableSoulGem,
+    /**
+     * @brief The soul size is too large to capture for the caster's current
+     * skill level. 
+     */
+    LevelGated,
 };
 
 enum class MiscMessage {
@@ -57,23 +62,38 @@ inline constexpr const char*
         return "$YASTM_Notification_NoSoulGemLargeEnough";
     case SoulTrapFailureMessage::NoSuitableSoulGem:
         return "$YASTM_Notification_NoSuitableSoulGem";
+    case SoulTrapFailureMessage::LevelGated:
+        return "$YASTM_Notification_SoulTrapLevelGated";
     }
 
     return "";
 }
 
 inline constexpr const char*
-    getMessage(const SoulTrapSuccessMessage key) noexcept
+    getMessage(const SoulTrapSuccessMessage key, bool degraded) noexcept
 {
-    switch (key) {
-    case SoulTrapSuccessMessage::SoulCaptured:
-        return "$YASTM_Notification_SoulCaptured";
-    case SoulTrapSuccessMessage::SoulDisplaced:
-        return "$YASTM_Notification_SoulDisplaced";
-    case SoulTrapSuccessMessage::SoulShrunk:
-        return "$YASTM_Notification_SoulShrunk";
-    case SoulTrapSuccessMessage::SoulSplit:
-        return "$YASTM_Notification_SoulSplit";
+    if (degraded) {
+        switch (key) {
+        case SoulTrapSuccessMessage::SoulCaptured:
+            return "$YASTM_Notification_SoulCaptured_Degraded";
+        case SoulTrapSuccessMessage::SoulDisplaced:
+            return "$YASTM_Notification_SoulDisplaced_Degraded";
+        case SoulTrapSuccessMessage::SoulShrunk:
+            return "$YASTM_Notification_SoulShrunk_Degraded";
+        case SoulTrapSuccessMessage::SoulSplit:
+            return "$YASTM_Notification_SoulSplit_Degraded";
+        }
+    } else {
+        switch (key) {
+        case SoulTrapSuccessMessage::SoulCaptured:
+            return "$YASTM_Notification_SoulCaptured";
+        case SoulTrapSuccessMessage::SoulDisplaced:
+            return "$YASTM_Notification_SoulDisplaced";
+        case SoulTrapSuccessMessage::SoulShrunk:
+            return "$YASTM_Notification_SoulShrunk";
+        case SoulTrapSuccessMessage::SoulSplit:
+            return "$YASTM_Notification_SoulSplit";
+        }
     }
 
     return "";

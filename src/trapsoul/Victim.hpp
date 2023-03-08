@@ -1,6 +1,7 @@
 #pragma once
 
 #include <compare>
+#include <bitset>
 
 #include <cassert>
 
@@ -22,7 +23,12 @@ public:
      * @brief Constructs a primary victim. The soul size calculated from the
      * actor's properties and the maximum soul size.
      */
-    explicit Victim(RE::Actor* actor);
+    explicit Victim(RE::Actor* actor)
+        : actor_(actor)
+        , soulSize_(getActorSoulSize(actor))
+        , isSplit_(false)
+    {}
+
     /**
      * @brief Constructs a victim with no associated actor. This constructor is
      * used for displaced souls.
@@ -60,12 +66,6 @@ public:
     bool isSecondarySoul() const noexcept { return actor() == nullptr; }
     bool isSplitSoul() const noexcept { return isSplit_; }
 };
-
-inline Victim::Victim(RE::Actor* const actor)
-    : actor_(actor)
-    , soulSize_(getActorSoulSize(actor))
-    , isSplit_(false)
-{}
 
 inline auto operator<=>(const Victim& lhs, const Victim& rhs) noexcept
 {

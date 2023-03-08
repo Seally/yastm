@@ -725,25 +725,38 @@ bool trapSoul(RE::Actor* const caster, RE::Actor* const victim)
 #endif // NDEBUG
 
         switch (d.config.get<EC::SoulTrapLevelGateType>()) {
-        case SoulTrapLevelGateType::Partial:
+        case SoulTrapLevelGateType::Degrade:
         {
+            // TODO: This process shrinks black souls. It should not do that.
             const auto maxSoulSize = maxTrappableSoulSize_(d);
             LOG_TRACE_FMT("Max trappable soul size: {:tu}"sv, maxSoulSize);
 
-            const auto actorSoulSize = getActorSoulSize(victim);
+            const auto victimSoulSize = getActorSoulSize(victim);
+            LOG_TRACE_FMT("Victim's soul size: {:tu}"sv, maxSoulSize);
+            SoulSize trappedSoulSize;
 
-            d.victims().emplace(victim, std::min(actorSoulSize, maxSoulSize), false);
+            if (victimSoulSize > maxSoulSize) {
+                trappedSoulSize = maxSoulSize;
+                LOG_TRACE("Soul degraded due to caster conjuration level.");
+            } else {
+                trappedSoulSize = victimSoulSize;
+            }
+
+            d.victims().emplace(victim, trappedSoulSize, false);
+            d.setDegradedSoulTrap();
             break;
         }
         case SoulTrapLevelGateType::Block:
         {
+            const auto victimSoulSize = getActorSoulSize(victim);
+            LOG_TRACE_FMT("Victim's soul size: {:tu}"sv, victimSoulSize);
+
             const auto maxSoulSize = maxTrappableSoulSize_(d);
             LOG_TRACE_FMT("Max trappable soul size: {:tu}"sv, maxSoulSize);
 
-            const auto actorSoulSize = getActorSoulSize(victim);
-
-            if (actorSoulSize > maxSoulSize) {
-                RE::DebugNotification("Conjuration skill too low for soul trap.");
+            if (victimSoulSize > maxSoulSize) {
+                LOG_TRACE("Conjuration skill too low.");
+                RE::DebugNotification(getMessage(SoulTrapFailureMessage::LevelGated));
                 return false;
             }
             d.victims().emplace(victim);

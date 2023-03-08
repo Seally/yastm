@@ -36,6 +36,7 @@ private:
 
     VictimsQueue victims_;
     std::optional<Victim> victim_;
+    bool isDegradedSoulTrap_ = false;
 
     template <typename MessageKey>
     void notify_(MessageKey message);
@@ -64,6 +65,10 @@ public:
     const VictimsQueue& victims() const noexcept { return victims_; }
 
     const Victim& victim() const { return victim_.value(); }
+    void setDegradedSoulTrap(bool isDegraded = true) {
+        isDegradedSoulTrap_ = isDegraded;
+    }
+    bool isDegradedSoulTrap() const { return isDegradedSoulTrap_;  }
 
     void notifySoulTrapFailure(const SoulTrapFailureMessage message);
 
@@ -83,6 +88,17 @@ inline void SoulTrapData::notify_(const MessageKey message)
     if (notifyCount_ < MAX_NOTIFICATION_COUNT &&
         config[BC::AllowNotifications]) {
         RE::DebugNotification(getMessage(message));
+        ++notifyCount_;
+    }
+}
+
+template <>
+inline void SoulTrapData::notify_<SoulTrapSuccessMessage>(
+    const SoulTrapSuccessMessage message)
+{
+    if (notifyCount_ < MAX_NOTIFICATION_COUNT &&
+        config[BC::AllowNotifications]) {
+        RE::DebugNotification(getMessage(message, isDegradedSoulTrap()));
         ++notifyCount_;
     }
 }
