@@ -172,6 +172,7 @@ set(SOURCES
     src/utilities/PapyrusFunctionRegistry.hpp
     src/utilities/printerror.hpp
     src/utilities/printerror.cpp
+    src/utilities/rng.hpp
     src/utilities/stringutils.hpp
     src/utilities/Timer.hpp
     src/yastmutils/YASTMUtils.hpp

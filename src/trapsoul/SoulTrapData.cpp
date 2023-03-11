@@ -2,6 +2,46 @@
 
 #include <cassert>
 
+#include "../global.hpp"
+
+namespace {
+    int getSoulTrapLevel_(RE::Actor* const actor)
+    {
+        using AV = RE::ActorValue;
+
+        const auto conjurationLevel = actor->GetActorValue(AV::kConjuration);
+
+        LOG_TRACE_FMT(
+            "Retrieved conjuration skill level: {}",
+            conjurationLevel);
+
+        return static_cast<int>(conjurationLevel);
+    }
+} // end namespace
+
+SoulTrapData::SoulTrapData(RE::Actor* const caster)
+    : caster_(caster)
+    , soulTrapLevel_(getSoulTrapLevel_(caster))
+    , config(YASTMConfig::getInstance(), soulTrapLevel_)
+{
+    if (config.get<EC::SoulTrapLevelingType>() == SoulTrapLevelingType::None ||
+        soulTrapLevel_ >= config[IC::SoulTrapThresholdBlack]) {
+        maxTrappableSoulSize_ = SoulSize::Black;
+    } else if (soulTrapLevel_ >= config[IC::SoulTrapThresholdGrand]) {
+        maxTrappableSoulSize_ = SoulSize::Grand;
+    } else if (soulTrapLevel_ >= config[IC::SoulTrapThresholdGreater]) {
+        maxTrappableSoulSize_ = SoulSize::Greater;
+    } else if (soulTrapLevel_ >= config[IC::SoulTrapThresholdCommon]) {
+        maxTrappableSoulSize_ = SoulSize::Common;
+    } else if (soulTrapLevel_ >= config[IC::SoulTrapThresholdLesser]) {
+        maxTrappableSoulSize_ = SoulSize::Lesser;
+    } else if (soulTrapLevel_ >= config[IC::SoulTrapThresholdPetty]) {
+        maxTrappableSoulSize_ = SoulSize::Petty;
+    } else {
+        maxTrappableSoulSize_ = SoulSize::None;
+    }
+}
+
 void SoulTrapData::resetInventoryData_()
 {
     std::size_t maxFilledSoulGemsCount = 0;

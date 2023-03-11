@@ -31,10 +31,10 @@ enum class SoulTrapFailureMessage {
      */
     NoSuitableSoulGem,
     /**
-     * @brief The soul size is too large to capture for the caster's current
-     * skill level. 
+     * @brief The soul was lost due to the caster's improficiency (too low
+     * level).
      */
-    LevelGated,
+    SoulLost
 };
 
 enum class MiscMessage {
@@ -62,15 +62,15 @@ inline constexpr const char*
         return "$YASTM_Notification_NoSoulGemLargeEnough";
     case SoulTrapFailureMessage::NoSuitableSoulGem:
         return "$YASTM_Notification_NoSuitableSoulGem";
-    case SoulTrapFailureMessage::LevelGated:
-        return "$YASTM_Notification_SoulTrapLevelGated";
+    case SoulTrapFailureMessage::SoulLost:
+        return "$YASTM_Notification_SoulLost";
     }
 
     return "";
 }
 
 inline constexpr const char*
-    getMessage(const SoulTrapSuccessMessage key, bool degraded) noexcept
+    getMessage(const SoulTrapSuccessMessage key, const bool degraded) noexcept
 {
     if (degraded) {
         switch (key) {

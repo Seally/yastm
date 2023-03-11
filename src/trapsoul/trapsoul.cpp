@@ -28,6 +28,7 @@
 #include "../utilities/misc.hpp"
 #include "../utilities/native.hpp"
 #include "../utilities/printerror.hpp"
+#include "../utilities/rng.hpp"
 #include "../utilities/Timer.hpp"
 
 using namespace std::literals;
@@ -99,9 +100,7 @@ namespace {
                 }
 
                 // Add the extra soul into the queue.
-                LOG_TRACE_FMT(
-                    "Relocating extra soul of size: {:t}"sv,
-                    soulSize);
+                LOG_TRACE_FMT("Relocating extra soul of size: {:t}", soulSize);
                 d.victims().emplace(soulSize);
             }
         }
@@ -111,10 +110,10 @@ namespace {
         }
 
         LOG_TRACE_FMT(
-            "Replacing soul gems in {}'s inventory"sv,
+            "Replacing soul gems in {}'s inventory",
             d.caster()->GetName());
-        LOG_TRACE_FMT("- from: {:f}"sv, *soulGemToRemove);
-        LOG_TRACE_FMT("- to: {:f}"sv, *soulGemToAdd);
+        LOG_TRACE_FMT("- from: {:f}", *soulGemToRemove);
+        LOG_TRACE_FMT("- to: {:f}", *soulGemToAdd);
 
         d.caster()->AddObjectToContainer(
             soulGemToAdd,
@@ -215,11 +214,11 @@ namespace {
 
     bool trapBlackSoul_(SoulTrapData& d)
     {
-        LOG_TRACE("Trapping black soul..."sv);
+        LOG_TRACE("Trapping black soul...");
 
         // We try to trap black souls into black soul gems first. If that
         // succeeds, we can stop here.
-        LOG_TRACE("Looking up pure empty black soul gems"sv);
+        LOG_TRACE("Looking up pure empty black soul gems");
         const bool isSoulTrapped = fillBlackSoulGem_(d);
 
         if (isSoulTrapped) {
@@ -250,7 +249,7 @@ namespace {
              containedSoulSize < maxContainedSoulSizeToSearch;
              ++containedSoulSize) {
             LOG_TRACE_FMT(
-                "Looking up dual soul gems with containedSoulSize = {:t}"sv,
+                "Looking up dual soul gems with containedSoulSize = {:t}",
                 containedSoulSize);
 
             const auto& sourceSoulGems = soulGemMap.getSoulGemsWith(
@@ -283,7 +282,7 @@ namespace {
 
     bool trapFullSoul_(SoulTrapData& d)
     {
-        LOG_TRACE("Trapping full white soul..."sv);
+        LOG_TRACE("Trapping full white soul...");
 
         const auto& soulGemMap = YASTMConfig::getInstance().soulGemMap();
 
@@ -388,8 +387,7 @@ namespace {
             if (d.config[BC::AllowSoulDisplacement] &&
                 (d.config[BC::AllowPartiallyFillingSoulGems] ||
                  d.victim().soulSize() == SoulSize::Grand)) {
-                LOG_TRACE(
-                    "Looking up dual soul filled gems with a black soul"sv);
+                LOG_TRACE("Looking up dual soul filled gems with a black soul");
 
                 const bool result =
                     tryReplaceBlackSoulInDualSoulGemWithWhiteSoul_(d);
@@ -426,7 +424,8 @@ namespace {
                      capacity <= maxSoulCapacityToSearch;
                      ++capacity) {
                     LOG_TRACE_FMT(
-                        "Looking up white soul gems with capacity = {:t}, containedSoulSize = {:t}"sv,
+                        "Looking up white soul gems with capacity = {:t}, "
+                        "containedSoulSize = {:t}",
                         capacity,
                         containedSoulSize);
 
@@ -498,7 +497,8 @@ namespace {
                  containedSoulSize < maxContainedSoulSizeToSearch;
                  ++containedSoulSize) {
                 LOG_TRACE_FMT(
-                    "Looking up white soul gems with capacity = {:t}, containedSoulSize = {:t}"sv,
+                    "Looking up white soul gems with capacity = {:t}, "
+                    "containedSoulSize = {:t}",
                     capacity,
                     containedSoulSize);
 
@@ -564,7 +564,8 @@ namespace {
              containedSoulSize < maxContainedSoulSizeToSearch;
              ++containedSoulSize) {
             LOG_TRACE_FMT(
-                "Looking up white soul gems with capacity = {:t}, containedSoulSize = {:t}"sv,
+                "Looking up white soul gems with capacity = {:t}, "
+                "containedSoulSize = {:t}",
                 d.victim().soulSize(),
                 containedSoulSize);
 
@@ -623,63 +624,28 @@ namespace {
         }
     }
 
-    SoulSize maxTrappableSoulSize_(const SoulTrapData& d) {
-        assert(d.config.get<EC::SoulTrapLevelGateType>() != SoulTrapLevelGateType::None);
-
-        const auto conjurationSkill =
-            d.caster()->GetActorValue(RE::ActorValue::kConjuration);
-
-        LOG_TRACE_FMT("Retrieved conjuration skill level: {}"sv, conjurationSkill);
-
-        if (conjurationSkill >= d.config[IC::SoulTrapThresholdBlack]) {
-            return SoulSize::Black;
-        }
-
-        if (conjurationSkill >= d.config[IC::SoulTrapThresholdGrand]) {
-            return SoulSize::Grand;
-        }
-
-        if (conjurationSkill >= d.config[IC::SoulTrapThresholdGreater]) {
-            return SoulSize::Greater;
-        }
-
-        if (conjurationSkill >= d.config[IC::SoulTrapThresholdCommon]) {
-            return SoulSize::Common;
-        }
-
-        if (conjurationSkill >= d.config[IC::SoulTrapThresholdLesser]) {
-            return SoulSize::Lesser;
-        }
-
-        if (conjurationSkill >= d.config[IC::SoulTrapThresholdPetty]) {
-            return SoulSize::Petty;
-        }
-
-        return SoulSize::None;
-    }
-
     std::mutex trapSoulMutex_; /* Process only one soul trap at a time. */
 } // namespace
 
 bool trapSoul(RE::Actor* const caster, RE::Actor* const victim)
 {
     if (caster == nullptr) {
-        LOG_TRACE("Caster is null."sv);
+        LOG_TRACE("Caster is null.");
         return false;
     }
 
     if (victim == nullptr) {
-        LOG_TRACE("Victim is null."sv);
+        LOG_TRACE("Victim is null.");
         return false;
     }
 
     if (caster->IsDead(false)) {
-        LOG_TRACE("Caster is dead."sv);
+        LOG_TRACE("Caster is dead.");
         return false;
     }
 
     if (!victim->IsDead(false)) {
-        LOG_TRACE("Victim is not dead."sv);
+        LOG_TRACE("Victim is not dead.");
         return false;
     }
 
@@ -687,7 +653,7 @@ bool trapSoul(RE::Actor* const caster, RE::Actor* const victim)
     std::lock_guard<std::mutex> guard(trapSoulMutex_);
 
     if (native::getRemainingSoulLevelValue(victim) == SoulLevelValue::None) {
-        LOG_TRACE("Victim has already been soul trapped."sv);
+        LOG_TRACE("Victim has already been soul trapped.");
         return false;
     }
 
@@ -703,65 +669,77 @@ bool trapSoul(RE::Actor* const caster, RE::Actor* const victim)
         //            external changes for this particular call.
         SoulTrapData d(caster);
 
-#ifndef NDEBUG
-        LOG_TRACE("Found configuration:"sv);
+        switch (d.config.get<EC::SoulTrapLevelingType>()) {
+        case SoulTrapLevelingType::Degradation:
+            {
+                const auto maxSoulSize = d.maxTrappableSoulSize();
+                LOG_TRACE_FMT("Max trappable soul size: {:tu}", maxSoulSize);
 
-        forEachBoolConfigKey([&](const BoolConfigKey key) {
-            LOG_TRACE_FMT("- {}: {}"sv, key, d.config[key]);
-        });
+                if (maxSoulSize == SoulSize::None) {
+                    LOG_TRACE(
+                        "Caster conjuration level is too low for any soul "
+                        "trap.");
+                    d.notifySoulTrapFailure(SoulTrapFailureMessage::SoulLost);
+                    return false;
+                }
 
-        LOG_TRACE_FMT(
-            "- {}: {}"sv,
-            EC::SoulTrapLevelGateType,
-            d.config.get<EC::SoulShrinkingTechnique>());
-        LOG_TRACE_FMT(
-            "- {}: {}"sv,
-            EC::SoulTrapLevelGateType,
-            d.config.get<EC::SoulTrapLevelGateType>());
+                auto victimSoulSize = getActorSoulSize(victim);
+                LOG_TRACE_FMT("Victim's soul size: {:tu}", maxSoulSize);
 
-        forEachIntConfigKey([&](const IntConfigKey key) {
-            LOG_TRACE_FMT("- {}: {}"sv, key, d.config[key]);
-        });
-#endif // NDEBUG
+                // Black souls can't be degraded. Reject entirely.
+                if (victimSoulSize == SoulSize::Black &&
+                    maxSoulSize < SoulSize::Black) {
+                    LOG_TRACE(
+                        "Caster conjuration level is too low to trap black "
+                        "souls.");
+                    d.notifySoulTrapFailure(SoulTrapFailureMessage::SoulLost);
+                    return false;
+                }
 
-        switch (d.config.get<EC::SoulTrapLevelGateType>()) {
-        case SoulTrapLevelGateType::Degrade:
-        {
-            // TODO: This process shrinks black souls. It should not do that.
-            const auto maxSoulSize = maxTrappableSoulSize_(d);
-            LOG_TRACE_FMT("Max trappable soul size: {:tu}"sv, maxSoulSize);
-
-            const auto victimSoulSize = getActorSoulSize(victim);
-            LOG_TRACE_FMT("Victim's soul size: {:tu}"sv, maxSoulSize);
-            SoulSize trappedSoulSize;
-
-            if (victimSoulSize > maxSoulSize) {
-                trappedSoulSize = maxSoulSize;
-                LOG_TRACE("Soul degraded due to caster conjuration level.");
-            } else {
-                trappedSoulSize = victimSoulSize;
+                if (victimSoulSize > maxSoulSize) {
+                    LOG_TRACE_FMT("Degraded soul size: {}", maxSoulSize);
+                    d.victims().emplace(victim, maxSoulSize, false);
+                    d.setDegradedSoulTrap();
+                } else {
+                    d.victims().emplace(victim);
+                }
+                break;
             }
+        case SoulTrapLevelingType::Loss:
+            {
+                const auto victimSoulSize = getActorSoulSize(victim);
+                LOG_TRACE_FMT("Victim's soul size: {:tu}", victimSoulSize);
 
-            d.victims().emplace(victim, trappedSoulSize, false);
-            d.setDegradedSoulTrap();
-            break;
-        }
-        case SoulTrapLevelGateType::Block:
-        {
-            const auto victimSoulSize = getActorSoulSize(victim);
-            LOG_TRACE_FMT("Victim's soul size: {:tu}"sv, victimSoulSize);
+                const auto maxSoulSize = d.maxTrappableSoulSize();
+                LOG_TRACE_FMT("Max trappable soul size: {:tu}", maxSoulSize);
 
-            const auto maxSoulSize = maxTrappableSoulSize_(d);
-            LOG_TRACE_FMT("Max trappable soul size: {:tu}"sv, maxSoulSize);
+                if (victimSoulSize > maxSoulSize) {
+                    const auto scaling =
+                        d.config[IC::SoulLossSuccessChanceScaling] / 100.0;
 
-            if (victimSoulSize > maxSoulSize) {
-                LOG_TRACE("Conjuration skill too low.");
-                RE::DebugNotification(getMessage(SoulTrapFailureMessage::LevelGated));
-                return false;
+                    double threshold;
+
+                    if (d.config[BC::AllowSoulLossProgression]) {
+                        threshold = (d.soulTrapLevel() * scaling) /
+                                    d.getThresholdForSoulSize(victimSoulSize);
+                    } else {
+                        threshold = scaling;
+                    }
+
+                    const auto x = Rng::getInstance().generateUniform(0.0, 1.0);
+
+                    LOG_TRACE_FMT("Threshold={}, x={}", threshold, x);
+
+                    if (threshold < x) {
+                        LOG_TRACE("Soul lost.");
+                        d.notifySoulTrapFailure(
+                            SoulTrapFailureMessage::SoulLost);
+                        return false;
+                    }
+                }
+                d.victims().emplace(victim);
+                break;
             }
-            d.victims().emplace(victim);
-            break;
-        }
         default:
             d.victims().emplace(victim);
             break;
@@ -775,7 +753,7 @@ bool trapSoul(RE::Actor* const caster, RE::Actor* const victim)
             if (d.casterInventoryStatus() !=
                 InventoryStatus::HasSoulGemsToFill) {
                 // Caster doesn't have any soul gems. Stop looking.
-                LOG_TRACE("Caster has no soul gems to fill. Stop looking."sv);
+                LOG_TRACE("Caster has no soul gems to fill. Stop looking.");
                 break;
             }
 
@@ -829,7 +807,7 @@ bool trapSoul(RE::Actor* const caster, RE::Actor* const victim)
             if (RE::AIProcess* const process = victim->currentProcess;
                 process) {
                 if (process->middleHigh) {
-                    LOG_TRACE("Flagging soul trapped victim..."sv);
+                    LOG_TRACE("Flagging soul trapped victim...");
                     process->middleHigh->soulTrapped = true;
                 }
             }

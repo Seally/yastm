@@ -7,7 +7,7 @@
 
 enum class EnumConfigKey {
     SoulShrinkingTechnique,
-    SoulTrapLevelGateType,
+    SoulTrapLevelingType,
     Count
 };
 
@@ -23,10 +23,10 @@ enum class SoulShrinkingTechnique : EnumConfigUnderlyingType {
     Split,
 };
 
-enum class SoulTrapLevelGateType : EnumConfigUnderlyingType {
+enum class SoulTrapLevelingType : EnumConfigUnderlyingType {
     None,
-    Degrade,
-    Block,
+    Degradation,
+    Loss,
 };
 
 inline constexpr std::string_view toString(const EnumConfigKey key) noexcept
@@ -36,8 +36,8 @@ inline constexpr std::string_view toString(const EnumConfigKey key) noexcept
     switch (key) {
     case EnumConfigKey::SoulShrinkingTechnique:
         return "soulShrinkingTechnique"sv;
-    case EnumConfigKey::SoulTrapLevelGateType:
-        return "soulTrapLevelGateType"sv;
+    case EnumConfigKey::SoulTrapLevelingType:
+        return "soulTrapLevelingType"sv;
     case EnumConfigKey::Count:
         return "<count>"sv;
     }
@@ -50,14 +50,14 @@ inline void
 {
     fn(EnumConfigKey::SoulShrinkingTechnique,
        static_cast<float>(SoulShrinkingTechnique::Shrink));
-    fn(EnumConfigKey::SoulTrapLevelGateType,
-       static_cast<float>(SoulTrapLevelGateType::None));
+    fn(EnumConfigKey::SoulTrapLevelingType,
+       static_cast<float>(SoulTrapLevelingType::None));
 }
 
 inline void forEachEnumConfigKey(const std::function<void(EnumConfigKey)>& fn)
 {
     fn(EnumConfigKey::SoulShrinkingTechnique);
-    fn(EnumConfigKey::SoulTrapLevelGateType);
+    fn(EnumConfigKey::SoulTrapLevelingType);
 }
 
 inline constexpr std::string_view
@@ -78,17 +78,32 @@ inline constexpr std::string_view
 }
 
 inline constexpr std::string_view
-    toString(const SoulTrapLevelGateType key) noexcept
+    toString(const SoulTrapLevelingType key) noexcept
 {
     using namespace std::literals;
 
     switch (key) {
-    case SoulTrapLevelGateType::None:
+    case SoulTrapLevelingType::None:
         return "none"sv;
-    case SoulTrapLevelGateType::Degrade:
-        return "degrade"sv;
-    case SoulTrapLevelGateType::Block:
-        return "block"sv;
+    case SoulTrapLevelingType::Degradation:
+        return "degradation"sv;
+    case SoulTrapLevelingType::Loss:
+        return "loss"sv;
+    }
+
+    return ""sv;
+}
+
+inline constexpr std::string_view
+    toString(const EnumConfigUnderlyingType value, const EnumConfigKey type)
+{
+    using namespace std::literals;
+
+    switch (type) {
+    case EnumConfigKey::SoulShrinkingTechnique:
+        return toString(static_cast<SoulShrinkingTechnique>(value));
+    case EnumConfigKey::SoulTrapLevelingType:
+        return toString(static_cast<SoulShrinkingTechnique>(value));
     }
 
     return ""sv;
@@ -116,17 +131,17 @@ struct EnumConfigKeyTypeMap<EnumConfigKey::SoulShrinkingTechnique> {
 };
 
 template <>
-struct EnumConfigKeyTypeMap<EnumConfigKey::SoulTrapLevelGateType> {
-    using type = SoulTrapLevelGateType;
+struct EnumConfigKeyTypeMap<EnumConfigKey::SoulTrapLevelingType> {
+    using type = SoulTrapLevelingType;
 
     type operator()(const float value) noexcept
     {
-        if (value == static_cast<float>(type::Degrade)) {
-            return type::Degrade;
+        if (value == static_cast<float>(type::Degradation)) {
+            return type::Degradation;
         }
 
-        if (value == static_cast<float>(type::Block)) {
-            return type::Block;
+        if (value == static_cast<float>(type::Loss)) {
+            return type::Loss;
         }
 
         return type::None;
@@ -202,7 +217,7 @@ struct fmt::formatter<SoulShrinkingTechnique> {
 };
 
 template <>
-struct fmt::formatter<SoulTrapLevelGateType> {
+struct fmt::formatter<SoulTrapLevelingType> {
     constexpr auto parse(fmt::format_parse_context& ctx)
         -> decltype(ctx.begin())
     {
@@ -228,7 +243,7 @@ struct fmt::formatter<SoulTrapLevelGateType> {
     }
 
     template <typename FormatContext>
-    auto format(const SoulTrapLevelGateType key, FormatContext& ctx)
+    auto format(const SoulTrapLevelingType key, FormatContext& ctx)
         -> decltype(ctx.out())
     {
         return fmt::format_to(ctx.out(), fmt::runtime(toString(key)));

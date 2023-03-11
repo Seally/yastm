@@ -1,10 +1,11 @@
 #include "YASTMConfig.hpp"
 
+#include <algorithm>
 #include <filesystem>
+#include <utility>
 
 #include <toml++/toml.h>
 
-#include <RE/A/Actor.h>
 #include <RE/B/BGSDefaultObjectManager.h>
 #include <RE/T/TESDataHandler.h>
 #include <RE/T/TESGlobal.h>
@@ -122,6 +123,15 @@ namespace {
             }
         }
     }
+
+    const std::array SOULTRAP_THRESHOLD_SOULSIZE_KEYS_ = {
+        IntConfigKey::SoulTrapThresholdPetty,
+        IntConfigKey::SoulTrapThresholdLesser,
+        IntConfigKey::SoulTrapThresholdCommon,
+        IntConfigKey::SoulTrapThresholdGreater,
+        IntConfigKey::SoulTrapThresholdGrand,
+        IntConfigKey::SoulTrapThresholdBlack,
+    };
 } // namespace
 
 YASTMConfig::YASTMConfig()
@@ -163,7 +173,7 @@ void YASTMConfig::loadYASTMConfigFile_()
         table = toml::parse_file(configPathStr);
 
         LOG_INFO_FMT(
-            "Found YASTM general configuration file: {}"sv,
+            "Found YASTM general configuration file: {}",
             configPath.filename().string());
 
         const auto yastmTable = table["YASTM"];
@@ -176,19 +186,19 @@ void YASTMConfig::loadYASTMConfigFile_()
             readGlobalVariableConfigs_(key, yastmTable, globalEnums_);
         });
 
-        forEachIntConfigKey([&, this](const IntConfigKey key){
+        forEachIntConfigKey([&, this](const IntConfigKey key) {
             readGlobalVariableConfigs_(key, yastmTable, globalInts_);
         });
     } catch (const toml::parse_error& error) {
         LOG_WARN_FMT(
-            "Error while parsing general configuration file \"{}\": {}"sv,
+            "Error while parsing general configuration file \"{}\": {}",
             configPathStr,
             error.what());
     }
 
     // Print the loaded configuration (we can't read the in-game forms yet.
     // Game hasn't fully initialized.)
-    LOG_INFO("Loaded configuration from TOML:"sv);
+    LOG_INFO("Loaded configuration from TOML:");
 
     printGlobalForms_(globalBools_);
     printGlobalForms_(globalEnums_);
@@ -207,7 +217,7 @@ void YASTMConfig::loadIndividualConfigFiles_()
 
             if (fileNameStr.starts_with("YASTM_"sv)) {
                 LOG_INFO_FMT(
-                    "Found YASTM soul gem configuration file: {}"sv,
+                    "Found YASTM soul gem configuration file: {}",
                     fileNameStr);
                 configPaths.emplace_back(entry.path());
             }
@@ -229,13 +239,13 @@ void YASTMConfig::loadIndividualConfigFiles_()
             table = toml::parse_file(configPathStr);
 
             LOG_INFO_FMT(
-                "Reading individual configuration file: {}"sv,
+                "Reading individual configuration file: {}",
                 configPathStr);
 
             validSoulGemGroupsCount += readAndCountSoulGemGroupConfigs_(table);
         } catch (const toml::parse_error& error) {
             LOG_WARN_FMT(
-                "Error while parsing individual configuration file \"{}\": {}"sv,
+                "Error while parsing individual configuration file \"{}\": {}",
                 configPathStr,
                 error.what());
         }
@@ -243,11 +253,11 @@ void YASTMConfig::loadIndividualConfigFiles_()
 
     // Print the loaded configuration (we can't read the in-game forms yet.
     // Game hasn't fully initialized.)
-    LOG_INFO("Loaded soul gem configuration from TOML:"sv);
+    LOG_INFO("Loaded soul gem configuration from TOML:");
 
     for (const auto& soulGemGroup : soulGemGroupList_) {
         LOG_INFO_FMT(
-            "    {} (isReusable={}, capacity={}, priority={})"sv,
+            "    {} (isReusable={}, capacity={}, priority={})",
             soulGemGroup.id(),
             soulGemGroup.isReusable(),
             soulGemGroup.capacity(),
@@ -256,7 +266,7 @@ void YASTMConfig::loadIndividualConfigFiles_()
         for (const auto& soulGemLocator : soulGemGroup.members()) {
             std::visit(
                 [](auto&& soulGemLocator) {
-                    LOG_INFO_FMT("        {}"sv, soulGemLocator);
+                    LOG_INFO_FMT("        {}", soulGemLocator);
                 },
                 soulGemLocator);
         }
@@ -306,7 +316,7 @@ void YASTMConfig::checkDllDependencies(const SKSE::LoadInterface* loadInterface)
 
         if (pluginInfo == nullptr) {
             // Bypass LOG_WARN(issueIfMissing) not compiling.
-            LOG_WARN_FMT("{}"sv, issueIfMissing);
+            LOG_WARN_FMT("{}", issueIfMissing);
         }
     });
 }
@@ -361,12 +371,12 @@ void YASTMConfig::loadGlobalForms_(RE::TESDataHandler* const dataHandler)
 {
     using namespace std::literals;
 
-    LOG_INFO("Loading global variable forms..."sv);
+    LOG_INFO("Loading global variable forms...");
     loadGlobalFormsIn_(globalBools_, dataHandler);
     loadGlobalFormsIn_(globalEnums_, dataHandler);
     loadGlobalFormsIn_(globalInts_, dataHandler);
 
-    LOG_INFO("Listing loaded global variable forms:"sv);
+    LOG_INFO("Listing loaded global variable forms:");
     printLoadedGlobalForms_(globalBools_);
     printLoadedGlobalForms_(globalEnums_);
     printLoadedGlobalForms_(globalInts_);
@@ -381,4 +391,217 @@ void YASTMConfig::createSoulGemMap_(RE::TESDataHandler* const dataHandler)
     });
 
     soulGemMap_.printContents();
+}
+
+void YASTMConfig::Snapshot::printValues_() const
+{
+#if !defined(NDEBUG)
+    LOG_TRACE("Found configuration:");
+
+    forEachBoolConfigKey([&](const BoolConfigKey key) {
+        LOG_TRACE_FMT(
+            "- {}: {}",
+            key,
+            configBools_[static_cast<std::size_t>(key)]);
+    });
+
+    forEachEnumConfigKey([&](const EnumConfigKey key) {
+        LOG_TRACE_FMT("- {}: {}", key, toString(configEnums_.at(key), key));
+    });
+
+    forEachIntConfigKey([this](const IntConfigKey key) {
+        LOG_TRACE_FMT("- {}: {}", key, configInts_.at(key));
+    });
+#endif // !defined(NDEBUG)
+}
+
+void YASTMConfig::Snapshot::printValues_(
+    const decltype(configBools_)& overrideBools,
+    const decltype(configEnums_)& overrideEnums) const
+{
+    using BC = BoolConfigKey;
+    using EC = EnumConfigKey;
+    using IC = IntConfigKey;
+
+#if !defined(NDEBUG)
+    LOG_TRACE("Found configuration:");
+
+    forEachBoolConfigKey([&](const BC key) {
+        const auto oldValue = configBools_[static_cast<std::size_t>(key)];
+        const auto newValue = overrideBools[static_cast<std::size_t>(key)];
+
+        if (oldValue == newValue) {
+            LOG_TRACE_FMT("- {}: {}", key, oldValue);
+        } else {
+            LOG_TRACE_FMT("- {}: {} (effective: {})", key, oldValue, newValue);
+        }
+    });
+
+    forEachEnumConfigKey([&](const EC key) {
+        const auto oldValue = configEnums_.at(key);
+        const auto newValue = overrideEnums.at(key);
+
+        if (oldValue == newValue) {
+            LOG_TRACE_FMT("- {}: {}", key, toString(oldValue, key));
+        } else {
+            LOG_TRACE_FMT(
+                "- {}: {} (effective: {})",
+                key,
+                toString(oldValue, key),
+                toString(newValue, key));
+        }
+    });
+
+    forEachIntConfigKey([this](const IC key) {
+        LOG_TRACE_FMT("- {}: {}", key, configInts_.at(key));
+    });
+#endif // !defined(NDEBUG)
+}
+
+void YASTMConfig::Snapshot::initialize_(const YASTMConfig& config)
+{
+    forEachBoolConfigKey([&, this](const BoolConfigKey key) {
+        configBools_[static_cast<std::size_t>(key)] = config.getGlobalBool(key);
+    });
+
+    forEachEnumConfigKey([&, this](const EnumConfigKey key) {
+        configEnums_.emplace(
+            key,
+            static_cast<EnumConfigUnderlyingType>(config.getGlobalValue(key)));
+    });
+
+    forEachIntConfigKey([&, this](const IntConfigKey key) {
+        configInts_.emplace(key, config.getGlobalInt(key));
+    });
+}
+
+YASTMConfig::Snapshot::Snapshot(const YASTMConfig& config)
+{
+    initialize_(config);
+    normalize_();
+    printValues_();
+}
+
+YASTMConfig::Snapshot::Snapshot(
+    const YASTMConfig& config,
+    const int soulTrapLevel)
+{
+    using BC = BoolConfigKey;
+    using EC = EnumConfigKey;
+    using IC = IntConfigKey;
+    using UT = EnumConfigUnderlyingType;
+
+    initialize_(config);
+    normalize_();
+
+    if (get<EC::SoulTrapLevelingType>() != SoulTrapLevelingType::None) {
+#if defined(NDEBUG)
+        // In release mode, we can just modify the data structures directly,
+        // so we use a reference.
+        auto& bools = configBools_;
+        auto& enums = configEnums_;
+#else
+        // In debug mode, we copy the current config values into new data
+        // structures since we want to log values before/after.
+        decltype(configBools_) bools(configBools_);
+        decltype(configEnums_) enums(configEnums_);
+#endif
+
+        if (soulTrapLevel < configInts_[IC::SoulTrapThresholdDisplacement]) {
+            bools[static_cast<std::size_t>(BC::AllowSoulDisplacement)] = false;
+        }
+
+        if (soulTrapLevel < configInts_[IC::SoulTrapThresholdRelocation]) {
+            bools[static_cast<std::size_t>(BC::AllowSoulRelocation)] = false;
+        }
+
+        switch (get<EC::SoulShrinkingTechnique>()) {
+        case SoulShrinkingTechnique::Shrink:
+            // Shrink can't use split, so we don't care about that
+            // configuration.
+            if (soulTrapLevel < configInts_[IC::SoulTrapThresholdShrinking]) {
+                enums[EC::SoulShrinkingTechnique] =
+                    static_cast<UT>(SoulShrinkingTechnique::None);
+            }
+            break;
+        case SoulShrinkingTechnique::Split:
+            if (soulTrapLevel < configInts_[IC::SoulTrapThresholdShrinking]) {
+                enums[EC::SoulShrinkingTechnique] =
+                    static_cast<UT>(SoulShrinkingTechnique::None);
+            } else if (
+                soulTrapLevel < configInts_[IC::SoulTrapThresholdSplitting]) {
+                enums[EC::SoulShrinkingTechnique] =
+                    static_cast<UT>(SoulShrinkingTechnique::Shrink);
+            }
+            break;
+        }
+
+        printValues_(bools, enums);
+
+#if !defined(NDEBUG)
+        configBools_ = std::move(bools);
+        configEnums_ = std::move(enums);
+#endif // !defined(NDEBUG)
+    } else {
+        printValues_();
+    }
+}
+
+void YASTMConfig::Snapshot::normalize_()
+{
+    using EC = EnumConfigKey;
+    using IC = IntConfigKey;
+
+    // Only normalize the values if we're actually going to use them.
+    if (get<EC::SoulTrapLevelingType>() != SoulTrapLevelingType::None) {
+        const auto normalizeValue = [this](const IC lesserKey,
+                                           const IC greaterKey) {
+            const auto lesserValue = configInts_[lesserKey];
+            const auto greaterValue = configInts_[greaterKey];
+
+            if (lesserValue > greaterValue) {
+                LOG_WARN_FMT("{} is greater than {}", lesserKey, greaterKey);
+                LOG_WARN_FMT(
+                    "Setting {} to {} instead. (Currently: {})",
+                    lesserKey,
+                    greaterValue,
+                    lesserValue);
+                configInts_[lesserKey] = greaterValue;
+            }
+        };
+
+        for (std::size_t i = SOULTRAP_THRESHOLD_SOULSIZE_KEYS_.size() - 1;
+             i > 0;
+             --i) {
+            const auto currentKey = SOULTRAP_THRESHOLD_SOULSIZE_KEYS_[i];
+            const auto previousKey = SOULTRAP_THRESHOLD_SOULSIZE_KEYS_[i - 1];
+
+            normalizeValue(previousKey, currentKey);
+        }
+
+        normalizeValue(
+            IC::SoulTrapThresholdDisplacement,
+            IC::SoulTrapThresholdRelocation);
+
+        normalizeValue(
+            IC::SoulTrapThresholdShrinking,
+            IC::SoulTrapThresholdSplitting);
+
+        // Only normalize the values if we're actually going to use them.
+        if (get<EC::SoulTrapLevelingType>() == SoulTrapLevelingType::Loss) {
+            const auto scaling = configInts_[IC::SoulLossSuccessChanceScaling];
+
+            if (scaling < 1 || scaling > 100) {
+                const auto newScaling = std::clamp(scaling, 1, 100);
+                LOG_WARN_FMT(
+                    "{} is out of range.",
+                    IC::SoulLossSuccessChanceScaling);
+                LOG_WARN_FMT(
+                    "Setting {} to {} instead. (Currently: {})",
+                    IC::SoulLossSuccessChanceScaling,
+                    newScaling,
+                    scaling);
+            }
+        }
+    }
 }

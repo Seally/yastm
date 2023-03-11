@@ -11,9 +11,12 @@ enum class BoolConfigKey {
     AllowSoulRelocation,
     AllowExtraSoulRelocation,
     AllowSoulDiversion,
+
     PreserveOwnership,
     AllowNotifications,
     AllowProfiling,
+
+    AllowSoulLossProgression,
     Count,
 };
 
@@ -38,6 +41,8 @@ inline constexpr std::string_view toString(const BoolConfigKey key) noexcept
         return "allowNotifications"sv;
     case BoolConfigKey::AllowProfiling:
         return "allowProfiling"sv;
+    case BoolConfigKey::AllowSoulLossProgression:
+        return "allowSoulLossProgression";
     case BoolConfigKey::Count:
         return "<count>"sv;
     }
@@ -52,14 +57,17 @@ inline constexpr std::string_view toString(const BoolConfigKey key) noexcept
 inline void
     forEachBoolConfigKey(const std::function<void(BoolConfigKey, bool)>& fn)
 {
-    fn(BoolConfigKey::AllowPartiallyFillingSoulGems, 1);
-    fn(BoolConfigKey::AllowSoulDisplacement, 1);
-    fn(BoolConfigKey::AllowSoulRelocation, 1);
-    fn(BoolConfigKey::AllowExtraSoulRelocation, 1);
-    fn(BoolConfigKey::AllowSoulDiversion, 0);
-    fn(BoolConfigKey::PreserveOwnership, 1);
-    fn(BoolConfigKey::AllowNotifications, 1);
-    fn(BoolConfigKey::AllowProfiling, 0);
+    fn(BoolConfigKey::AllowPartiallyFillingSoulGems, true);
+    fn(BoolConfigKey::AllowSoulDisplacement, true);
+    fn(BoolConfigKey::AllowSoulRelocation, true);
+    fn(BoolConfigKey::AllowExtraSoulRelocation, true);
+    fn(BoolConfigKey::AllowSoulDiversion, false);
+
+    fn(BoolConfigKey::PreserveOwnership, true);
+    fn(BoolConfigKey::AllowNotifications, true);
+    fn(BoolConfigKey::AllowProfiling, false);
+
+    fn(BoolConfigKey::AllowSoulLossProgression, true);
 }
 
 /**
@@ -72,9 +80,12 @@ inline void forEachBoolConfigKey(const std::function<void(BoolConfigKey)>& fn)
     fn(BoolConfigKey::AllowSoulRelocation);
     fn(BoolConfigKey::AllowExtraSoulRelocation);
     fn(BoolConfigKey::AllowSoulDiversion);
+
     fn(BoolConfigKey::PreserveOwnership);
     fn(BoolConfigKey::AllowNotifications);
     fn(BoolConfigKey::AllowProfiling);
+
+    fn(BoolConfigKey::AllowSoulLossProgression);
 }
 
 template <>

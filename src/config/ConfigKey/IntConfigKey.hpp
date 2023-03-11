@@ -12,6 +12,13 @@ enum class IntConfigKey {
     SoulTrapThresholdGreater,
     SoulTrapThresholdGrand,
     SoulTrapThresholdBlack,
+
+    SoulTrapThresholdDisplacement,
+    SoulTrapThresholdRelocation,
+    SoulTrapThresholdShrinking,
+    SoulTrapThresholdSplitting,
+
+    SoulLossSuccessChanceScaling,
     Count,
 };
 
@@ -32,6 +39,16 @@ inline constexpr std::string_view toString(const IntConfigKey key) noexcept
         return "soulTrapThresholdGrand"sv;
     case IntConfigKey::SoulTrapThresholdBlack:
         return "soulTrapThresholdBlack"sv;
+    case IntConfigKey::SoulTrapThresholdDisplacement:
+        return "soulTrapThresholdDisplacement"sv;
+    case IntConfigKey::SoulTrapThresholdRelocation:
+        return "soulTrapThresholdRelocation"sv;
+    case IntConfigKey::SoulTrapThresholdShrinking:
+        return "soulTrapThresholdShrinking"sv;
+    case IntConfigKey::SoulTrapThresholdSplitting:
+        return "soulTrapThresholdSplitting"sv;
+    case IntConfigKey::SoulLossSuccessChanceScaling:
+        return "soulLossSuccessChanceScaling"sv;
     case IntConfigKey::Count:
         return "<count>"sv;
     }
@@ -48,6 +65,13 @@ inline void
     fn(IntConfigKey::SoulTrapThresholdGreater, static_cast<float>(32));
     fn(IntConfigKey::SoulTrapThresholdGrand, static_cast<float>(40));
     fn(IntConfigKey::SoulTrapThresholdBlack, static_cast<float>(50));
+
+    fn(IntConfigKey::SoulTrapThresholdDisplacement, static_cast<float>(20));
+    fn(IntConfigKey::SoulTrapThresholdRelocation, static_cast<float>(25));
+    fn(IntConfigKey::SoulTrapThresholdShrinking, static_cast<float>(40));
+    fn(IntConfigKey::SoulTrapThresholdSplitting, static_cast<float>(70));
+
+    fn(IntConfigKey::SoulLossSuccessChanceScaling, static_cast<float>(80));
 }
 
 inline void forEachIntConfigKey(const std::function<void(IntConfigKey)>& fn)
@@ -58,6 +82,13 @@ inline void forEachIntConfigKey(const std::function<void(IntConfigKey)>& fn)
     fn(IntConfigKey::SoulTrapThresholdGreater);
     fn(IntConfigKey::SoulTrapThresholdGrand);
     fn(IntConfigKey::SoulTrapThresholdBlack);
+
+    fn(IntConfigKey::SoulTrapThresholdDisplacement);
+    fn(IntConfigKey::SoulTrapThresholdRelocation);
+    fn(IntConfigKey::SoulTrapThresholdShrinking);
+    fn(IntConfigKey::SoulTrapThresholdSplitting);
+
+    fn(IntConfigKey::SoulLossSuccessChanceScaling);
 }
 
 template <>

@@ -188,8 +188,8 @@ enum class SoulGemCapacity {
         static_cast<std::underlying_type_t<SoulSize>>(soulSize)));
 }
 
-[[nodiscard]] constexpr SoulGemCapacity toSoulGemCapacity(
-    const RE::SOUL_LEVEL soulLevel)
+[[nodiscard]] constexpr SoulGemCapacity
+    toSoulGemCapacity(const RE::SOUL_LEVEL soulLevel)
 {
     switch (soulLevel) {
     case RE::SOUL_LEVEL::kNone:
@@ -212,7 +212,8 @@ enum class SoulGemCapacity {
         static_cast<std::underlying_type_t<RE::SOUL_LEVEL>>(soulLevel)));
 }
 
-[[nodiscard]] constexpr const char* toString(const RE::SOUL_LEVEL soulLevel) {
+[[nodiscard]] constexpr const char* toString(const RE::SOUL_LEVEL soulLevel)
+{
     switch (soulLevel) {
     case RE::SOUL_LEVEL::kNone:
         return "none";
@@ -298,28 +299,28 @@ inline void forEachSoulGemCapacity(std::function<void(SoulGemCapacity)> fn)
 // SoulSize operator overloads
 // -----------------------------------------------------------------------------
 template <typename T>
-    requires std::integral<T>
+requires std::integral<T>
 constexpr T operator+(const SoulSize soulSize, const T other)
 {
     return static_cast<T>(soulSize) + other;
 }
 
 template <typename T>
-    requires std::integral<T>
+requires std::integral<T>
 constexpr T operator+(const T other, const SoulSize soulSize)
 {
     return other + static_cast<T>(soulSize);
 }
 
 template <typename T>
-    requires std::integral<T>
+requires std::integral<T>
 constexpr T operator-(const SoulSize soulSize, const T other)
 {
     return static_cast<T>(soulSize) - other;
 }
 
 template <typename T>
-    requires std::integral<T>
+requires std::integral<T>
 constexpr T operator-(const T other, const SoulSize soulSize)
 {
     return other - static_cast<T>(soulSize);
@@ -329,28 +330,28 @@ constexpr T operator-(const T other, const SoulSize soulSize)
 // SoulGemCapacity operator overloads
 // -----------------------------------------------------------------------------
 template <typename T>
-    requires std::integral<T>
+requires std::integral<T>
 constexpr T operator+(const SoulGemCapacity capacity, const T other)
 {
     return static_cast<T>(capacity) + other;
 }
 
 template <typename T>
-    requires std::integral<T>
+requires std::integral<T>
 constexpr T operator+(const T other, const SoulGemCapacity capacity)
 {
     return other + static_cast<T>(capacity);
 }
 
 template <typename T>
-    requires std::integral<T>
+requires std::integral<T>
 constexpr T operator-(const SoulGemCapacity capacity, const T other)
 {
     return static_cast<T>(capacity) - other;
 }
 
 template <typename T>
-    requires std::integral<T>
+requires std::integral<T>
 constexpr T operator-(const T other, const SoulGemCapacity capacity)
 {
     return other - static_cast<T>(capacity);

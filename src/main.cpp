@@ -44,7 +44,7 @@ bool setUpLogging()
     spdlog::set_default_logger(std::move(log));
     spdlog::set_pattern("%s(%#): [%^%l%$] %v"s);
 
-    LOG_INFO_FMT("Loaded {} v{}"sv, NAME, version::FULL_STRING);
+    LOG_INFO_FMT("Loaded {} v{}", NAME, version::FULL_STRING);
 
     return true;
 }
@@ -131,7 +131,7 @@ extern "C" DLLEXPORT constinit auto SKSEPlugin_Version = []() {
     v.CompatibleVersions({
         SKSE::RUNTIME_1_6_318,
 #   if defined(SKYRIM_VERSION_AE2)
-        SKSE::RUNTIME_1_6_640,
+            SKSE::RUNTIME_1_6_640,
 #   endif
     });
 #   if defined(SKYRIM_VERSION_AE2)
@@ -146,7 +146,7 @@ extern "C" DLLEXPORT bool SKSEPlugin_Load(const SKSE::LoadInterface* skse)
     setUpLogging();
 
     if (skse->IsEditor()) {
-        LOG_CRITICAL("Loaded in editor, marking as incompatible"sv);
+        LOG_CRITICAL("Loaded in editor, marking as incompatible");
         return false;
     }
 

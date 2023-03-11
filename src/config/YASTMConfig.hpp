@@ -1,16 +1,18 @@
 #pragma once
 
+#include <bitset>
 #include <memory>
 #include <mutex>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
 
-#include <RE/A/Actor.h>
 #include <RE/B/BSCoreTypes.h>
 
 #include <toml++/toml.h>
 
+#include "../global.hpp"
+#include "../SoulSize.hpp"
 #include "ConfigKey/BoolConfigKey.hpp"
 #include "ConfigKey/EnumConfigKey.hpp"
 #include "ConfigKey/IntConfigKey.hpp"
@@ -18,7 +20,6 @@
 #include "GlobalVarForm.hpp"
 #include "SoulGemGroup.hpp"
 #include "SoulGemMap.hpp"
-#include "../SoulSize.hpp"
 
 namespace RE {
     class TESDataHandler;
@@ -132,8 +133,16 @@ public:
             configEnums_;
         std::unordered_map<IntConfigKey, int> configInts_;
 
+        void printValues_() const;
+        void printValues_(
+            const decltype(configBools_)& overrideBools,
+            const decltype(configEnums_)& overrideEnums) const;
+        void initialize_(const YASTMConfig& config);
+        void normalize_();
+
     public:
         explicit Snapshot(const YASTMConfig& config);
+        explicit Snapshot(const YASTMConfig& config, int soulTrapLevel);
 
         template <EnumConfigKey K>
         auto get() const;
@@ -143,21 +152,10 @@ public:
     };
 };
 
-inline YASTMConfig::Snapshot::Snapshot(const YASTMConfig& config)
+template <EnumConfigKey K>
+inline auto YASTMConfig::Snapshot::get() const
 {
-    forEachBoolConfigKey([&, this](const BoolConfigKey key) {
-        configBools_[static_cast<std::size_t>(key)] = config.getGlobalBool(key);
-    });
-
-    forEachEnumConfigKey([&, this](const EnumConfigKey key) {
-        configEnums_.emplace(
-            key,
-            static_cast<EnumConfigUnderlyingType>(config.getGlobalValue(key)));
-    });
-
-    forEachIntConfigKey([&, this](const IntConfigKey key) {
-        configInts_.emplace(key, config.getGlobalInt(key));
-    });
+    return static_cast<EnumConfigKeyTypeMap<K>::type>(configEnums_.at(K));
 }
 
 inline bool YASTMConfig::Snapshot::operator[](const BoolConfigKey key) const
@@ -168,12 +166,6 @@ inline bool YASTMConfig::Snapshot::operator[](const BoolConfigKey key) const
 inline int YASTMConfig::Snapshot::operator[](const IntConfigKey key) const
 {
     return configInts_.at(key);
-}
-
-template <EnumConfigKey K>
-inline auto YASTMConfig::Snapshot::get() const
-{
-    return static_cast<EnumConfigKeyTypeMap<K>::type>(configEnums_.at(K));
 }
 
 class YASTMConfigLoadError : public std::runtime_error {

@@ -79,7 +79,8 @@ namespace {
                 expectedPapyrusSoulTrapBytes,
                 sizeof(expectedPapyrusSoulTrapBytes)) != 0) {
             LOG_CRITICAL(
-                "[TRAPSOUL] Expected bytes for papyrus::Actor::TrapSoul() not found."sv);
+                "[TRAPSOUL] Expected bytes for papyrus::Actor::TrapSoul() not "
+                "found.");
             return false;
         }
 
@@ -92,7 +93,8 @@ namespace {
 
         if (targetAddress != re::Actor::TrapSoul.address()) {
             LOG_CRITICAL(
-                "[TRAPSOUL] Unrecognized call to Actor::TrapSoul() in papyrus::Actor::TrapSoul()."sv);
+                "[TRAPSOUL] Unrecognized call to Actor::TrapSoul() in "
+                "papyrus::Actor::TrapSoul().");
             return false;
         }
 
@@ -108,7 +110,7 @@ namespace {
         auto& trampoline = SKSE::GetTrampoline();
         allocateTrampoline();
 
-        LOG_INFO("[TRAPSOUL] Installing Actor::TrapSoul() hijack jump..."sv);
+        LOG_INFO("[TRAPSOUL] Installing Actor::TrapSoul() hijack jump...");
         // Hijack the original Actor::TrapSoul() call so everything that calls
         // it will use our version instead.
         trampoline.write_branch<6>(re::Actor::TrapSoul.address(), trapSoul_);
