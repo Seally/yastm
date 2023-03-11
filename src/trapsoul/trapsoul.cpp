@@ -710,33 +710,36 @@ bool trapSoul(RE::Actor* const caster, RE::Actor* const victim)
                 const auto victimSoulSize = getActorSoulSize(victim);
                 LOG_TRACE_FMT("Victim's soul size: {:tu}", victimSoulSize);
 
-                const auto maxSoulSize = d.maxTrappableSoulSize();
-                LOG_TRACE_FMT("Max trappable soul size: {:tu}", maxSoulSize);
+                const auto levelThreshold =
+                    d.getThresholdForSoulSize(victimSoulSize);
+                LOG_TRACE_FMT("Threshold level for victim: {}", levelThreshold);
+                LOG_TRACE_FMT("Caster soul trap level: {}", d.soulTrapLevel());
 
-                if (victimSoulSize > maxSoulSize) {
+                if (d.soulTrapLevel() < levelThreshold) {
                     const auto scaling =
                         d.config[IC::SoulLossSuccessChanceScaling] / 100.0;
 
-                    double threshold;
+                    double chanceThreshold;
 
                     if (d.config[BC::AllowSoulLossProgression]) {
-                        threshold = (d.soulTrapLevel() * scaling) /
-                                    d.getThresholdForSoulSize(victimSoulSize);
+                        chanceThreshold =
+                            (d.soulTrapLevel() * scaling) / levelThreshold;
                     } else {
-                        threshold = scaling;
+                        chanceThreshold = scaling;
                     }
 
                     const auto x = Rng::getInstance().generateUniform(0.0, 1.0);
 
-                    LOG_TRACE_FMT("Threshold={}, x={}", threshold, x);
+                    LOG_TRACE_FMT("chance={}, x={}", chanceThreshold, x);
 
-                    if (threshold < x) {
+                    if (chanceThreshold < x) {
                         LOG_TRACE("Soul lost.");
                         d.notifySoulTrapFailure(
                             SoulTrapFailureMessage::SoulLost);
                         return false;
                     }
                 }
+
                 d.victims().emplace(victim);
                 break;
             }
