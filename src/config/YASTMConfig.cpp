@@ -416,8 +416,15 @@ void YASTMConfig::Snapshot::printValues_() const
 }
 
 void YASTMConfig::Snapshot::printValues_(
+// Disable the unreferenced parameter warning in release mode.
+#if defined(NDEBUG)
+#    pragma warning(disable:4100)
+#endif // defined(NDEBUG)
     const decltype(configBools_)& overrideBools,
     const decltype(configEnums_)& overrideEnums) const
+#if defined(NDEBUG)
+#    pragma warning(default: 4100)
+#endif // defined(NDEBUG)
 {
     using BC = BoolConfigKey;
     using EC = EnumConfigKey;
